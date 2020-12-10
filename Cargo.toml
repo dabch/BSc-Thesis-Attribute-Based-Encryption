@@ -9,6 +9,5 @@ edition = "2018"
 [dependencies]
 elliptic-curve = "0.7.1"
 p256 = { version = "0.6.0", features = [ "arithmetic" ]}
-rand_core = "0.5.1"
-rand = "0.5.5"
+rand_core = { version = "0.5", features = [ "getrandom" ]}
 
