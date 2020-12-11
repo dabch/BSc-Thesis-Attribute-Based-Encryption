@@ -10,4 +10,4 @@ edition = "2018"
 elliptic-curve = "0.7.1"
 p256 = { version = "0.6.0", features = [ "arithmetic" ]}
 rand_core = { version = "0.5", features = [ "getrandom" ]}
-
+aes = "0.6.0"
