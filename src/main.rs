@@ -10,6 +10,8 @@ fn main() {
   let atts = vec!["student", "tum", "over21"];
   let es = YaoABE::setup(&atts);
   println!("{:#?}", es);
+  let atts_pub: HashMap<_, _> = es.atts.iter().map(| (k, (s, p)) | (k, p)).collect();
+  println!("\n atts_pub:\n{:#?}", atts_pub);
 }
 
 #[derive(Debug)]
@@ -39,6 +41,6 @@ impl YaoABE<'_> {
   }
 
   //fn encrypt(pk: ProjectivePoint, atts: &Vec<&str>, plaintext: Vec<u8>) -> {
-//
+    
   //}
 }
