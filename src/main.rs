@@ -3,6 +3,7 @@ use p256::elliptic_curve::{Group, Field};
 use p256::{Scalar, ProjectivePoint, AffinePoint};
 use rand_core::OsRng;
 use std::collections::{HashMap, HashSet};
+use std::convert::TryInto;
 
 
 fn main() {
@@ -14,10 +15,11 @@ fn main() {
   let public = es.to_public();
   println!("\n public params:\n{:#?}", public);
 
-  let access_structure = AccessStructure::Node(
-    2,
-    vec![AccessStructure::Leaf("student"), AccessStructure::Leaf("tum")]
-  );
+  // let access_structure = AccessStructure::Node(
+  //   2,
+  //   vec![AccessStructure::Leaf("over21"), AccessStructure::Leaf("tum")]
+  // );
+  let access_structure = AccessStructure::Leaf("student");
 
   println!("{:#?}", access_structure);
 
@@ -27,16 +29,20 @@ fn main() {
 
   // println!("f(4) = {:?}", poly.eval(Scalar::from(4)));
   // println!("f(8100) = {:?}", poly.eval(Scalar::from(8100)));
-  // println!("{:?}", Scalar::from(1225));
 
-  // println!("randgen(125, 5) = {:#?}", Polynomial::randgen(Scalar::from(125), 5));
-
-  // let vecvec = vec![vec![1, 2, 3, 4], vec![5, 6, 7], vec![8, 9, 10, 11]];
-
-  // println!("{:?}", vecvec.into_iter().flatten().collect::<Vec<i64>>());
-
-  let priv_key = es.keygen(access_structure);
+  let priv_key = es.keygen(&access_structure);
   println!("{:?}", priv_key);
+
+  let data = vec![1, 2, 3];
+  let attributes = vec!["student", "tum"];
+
+  let ciphertext = YaoABEPrivate::encrypt(&public, &attributes, &data);
+  
+  //let decrypted = YaoABEPrivate::decrypt(&public, &ciphertext, &priv_key);
+
+  if let KeyAccessStructure::Leaf(d, name) = priv_key {
+    println!("------------ manual leaf dec ------------\n{:?}", (ciphertext.c_i.get(name).unwrap() * &d).to_affine());
+  }
 }
 
 #[derive(Debug)]
@@ -67,7 +73,13 @@ struct YaoABECiphertext<'a> {
 }
 
 #[derive(Debug)]
-struct YaoABEKey(Vec<Scalar>);
+struct YaoABEKey<'a>(HashMap<&'a str, Scalar>, &'a AccessStructure<'a>);
+
+#[derive(Debug)]
+enum KeyAccessStructure<'a> {
+  Node(u64, Vec<KeyAccessStructure<'a>>),
+  Leaf(Scalar, &'a str),
+}
 
 #[derive(Debug)]
 struct Polynomial(Vec<Scalar>);
@@ -114,57 +126,54 @@ impl<'a> YaoABEPrivate<'a> {
 
   fn keygen(
     &self,
-    access_structure: AccessStructure
+    access_structure: &'a AccessStructure
   ) ->
-    YaoABEKey
+    KeyAccessStructure
   { 
     // if let AccessStructure::Node(thresh, children) = access_structure {
     //   let final_ds = self.keygen_internal(access_structure, parent_poly: &Polynomial, index: Scalar)
     // }
-    let final_ds = self.keygen_internal(
+    self.keygen_internal(
       &access_structure,
       &Polynomial::randgen(self.master_secret, 1),
-      Scalar::from(1)
-    );
-    YaoABEKey(final_ds)
+      Scalar::from(0), // this is the only node ever to have index 0, all others have index 1..n
+    )
   }
 
-  fn keygen_internal(&self,
-    tree: &AccessStructure,
+  fn keygen_internal (&self,
+    tree: &'a AccessStructure,
     parent_poly: &Polynomial,
     index: Scalar
   ) ->
-    Vec<Scalar>
+    KeyAccessStructure
   {
     match tree {
       AccessStructure::Leaf(attr_name) => {
         let q_of_zero = parent_poly.eval(Scalar::zero());
         let (s, _) = self.atts.get(attr_name).unwrap();
         let s_inverse = s.invert().unwrap();
-        return vec![q_of_zero * s_inverse];
+        return KeyAccessStructure::Leaf(q_of_zero * s_inverse, attr_name.clone());
       },
       AccessStructure::Node(thresh, children) => {
         let own_poly = Polynomial::randgen(parent_poly.eval(index), thresh.clone());
-        let children_res: Vec<Scalar> = children.iter().enumerate().
-          map(|(i, child)| self.keygen_internal(child, &own_poly, Scalar::from(i as u64))).
-          flatten().
-          collect();
-        return children_res;
+        let children_res: Vec<KeyAccessStructure> = children.iter().enumerate().
+          map(|(i, child)| self.keygen_internal(child, &own_poly, Scalar::from((i+1) as u64)))
+          .collect();
+        return KeyAccessStructure::Node(*thresh, children_res);
       }
     }
-    Vec::new()
   }
 
   fn encrypt(
-    params: YaoABEPublic,
+    params: &YaoABEPublic,
     atts: &'a Vec<&'a str>,
     plaintext: &'a Vec<u8>,
     ) -> YaoABECiphertext<'a>
   {
     let (k, Cprime) = loop {
       let k = Scalar::random(&mut OsRng);
-      let Cprime = params.pk * k;
-      if Cprime.is_identity().unwrap_u8() == 0 { break (k, Cprime) };
+      let cprime = params.pk * k;
+      if cprime.is_identity().unwrap_u8() == 0 { break (k, cprime) };
     };
 
     let mut att_cs: HashMap<&str, ProjectivePoint> = HashMap::new();
@@ -173,11 +182,60 @@ impl<'a> YaoABEPrivate<'a> {
       let c_i = att_pubkey * &k;
       att_cs.insert(att, c_i);
     }
+    println!("---------- ENCRYPT: encrypting with point ------------\n{:?}", Cprime.to_affine());
 
     YaoABECiphertext {
       c: Vec::new(),
       mac: Vec::new(),
       c_i: att_cs,
     }
+  }
+
+  fn decrypt_node(
+    key: &KeyAccessStructure,
+    att_cs: &HashMap<& 'a str, ProjectivePoint>
+  ) -> Option<ProjectivePoint> {
+    match key {
+      KeyAccessStructure::Leaf(d_u, name) => {
+        match att_cs.get(name) {
+          None => return None,
+          Some(c_i) => return Some(c_i.clone() * d_u),
+        }
+      },
+      KeyAccessStructure::Node(thresh, children) => {
+        let children_result: Vec<(Scalar, ProjectivePoint)> = children.into_iter().enumerate()
+          .map(|(i, child)| (Scalar::from((i + 1) as u64), Self::decrypt_node(child, att_cs)))
+          .filter_map(|(i, x)| match x { None => None, Some(y) => Some((i, y))})
+          .collect();
+        if children_result.len() < *thresh as usize { return None }
+        let relevant_children: Vec<(Scalar, ProjectivePoint)> = children_result.into_iter().take((*thresh).try_into().unwrap()).collect();
+        let relevant_indexes: Vec<Scalar> = relevant_children.iter()
+          .map(|(i, _)| i.clone()).collect();
+        let result: ProjectivePoint = relevant_children.into_iter()
+          .map(|(i, dec_res)| dec_res * Self::lagrange_of_zero(&i, &relevant_indexes))
+          .fold(ProjectivePoint::identity(), |acc, g| g + acc);
+        return Some(result);
+      }
+    }
+  }
+
+  fn lagrange_of_zero(i: &Scalar, omega: &Vec<Scalar>) -> Scalar {
+    omega.iter()
+      .filter(|x| *x != i)
+      .map(|j| -*j * (i-j).invert().unwrap())
+      .fold(Scalar::one(), |acc, x| acc * x)
+  }
+
+  fn decrypt(
+    params: &'a YaoABEPublic,
+    ciphertext: &'a YaoABECiphertext<'a>,
+    key: &KeyAccessStructure,
+  ) -> Vec<u8> {
+    let res = Self::decrypt_node(&key, &ciphertext.c_i);
+    match res {
+      Some(p) => println!("--------- DECRYPT decrypted root to ----------\n{:?}", p.to_affine()),
+      None => println!("--------- DECRYPT failed ----------")
+    }
+    Vec::new()
   }
 }
