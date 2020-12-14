@@ -15,13 +15,13 @@ fn main() {
   let public = es.to_public();
   println!("\n public params:\n{:#?}", public);
 
-  // let access_structure = AccessStructure::Node(
-  //   2,
-  //   vec![AccessStructure::Leaf("over21"), AccessStructure::Leaf("tum")]
-  // );
-  let access_structure = AccessStructure::Leaf("student");
+  let access_structure = AccessStructure::Node(
+    2,
+    vec![AccessStructure::Leaf("student"), AccessStructure::Leaf("tum")]
+  );
+  // let access_structure = AccessStructure::Leaf("student");
 
-  println!("{:#?}", access_structure);
+  // println!("access structure:\n{:#?}", access_structure);
 
   // let poly = Polynomial(vec![1, 2, 3, 4].iter().map(|x| Scalar::from(x.clone())).collect());
   
@@ -31,18 +31,46 @@ fn main() {
   // println!("f(8100) = {:?}", poly.eval(Scalar::from(8100)));
 
   let priv_key = es.keygen(&access_structure);
-  println!("{:?}", priv_key);
+  println!("private key:\n{:?}", priv_key);
 
   let data = vec![1, 2, 3];
   let attributes = vec!["student", "tum"];
 
   let ciphertext = YaoABEPrivate::encrypt(&public, &attributes, &data);
+
+  // println!("ciphertext:\n{:?}", ciphertext);
   
-  //let decrypted = YaoABEPrivate::decrypt(&public, &ciphertext, &priv_key);
+  let decrypted = YaoABEPrivate::decrypt(&public, &ciphertext, &priv_key);
+  
+  assert_eq!(decrypted, ciphertext.secret_c);
 
   if let KeyAccessStructure::Leaf(d, name) = priv_key {
-    println!("------------ manual leaf dec ------------\n{:?}", (ciphertext.c_i.get(name).unwrap() * &d).to_affine());
+    let C_i = ciphertext.c_i.get(name).unwrap();
+    let (s_i, _) = es.atts.get(name).unwrap();
+    let C_i2 = ProjectivePoint::generator() * ciphertext.secret_k * s_i;
+    let d2 = es.master_secret * s_i.invert().unwrap();
+    assert_eq!(*C_i, C_i2);
+    assert_eq!(d, d2);
+    assert_eq!(public.pk, ProjectivePoint::generator() * es.master_secret);
+    // let manual_decryption = (C_i2 * d2).to_affine();
+    let manual_decryption = (es.pk * ciphertext.secret_k).to_affine();
+    println!("------------ manual leaf dec ------------\n{:?}", manual_decryption);
+    assert_eq!(ciphertext.secret_c, manual_decryption);
   }
+
+  // let s = Scalar::random(&mut OsRng);
+  // let s_inv = s.invert().unwrap();
+
+  // let g = ProjectivePoint::random(&mut OsRng);
+
+  // let c = g * s;
+
+  // let c_dec = c * s_inv;
+
+  // println!("s:\n{:?},\ns^-1:\n{:?},\ns * s^-1:\n{:?}", s, s_inv, s * s_inv);
+
+  // assert_eq!(g.to_affine(), c_dec.to_affine());
+
 }
 
 #[derive(Debug)]
@@ -70,6 +98,8 @@ struct YaoABECiphertext<'a> {
   c: Vec<u8>, // actual ciphertext (output of AES)
   mac: Vec<u8>, // mac over the cleartext (TODO better encrypt-then-mac?)
   c_i: HashMap<&'a str, ProjectivePoint>, // attributes and their respective curve elements
+  secret_c: AffinePoint,
+  secret_k: Scalar,
 }
 
 #[derive(Debug)]
@@ -101,7 +131,7 @@ impl Polynomial {
 impl<'a> YaoABEPrivate<'a> {
   fn setup(att_names: &Vec<&'static str>) -> Self {
     let s = Scalar::random(&mut OsRng);
-    let g = ProjectivePoint::random(&mut OsRng);
+    let g = ProjectivePoint::generator();
     
     let mut att_map: HashMap<&str, (Scalar, ProjectivePoint)> = HashMap::new();
     for attr in att_names {
@@ -112,7 +142,7 @@ impl<'a> YaoABEPrivate<'a> {
     
     YaoABEPrivate {
       atts: att_map,
-      pk: g,
+      pk: g * s,
       master_secret: s,
     }
   }
@@ -138,6 +168,12 @@ impl<'a> YaoABEPrivate<'a> {
       &Polynomial::randgen(self.master_secret, 1),
       Scalar::from(0), // this is the only node ever to have index 0, all others have index 1..n
     )
+    // if let AccessStructure::Leaf(att_name) = access_structure {
+    //   let (s, _) = self.atts.get(att_name).unwrap();
+    //   assert_eq!(self.master_secret, self.master_secret * s * &s.invert().unwrap());
+    //   return KeyAccessStructure::Leaf(self.master_secret * s.invert().unwrap(), att_name.clone());
+    // }
+    // KeyAccessStructure::Leaf(Scalar::one(), "")
   }
 
   fn keygen_internal (&self,
@@ -188,6 +224,8 @@ impl<'a> YaoABEPrivate<'a> {
       c: Vec::new(),
       mac: Vec::new(),
       c_i: att_cs,
+      secret_c: Cprime.to_affine(),
+      secret_k: k,
     }
   }
 
@@ -230,12 +268,12 @@ impl<'a> YaoABEPrivate<'a> {
     params: &'a YaoABEPublic,
     ciphertext: &'a YaoABECiphertext<'a>,
     key: &KeyAccessStructure,
-  ) -> Vec<u8> {
+  ) -> AffinePoint {
     let res = Self::decrypt_node(&key, &ciphertext.c_i);
     match res {
-      Some(p) => println!("--------- DECRYPT decrypted root to ----------\n{:?}", p.to_affine()),
+      Some(p) => { println!("--------- DECRYPT decrypted root to ----------\n{:?}", p.to_affine()); return p.to_affine() }
       None => println!("--------- DECRYPT failed ----------")
     }
-    Vec::new()
+    AffinePoint::identity()
   }
 }
