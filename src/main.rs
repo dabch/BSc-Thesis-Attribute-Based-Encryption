@@ -197,10 +197,10 @@ impl<'a> YaoABEPrivate<'a> {
   ) ->
     KeyAccessStructure
   {
-    println!("keygen_internal with index {:?} for node {:?}", index, tree);
+    // println!("keygen_internal with index {:?}\nparent_poly(0) = {:?}\nfor node {:?}\n", index, parent_poly.eval(Scalar::zero()), tree);
     match tree {
       AccessStructure::Leaf(attr_name) => {
-        let q_of_zero = parent_poly.eval(Scalar::zero());
+        let q_of_zero = parent_poly.eval(index);
         let (s, _) = self.atts.get(attr_name).unwrap();
         let s_inverse = s.invert().unwrap();
         return KeyAccessStructure::Leaf(q_of_zero * s_inverse, attr_name.clone());
@@ -265,18 +265,23 @@ impl<'a> YaoABEPrivate<'a> {
         let relevant_indexes: Vec<Scalar> = relevant_children.iter()
           .map(|(i, _)| i.clone()).collect();
         let result: ProjectivePoint = relevant_children.into_iter()
-          .map(|(i, dec_res)| dec_res * Self::lagrange_of_zero(&i, &relevant_indexes))
+          .map(|(i, dec_res)| { dec_res * Self::lagrange_of_zero(&i, &relevant_indexes) } )
           .fold(ProjectivePoint::identity(), |acc, g| g + acc);
+        // println!("node got result: {:?}\n at node {:?}\n", result, key);
         return Some(result);
       }
     }
   }
 
   fn lagrange_of_zero(i: &Scalar, omega: &Vec<Scalar>) -> Scalar {
-    omega.iter()
+    println!("LAGRANGE: {:?}\n{:?}", i, omega);
+    let r = omega.iter()
       .filter(|x| *x != i)
+      .map(|x| { println!("{:?}", x); x} )
       .map(|j| -*j * (i-j).invert().unwrap())
-      .fold(Scalar::one(), |acc, x| acc * x)
+      .fold(Scalar::one(), |acc, x| acc * x);
+    println!("\n");
+    r
   }
 
   fn decrypt(
@@ -301,7 +306,7 @@ mod tests {
     let es = crate::YaoABEPrivate::setup(&atts);
     println!("{:#?}", es);
     let public = es.to_public();
-    println!("\n public params:\n{:#?}", public);
+    println!("\n public params:\n{:?}", public);
 
     let access_structure = crate::AccessStructure::Leaf("student");
 
@@ -386,19 +391,30 @@ mod tests {
   #[test]
   fn deep_access_tree() {
 
-    let atts = vec!["student", "tum", "over21", "over25", "has_bachelor"];
+    let atts = vec!["student", "tum", "over21", "over25", "has_bachelor", "cs"];
     let es = YaoABEPrivate::setup(&atts);
     println!("{:#?}", es);
     let public = es.to_public();
-    println!("\n public params:\n{:#?}", public);
+    println!("\n public params:\n{:?}", public);
   
+    // this represents the following logical access structure
+    // (tum AND student) OR (cs AND has_bachelor AND (over21 OR over25))
     let access_structure = AccessStructure::Node(
-      2,
+      1,
       vec![
-        AccessStructure::Leaf("tum"),
         AccessStructure::Node(2,
           vec![
             AccessStructure::Leaf("student"),
+            AccessStructure::Leaf("tum"),
+          ]),
+        AccessStructure::Node(3,
+          vec![
+            AccessStructure::Leaf("cs"),
+            AccessStructure::Node(1,
+              vec![
+                AccessStructure::Leaf("over21"),
+                AccessStructure::Leaf("over25"),
+              ]),
             AccessStructure::Leaf("has_bachelor"),
           ]),
       ]); 
@@ -407,15 +423,24 @@ mod tests {
     println!("private key:\n{:?}", priv_key);
   
     let data = vec![1, 2, 3];
-    let attributes = vec!["student", "tum", "has_bachelor", "over21"];
-  
+
+    // example 1 - shall decrypt
+    let attributes = vec!["student", "tum"];
     let ciphertext = YaoABEPrivate::encrypt(&public, &attributes, &data);
-  
-    // println!("ciphertext:\n{:?}", ciphertext);
-    
     let decrypted = YaoABEPrivate::decrypt(&public, &ciphertext, &priv_key).unwrap();
-    
     assert_eq!(decrypted, ciphertext.secret_c);
+
+    // example 2 - shall decrypt
+    let attributes = vec!["student", "has_bachelor", "cs", "over21"];
+    let ciphertext = YaoABEPrivate::encrypt(&public, &attributes, &data);
+    let decrypted = YaoABEPrivate::decrypt(&public, &ciphertext, &priv_key).unwrap();
+    assert_eq!(decrypted, ciphertext.secret_c);
+
+    // example 2 - shall not decrypt
+    let attributes = vec!["student", "cs", "over21"];
+    let ciphertext = YaoABEPrivate::encrypt(&public, &attributes, &data);
+    let decrypted = YaoABEPrivate::decrypt(&public, &ciphertext, &priv_key);
+    assert_eq!(None, decrypted);
   
   }
   #[test]
