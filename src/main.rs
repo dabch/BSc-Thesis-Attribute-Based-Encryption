@@ -2,7 +2,7 @@ use rabe_bn::{Group, Fr, G1};
 use std::collections::HashMap;
 use std::convert::TryInto;
 use rand::Rng;
-use crypto::aes;
+use crypto::{aes, mac::{Mac, MacResult}, hmac, sha2};
 
 // mod aes;
 
@@ -71,10 +71,10 @@ enum AccessStructure<'a> {
 /// Represents a ciphertext as obtained by encrypt() and consumed by decrypt()
 /// Contains both the actual (symetrically) encrypted data and all data required to reconstruct the 
 /// symmetric keys given a private key created under a matching access structure.
-#[derive(Debug)]
+// #[derive(Debug)]
 struct YaoABECiphertext<'a> {
   c: Vec<u8>, // actual ciphertext (output of AES)
-  mac: Vec<u8>, // mac over the cleartext (TODO better encrypt-then-mac?)
+  mac: MacResult, // mac over the cleartext (TODO better encrypt-then-mac?)
   c_i: HashMap<&'a str, G1>, // attributes and their respective curve elements
 }
 
@@ -214,7 +214,7 @@ impl<'a> YaoABEPublic<'a> {
   fn encrypt(
     &self,
     atts: &'a Vec<&'a str>,
-    _plaintext: &'a Vec<u8>,
+    plaintext: &'a Vec<u8>,
     ) -> YaoABECiphertext<'a>
   {
     let mut rng = rand::thread_rng();
@@ -240,17 +240,22 @@ impl<'a> YaoABEPublic<'a> {
     println!("Encryption with x {:x?}\narray: {:x?}", x, x_arr);
     println!("Encryption with y {:x?}\narray: {:x?}", y, y_arr);
 
-    let mut encrypted: Vec<u8> = _plaintext.clone();
+    let mut sha256_hasher = sha2::Sha256::new();
+    let mut mac_maker = hmac::Hmac::new(sha256_hasher, &y_arr);
+    mac_maker.input(&plaintext);
+    let mac = mac_maker.result();
+
+    let mut encrypted: Vec<u8> = plaintext.clone();
     let iv: [u8; 16] = rng.gen();
     let mut aes_ctr = aes::ctr(aes::KeySize::KeySize256, &x_arr, &iv);
-    aes_ctr.process(&_plaintext, &mut encrypted);
+    aes_ctr.process(&plaintext, &mut encrypted);
 
     let mut full_ciphertext = Vec::from(iv);
     full_ciphertext.append(&mut encrypted);
 
     YaoABECiphertext {
       c: full_ciphertext,
-      mac: Vec::new(),
+      mac,
       c_i: att_cs,
     }
   }
@@ -309,7 +314,17 @@ impl<'a> YaoABEPublic<'a> {
     let mut plaintext: Vec<u8> = Vec::new();
     plaintext.resize(ciphertext.c.len() - 16, 0);
     aes_ctr.process(&ciphertext.c[16..], &mut plaintext);
-    Some(plaintext)
+
+    let mut sha256_hasher = sha2::Sha256::new();
+    let mut mac_maker = hmac::Hmac::new(sha256_hasher, &(<[u8; 4 * 8]>::from(y)));
+    mac_maker.input(&plaintext);
+    let mac_ = mac_maker.result();
+
+    if mac_ == ciphertext.mac {
+      return Some(plaintext);
+    } else {
+      return None;
+    }
   }
 }
 
@@ -394,7 +409,7 @@ mod tests {
   
     let ciphertext = public.encrypt(&attributes, &data);
   
-    println!("ciphertext:\n{:?}", ciphertext);
+    // println!("ciphertext:\n{:?}", ciphertext);
     
     let decrypted = public.decrypt(&ciphertext, &priv_key).unwrap();
     
@@ -405,6 +420,50 @@ mod tests {
     let ciphertext = public.encrypt(&attributes, &data);
     let decrypted = public.decrypt(&ciphertext, &priv_key);
     assert_eq!(None, decrypted);
+  }
+
+
+  #[test]
+  fn malleability() {
+    let atts = vec!["student", "tum", "over21", "over25", "has_bachelor"];
+    let (es, public) = crate::YaoABEPrivate::setup(&atts);
+    //println!("{:#?}", es);
+    //println!("\n public params:\n{:#?}", public);
+  
+    let access_structure = AccessStructure::Node(
+      2,
+      vec![
+        AccessStructure::Leaf("tum"),
+        AccessStructure::Leaf("student"),
+        AccessStructure::Leaf("has_bachelor"),
+        AccessStructure::Leaf("over21"),
+      ]);
+  
+  
+    let priv_key = es.keygen(&access_structure);
+    //println!("private key:\n{:?}", priv_key);
+  
+    let mut rng = rand::thread_rng();
+    let data: Vec<u8> = (0..500).map(|_| rng.gen()).collect();
+    // let mut data: Vec<u8> = (0..500).map(|_| 0).collect();
+
+    let attributes = vec!["student", "tum", "has_bachelor", "over21"];
+  
+    let mut ciphertext = public.encrypt(&attributes, &data);
+
+    assert_eq!(data, public.decrypt(&ciphertext, &priv_key).unwrap());
+
+    ciphertext.c[16] ^= 0xaf; // skip IV
+    let mut data2 = data.clone();
+    data2[0] ^= 0xaf;
+
+  
+    // println!("ciphertext:\n{:?}", ciphertext);
+    
+    let decrypted = public.decrypt(&ciphertext, &priv_key);
+    
+    // decryption should fail because MAC is wrong
+    assert_eq!(decrypted, None);
   }
 
   #[test]
