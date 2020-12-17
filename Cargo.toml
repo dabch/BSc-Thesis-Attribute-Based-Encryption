@@ -8,8 +8,6 @@ edition = "2018"
 
 [dependencies]
 rabe-bn = "0.4.12"
-elliptic-curve = "0.7.1"
-p256 = { version = "0.6.0", features = [ "arithmetic" ]}
 rand = "0.7.3"
 #aes = "0.6.0"
 

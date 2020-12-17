@@ -245,6 +245,11 @@ impl<'a> YaoABEPublic<'a> {
       att_cs.insert(att, c_i);
     }
     //println!("---------- ENCRYPT: encrypting with point ------------\n{:?}", c_prime.to_affine());
+    let (x, y) = c_prime.coordinates();
+    let x_arr = <[u8; 8 * 4]>::from(x);
+    let y_arr = <[u8; 8 * 4]>::from(y);
+    println!("Encryption with x {:x?}\narray: {:x?}", x, x_arr);
+    println!("Encryption with y {:x?}\narray: {:x?}", y, y_arr);
 
     YaoABECiphertext {
       c: Vec::new(),
