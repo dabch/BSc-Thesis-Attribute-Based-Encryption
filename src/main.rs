@@ -2,6 +2,9 @@ use rabe_bn::{Group, Fr, G1};
 use std::collections::HashMap;
 use std::convert::TryInto;
 use rand::Rng;
+use crypto::aes;
+
+// mod aes;
 
 
 fn main() {
@@ -26,30 +29,18 @@ fn main() {
   let priv_key = es.keygen(&access_structure);
   //println!("private key:\n{:?}", priv_key);
 
-  let data = vec![1, 2, 3];
+  
+  let mut rng = rand::thread_rng();
+  let data: Vec<u8> = (0..500).map(|_| rng.gen()).collect();
+
   let attributes = vec!["student", "tum", "has_bachelor", "over21"];
 
   let ciphertext = public.encrypt(&attributes, &data);
 
   
-  let decrypted = public.decrypt(&ciphertext, &priv_key).unwrap();
+  let decrypted = public.decrypt(&ciphertext, &priv_key);
   
-  assert_eq!(decrypted, ciphertext.secret_c);
-
-  if let PrivateKey::Leaf(d, name) = priv_key {
-    let c_i = ciphertext.c_i.get(name).unwrap();
-    let (s_i, _) = es.atts.get(name).unwrap();
-    let c_i2 = public.gen * ciphertext.secret_k * *s_i;
-    let d2 = es.master_secret * s_i.inverse().unwrap();
-    assert_eq!(*c_i, c_i2);
-    assert_eq!(d, d2);
-    assert_eq!(public.pk, public.gen * es.master_secret);
-    // let manual_decryption = (C_i2 * d2).to_affine();
-    let manual_decryption = (es.pk * ciphertext.secret_k);
-    //println!("------------ manual leaf dec ------------\n{:?}", manual_decryption);
-    assert_eq!(ciphertext.secret_c, manual_decryption);
-  }
-
+  assert_eq!(data, decrypted.unwrap());
 }
 
 /// Represents the full parameters of an ABE scheme, known in full only to the KGC
@@ -80,13 +71,11 @@ enum AccessStructure<'a> {
 /// Represents a ciphertext as obtained by encrypt() and consumed by decrypt()
 /// Contains both the actual (symetrically) encrypted data and all data required to reconstruct the 
 /// symmetric keys given a private key created under a matching access structure.
-//#[derive(Debug)]
+#[derive(Debug)]
 struct YaoABECiphertext<'a> {
   c: Vec<u8>, // actual ciphertext (output of AES)
   mac: Vec<u8>, // mac over the cleartext (TODO better encrypt-then-mac?)
   c_i: HashMap<&'a str, G1>, // attributes and their respective curve elements
-  secret_c: G1,
-  secret_k: Fr,
 }
 
 /// Represents a private key obtained by keygen() and used to decrypt ABE-encrypted data
@@ -251,13 +240,18 @@ impl<'a> YaoABEPublic<'a> {
     println!("Encryption with x {:x?}\narray: {:x?}", x, x_arr);
     println!("Encryption with y {:x?}\narray: {:x?}", y, y_arr);
 
+    let mut encrypted: Vec<u8> = _plaintext.clone();
+    let iv: [u8; 16] = rng.gen();
+    let mut aes_ctr = aes::ctr(aes::KeySize::KeySize256, &x_arr, &iv);
+    aes_ctr.process(&_plaintext, &mut encrypted);
+
+    let mut full_ciphertext = Vec::from(iv);
+    full_ciphertext.append(&mut encrypted);
+
     YaoABECiphertext {
-      c: Vec::new(),
+      c: full_ciphertext,
       mac: Vec::new(),
       c_i: att_cs,
-      // the following two are only for debugging and testing, and will be removed as soon as actual encryption is implemented.
-      secret_c: c_prime,
-      secret_k: k,
     }
   }
 
@@ -303,12 +297,19 @@ impl<'a> YaoABEPublic<'a> {
     &self,
     ciphertext: &'a YaoABECiphertext<'a>,
     key: &PrivateKey,
-  ) -> Option<G1> {
+  ) -> Option<Vec<u8>> {
     let res = Self::decrypt_node(&key, &ciphertext.c_i);
-    match res {
-      Some(p) => {  return Some(p) },
-      None => { return None }
-    }
+    let c_prime = match res {
+      None => return None,
+      Some(p) => p,
+    };
+    let (x, y) = c_prime.coordinates();
+    let mut iv: Vec<u8> = ciphertext.c.iter().take(16).map(|x| x.clone()).collect();
+    let mut aes_ctr = aes::ctr(aes::KeySize::KeySize256, &(<[u8; 4 * 8]>::from(x)), &mut iv);
+    let mut plaintext: Vec<u8> = Vec::new();
+    plaintext.resize(ciphertext.c.len() - 16, 0);
+    aes_ctr.process(&ciphertext.c[16..], &mut plaintext);
+    Some(plaintext)
   }
 }
 
@@ -330,7 +331,9 @@ mod tests {
     let priv_key = es.keygen(&access_structure);
     //println!("private key:\n{:?}", priv_key);
 
-    let data = vec![1, 2, 3];
+    let mut rng = rand::thread_rng();
+    let data: Vec<u8> = (0..500).map(|_| rng.gen()).collect();
+
     let attributes = vec!["student", "tum", "has_bachelor", "over21"];
 
     let ciphertext =  public.encrypt(&attributes, &data);
@@ -339,24 +342,24 @@ mod tests {
     
     let decrypted = public.decrypt(&ciphertext, &priv_key).unwrap();  
 
-    assert_eq!(decrypted, ciphertext.secret_c);
+    assert_eq!(decrypted, data);
 
-    match priv_key { 
-      crate::PrivateKey::Leaf(d, name) =>  {
-        let c_i = ciphertext.c_i.get(name).unwrap();
-        let (s_i, _) = es.atts.get(name).unwrap();
-        let c_i2 = public.gen * ciphertext.secret_k * *s_i;
-        let d2 = es.master_secret * s_i.inverse().unwrap();
-        assert_eq!(*c_i, c_i2);
-        assert_eq!(d, d2);
-        assert_eq!(public.pk, public.gen * es.master_secret);
-        // let manual_decryption = (C_i2 * d2).to_affine();
-        let manual_decryption = (es.pk * ciphertext.secret_k);
-        //println!("------------ manual leaf dec ------------\n{:?}", manual_decryption);
-        assert_eq!(ciphertext.secret_c, manual_decryption);
-      },
-      _ => assert!(false),
-    }
+    // match priv_key { 
+    //   crate::PrivateKey::Leaf(d, name) =>  {
+    //     let c_i = ciphertext.c_i.get(name).unwrap();
+    //     let (s_i, _) = es.atts.get(name).unwrap();
+    //     let c_i2 = public.gen * ciphertext.secret_k * *s_i;
+    //     let d2 = es.master_secret * s_i.inverse().unwrap();
+    //     assert_eq!(*c_i, c_i2);
+    //     assert_eq!(d, d2);
+    //     assert_eq!(public.pk, public.gen * es.master_secret);
+    //     // let manual_decryption = (C_i2 * d2).to_affine();
+    //     let manual_decryption = (es.pk * ciphertext.secret_k);
+    //     //println!("------------ manual leaf dec ------------\n{:?}", manual_decryption);
+    //     assert_eq!(ciphertext.secret_c, manual_decryption);
+    //   },
+    //   _ => assert!(false),
+    // }
 
     let attributes = vec!["tum", "over21"];
     let ciphertext = public.encrypt(&attributes, &data);
@@ -384,16 +387,18 @@ mod tests {
     let priv_key = es.keygen(&access_structure);
     //println!("private key:\n{:?}", priv_key);
   
-    let data = vec![1, 2, 3];
+    let mut rng = rand::thread_rng();
+    let data: Vec<u8> = (0..500).map(|_| rng.gen()).collect();
+
     let attributes = vec!["student", "tum", "has_bachelor", "over21"];
   
     let ciphertext = public.encrypt(&attributes, &data);
   
-    // //println!("ciphertext:\n{:?}", ciphertext);
+    println!("ciphertext:\n{:?}", ciphertext);
     
     let decrypted = public.decrypt(&ciphertext, &priv_key).unwrap();
     
-    assert_eq!(decrypted, ciphertext.secret_c);
+    assert_eq!(decrypted, data);
     
     // failing decryption
     let attributes = vec!["tum"];
@@ -436,19 +441,20 @@ mod tests {
     let priv_key = es.keygen(&access_structure);
     //println!("private key:\n{:?}", priv_key);
   
-    let data = vec![1, 2, 3];
+    let mut rng = rand::thread_rng();
+    let data: Vec<u8> = (0..500).map(|_| rng.gen()).collect();
 
     // example 1 - shall decrypt
     let attributes = vec!["student", "tum"];
     let ciphertext = public.encrypt(&attributes, &data);
     let decrypted = public.decrypt(&ciphertext, &priv_key).unwrap();
-    assert_eq!(decrypted, ciphertext.secret_c);
+    assert_eq!(decrypted, data);
 
     // example 2 - shall decrypt
     let attributes = vec!["student", "has_bachelor", "cs", "over21"];
     let ciphertext = public.encrypt(&attributes, &data);
     let decrypted = public.decrypt(&ciphertext, &priv_key).unwrap();
-    assert_eq!(decrypted, ciphertext.secret_c);
+    assert_eq!(decrypted, data);
 
     // example 2 - shall not decrypt
     let attributes = vec!["student", "cs", "over21"];
@@ -456,19 +462,6 @@ mod tests {
     let decrypted = public.decrypt(&ciphertext, &priv_key);
     assert_eq!(None, decrypted);
   }
-  
-  // #[test]
-  // fn poly_eval() {
-
-  //   let poly = crate::Polynomial(vec![1, 2, 3, 4].iter().map(|x| crate::Fr::from(x.clone())).collect());
-
-  //   let closure = |x: u64| { 1 + 2 * x + 3 * x * x + 4 * x * x * x };
-    
-  //   assert_eq!(Fr::from(closure(1)), poly.eval(Fr::from(1)));
-
-  //   assert_eq!(Fr::from(closure(4)), poly.eval(Fr::from(4)));
-  //   assert_eq!(Fr::from(closure(8100)), poly.eval(Fr::from(8100)));
-  // }
 
   #[test]
   fn curve_operations_dry_run() {

@@ -8,8 +8,10 @@ edition = "2018"
 
 [dependencies]
 rabe-bn = "0.4.12"
+rabe = "0.2.4"
 rand = "0.7.3"
 #aes = "0.6.0"
+rust-crypto = "0.2.36"
 
 [patch.crates-io]
 rabe-bn = { path = "../rabe-bn-own"}
