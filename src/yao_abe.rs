@@ -202,7 +202,7 @@ pub struct YaoABEPrivate<'a> {
     //   println!("Encryption with x {:x?}\narray: {:x?}", x, x_arr);
     //   println!("Encryption with y {:x?}\narray: {:x?}", y, y_arr);
   
-      let mut sha256_hasher = sha2::Sha256::new();
+      let sha256_hasher = sha2::Sha256::new();
       let mut mac_maker = hmac::Hmac::new(sha256_hasher, &y_arr);
       mac_maker.input(&plaintext);
       let mac = mac_maker.result();
@@ -277,7 +277,7 @@ pub struct YaoABEPrivate<'a> {
       plaintext.resize(ciphertext.c.len() - 16, 0);
       aes_ctr.process(&ciphertext.c[16..], &mut plaintext);
   
-      let mut sha256_hasher = sha2::Sha256::new();
+      let sha256_hasher = sha2::Sha256::new();
       let mut mac_maker = hmac::Hmac::new(sha256_hasher, &(<[u8; 4 * 8]>::from(y)));
       mac_maker.input(&plaintext);
       let mac_ = mac_maker.result();
@@ -294,10 +294,11 @@ pub struct YaoABEPrivate<'a> {
 
 #[cfg(test)]
 mod tests {
-  #![feature(test)]
+
   // extern crate test;
   use crate::*;
-  use rand;
+  use rand::{self, Rng};
+  use rabe_bn::{Fr, G1};
 
   // use test::Bencher;
 
