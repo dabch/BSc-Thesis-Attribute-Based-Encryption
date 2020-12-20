@@ -8,7 +8,7 @@
 \usepackage[%
   backend=biber,
   url=false,
-  style=alphabetic,
+  style=ieee,
   maxnames=4,
   minnames=3,
   maxbibnames=99,
@@ -24,7 +24,11 @@
 \usepackage{booktabs}
 \usepackage[final]{microtype}
 \usepackage{caption}
+\usepackage{amsfonts}
+\usepackage{mathtools}
 \usepackage[hidelinks]{hyperref} % hidelinks removes colored boxes around references and links
+
+\usetikzlibrary{intersections}
 
 \bibliography{bibliography}
 
@@ -64,4 +68,11 @@
   autogobble,
   keywordstyle=\bfseries\color{TUMBlue},
   stringstyle=\color{TUMAccentGreen}
+}
+
+\tikzset{
+  key/.pic={
+    \filldraw (8,1) -- (1, 1) -- (0,0) -- (1, -1) -- (1.5, -0.5) -- (2, -1) -- (2.75, -0.25) -- (3.5, -1) -- (4, -0.5) -- (4.5, -1) -- (5.5, 0) -- (6.5, -1) -- (7, -0.5) -- (7.5, -1) -- (8, -1);
+    \filldraw (8, 1) -- (8, 1) arc (180-30:-180+30:2) -- (8, );
+  }
 }
