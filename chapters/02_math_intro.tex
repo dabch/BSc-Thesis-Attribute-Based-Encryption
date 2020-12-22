@@ -1,14 +1,40 @@
 \chapter{Background}\label{chapter:background}
 This chapter shall provide a high-level introduction to the cryptographical and mathematical tools used to implement attribute-based encryption in this thesis. For further reference, please refer to % TODO
 
-\begin{tikzpicture}
-    % \draw (0, 0) node {\texttt{m}};
-    % \draw (0, 0) node [draw, anchor=south west] {Encrypt};
-    \draw[->] (0, 0) node [anchor=east] {m} -- (1, 0) node (encrypt) [anchor=west, draw] {Encrypt};
-    \path (encrypt.north) -- +(0, 0.5) pic [anchor=west, scale=0.1] {key};
-    % \pic [scale = 0.1, fill=green] at (0, 1) {key};
-    % \pic [scale = 0.2, fill=black] at (0, 0) {key};
-\end{tikzpicture}
+
+\begin{figure} \centering
+    \begin{tikzpicture}
+        \draw[->] (0, 0) node [anchor=east] {m} -- ++(1, 0) node (encrypt) [anchor=west, draw] {Encrypt};
+        \path (encrypt.north) -- +(0, 0.3) pic [anchor=west, scale=0.1, fill=blue] {key};
+        \draw[->] (encrypt.east) -- ++(2, 0) node [anchor=south] {c} -- ++(2,0) node (decrypt) [anchor=west, draw] {Decrypt};
+        \path (decrypt.north) -- +(0, 0.3) pic [anchor=west, scale=0.1, fill=blue] {key};
+        \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m'};
+    \end{tikzpicture}
+    \caption{Symmetric Encryption} \label{fig:keys-symmetric}
+    \vspace{0.5cm}
+    \begin{tikzpicture}
+        \draw[->] (0, 0) node [anchor=east] {m} -- ++(1, 0) node (encrypt) [anchor=west, draw] {Encrypt};
+        \path (encrypt.north) -- +(0, 0.3) pic [anchor=west, scale=0.1, fill=green] {key};
+        \draw[->] (encrypt.east) -- ++(2, 0) node [anchor=south] {c} -- ++(2,0) node (decrypt) [anchor=west, draw] {Decrypt};
+        \path (decrypt.north) -- +(0, 0.3) pic [anchor=west, scale=0.1, fill=red] {key};
+        \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m'};
+    \end{tikzpicture}
+    \caption{Asymmetric Encryption} \label{fig:keys-asymmetric}
+    \vspace{0.5cm}
+    \begin{tikzpicture}[sibling distance=4mm, level distance=3mm]
+        \draw[->] (0, 0) node [anchor=east] {m} -- ++(1, 0) node (encrypt) [anchor=west, draw] {Encrypt};
+        
+        \scoped{
+            \tikzstyle{every node}=[fill, circle, draw, inner sep=0.5mm];
+            \tikzstyle{level 2}=[sibling distance=1.5mm];
+            \fill[olive] (encrypt.north) -- ++(0, 0.7) node [anchor=south] {} child {node {} child {node {}} child {node {}} child {node {}}} child { node {} child {node {}}};
+        };
+        \draw[->] (encrypt.east) -- ++(2, 0) node [anchor=south] {c} -- ++(2,0) node (decrypt) [anchor=west, draw] {Decrypt};
+        \path (decrypt.north) -- +(0, 0.3) pic [anchor=west, scale=0.1, fill=magenta] {key};
+        \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m'};
+    \end{tikzpicture}
+    \caption{Attribute-Based encryption} \label{fig:keys-abe}
+\end{figure}
 
 \section{Classic Symmetric and Asymmetric Cryptography}
 Today's conventional cryptography knows two main classes of cryptosystems: \emph{Symmetric} or \emph{Private-Key systems} and \emph{Asymmetric} or \emph{Public-Key systems}.
@@ -16,18 +42,19 @@ The main difference lies in their use of encryption and decryption keys:
 
 In \emph{symmetric} systems, the key used for encryption and decryption is identical.
 That is, a user \emph{Alice} encrypting a message to send to another user \emph{Bob} will encrypt the message using a key $k$ that she had agreed on with Bob beforehand.
-When he receives the encrypted message, Bob will use the same key $k$ to decrypt it.
+When he receives the encrypted message, Bob will use the same key $k$ to decrypt it. See Figure~\ref{fig:keys-symmetric}.
 
 In \emph{asymmetric} systems, on the other hand, the keys used for encryption and decryption differ.
 When Alice encrypts a message with key $k_{enc}$, she will not be able to encrypt it again.
-Instead, when Bob receives the encrypted message, he will use a different key $k_{dec}$ to decrypt it.
+Instead, when Bob receives the encrypted message, he will use a different key $k_{dec}$ to decrypt it. See Figure~\ref{fig:keys-asymmetric}.
 Thus, in symmetric systems, keys always come in \emph{pairs} of an \emph{encryption key} $k_{enc}$ and a \emph{decryption key} $k_{dec}$.
 Because $k_{enc}$ can not be used to decrypt messages meant for Bob, there is no harm to making it publicly available.
 For example, he might put it up on his website for anyone wishing to send him an encrypted message to download. This is why $k_{enc}$ is also often called the \emph{public key} and $k_{dec}$ the \emph{private key}.
 
 Asymmetric cryptosystems make secure communication among a large group of participants much easier:
 Consider $n$ participants wanting to communicate securely using a symmetric system.
-Each participant would need to share a unique secret key with each of the other participants, requiring a total of $\frac{n(n-1)}{2}$ keys. In the asymmetric setting, one key per participant is sufficient: The same public key may be shared with the whole group, as the private key remains private anyway. This reduces the total number of keys to $n$.
+Each participant would need to share a unique secret key with each of the other participants, requiring a total of $\frac{n(n-1)}{2}$ keys. In the asymmetric setting, one key per participant is sufficient:
+The same public key may be shared with the whole group, as the private key remains private anyway. This reduces the total number of keys to $n$.
 
 Another problem remains, however: Encrypting a single message to a large number of participants requires encrypting it with everyone's public key separately.
 For a large number of recipients, this is inefficient.
@@ -35,13 +62,32 @@ So, for example, to encrypt a message for all students of a certain university, 
 
 Even worse, what if we want to encrypt data for any student of said university, even if they \emph{haven't joined the university yet}.
 In this case, our only option using classic public-key cryptography would be to have some trusted instance encrypt the data for any new student after they joined the university.
-Attribute-Based encryption solves this problem much more directly.
+Attribute-Based encryption solves this problem much more nicely. 
 
 \section{Attribute-Based Encryption}
 
+Attribute-Based Encryption Schemes (ABE schemes) are asymmetric in the sense that different keys are used for encryption and decryption.
+However, in constrast to classic asymmetric systems, the 'public key' used for encryption is not attached to an identity, but to certain attributes defined by the system.
+This is represented by a tree of attributes in Figure~\ref{fig:keys-abe}.
+
+
+\subsection{KP-ABE and CP-ABE}
+ABE schemes can further be divided into \emph{Key-Policy} and \emph{Ciphertext-Policy} schemes (KP-ABE and CP-ABE, respectively).
+In KP-ABE, the ciphertext is associated with a set of attributes, and the key is associated with an access structure.
+CP-ABE works the other way around, so the key is associated with a set of attributes and the ciphertext is encrypted under an access structure.
+
+In both cases, a ciphertext can be decrypted if and only if the set of attributes specified in one part satisfy the access policy associated with the other part.
+
+
+
+\subsection{Components of an ABE scheme}
+
+With respect to ABE, we say that a ciphertext is \emph{encrypted under an access structure} (\emph{under a set of attributes}, respectively) if it has been encrypted using the public key derived from the access structure (set of attributes, resp.).
+Because the public key w.r.t. some access structure (set of attributes, resp.) can be derived by anyone, private keys are usually referred to as just \emph{keys}.
+
 An Attribute-Based Encryption scheme (ABE scheme) consists of the following four algorithms: 
 \begin{itemize}
-    \item \emph{Setup}. Run once by the central trusted authority (key generation center). Sets up the system and outputs a public master key $PK$ and a private master secret $s$
+    \item \emph{Setup}. Run once by the central trusted authority (key generation center). Sets up the system and outputs a public master key $PK$ and a private master secret $s$.
     \item \emph{KeyGen(PK, s, $\omega$)}. Run exclusively by the trusted authority. For a given set of attributes (CP-ABE) or access structure (KP-ABE) $\omega$, uses the master secret $s$ to generate a private key $k$ corresponding to the given access structure.
     \item \emph{Encrypt(PK, m, $\omega$)}. Run by any participant of the system. On input of a plaintext message $m$ and an access structure (CP-ABE) or set of attributes (KP-ABE) $\omega$, outputs a ciphertext $c$
     \item \emph{Decrypt(c, k)}. Run by any participant holding a private key generated by \emph{KeyGen}. On input of a ciphertext $c$ created by \emph{Encrypt} and a key $k$ generated by \emph{KeyGen}, it outputs a correctly decrypted message if and only if
@@ -50,13 +96,6 @@ An Attribute-Based Encryption scheme (ABE scheme) consists of the following four
         \item in the case of KP-ABE: the set of attributes under which $m$ was encrypted satisfies the access structure under which $k$ was created.
     \end{itemize}
 \end{itemize}
-
-\subsection{KP-ABE and CP-ABE}
-There are two different kinds of ABE schemes, depending on where the access policy is attached to:
-
-In \emph{Key-Policy ABE} (KP-ABE) schemes, the key is associated with an access policy, and a ciphertext is associated with a set of attributes.
-In \emph{Ciphertext-Policy ABE} (CP-ABE), the key is associated with a set of attributes, and a ciphertext is associated with an access structure.
-Both cases allow for decryption if and only if the set of attributes on the one side fulfils the access structure on the other side.
 
 
 \section{Elliptic Curves}
