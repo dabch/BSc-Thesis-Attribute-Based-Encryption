@@ -19,7 +19,7 @@ criterion = "0.3"
 
 
 [patch.crates-io]
-rabe-bn = { path = "../rabe-bn-own"}
+rabe-bn = { path = "../../rabe-bn-own"}
 
 [[bench]]
 name = "deeptree_bench"
