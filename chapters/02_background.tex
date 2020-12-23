@@ -3,37 +3,46 @@ This chapter shall provide a high-level introduction to the cryptographical and 
 
 
 \begin{figure} \centering
-    \begin{tikzpicture}
-        \draw[->] (0, 0) node [anchor=east] {m} -- ++(1, 0) node (encrypt) [anchor=west, draw] {Encrypt};
-        \path (encrypt.north) -- +(0, 0.3) pic [anchor=west, scale=0.1, fill=blue] {key};
-        \draw[->] (encrypt.east) -- ++(2, 0) node [anchor=south] {c} -- ++(2,0) node (decrypt) [anchor=west, draw] {Decrypt};
-        \path (decrypt.north) -- +(0, 0.3) pic [anchor=west, scale=0.1, fill=blue] {key};
-        \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m'};
-    \end{tikzpicture}
-    \caption{Symmetric Encryption} \label{fig:keys-symmetric}
+    \begin{subfigure}{.7\textwidth}
+        \begin{tikzpicture}
+            \draw[->] (0, 0) node [anchor=east] {m} -- ++(1, 0) node (encrypt) [anchor=west, draw] {Encrypt};
+            \path (encrypt.north) -- +(0, 0.3) pic [anchor=west, scale=0.1, fill=blue] {key};
+            \draw[->] (encrypt.east) -- ++(2, 0) node [anchor=south] {c} -- ++(2,0) node (decrypt) [anchor=west, draw] {Decrypt};
+            \path (decrypt.north) -- +(0, 0.3) pic [anchor=west, scale=0.1, fill=blue] {key};
+            \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m'};
+        \end{tikzpicture}
+        \caption{Symmetric Encryption} \label{fig:keys-symmetric}
+    \end{subfigure}
+    \\
     \vspace{0.5cm}
-    \begin{tikzpicture}
-        \draw[->] (0, 0) node [anchor=east] {m} -- ++(1, 0) node (encrypt) [anchor=west, draw] {Encrypt};
-        \path (encrypt.north) -- +(0, 0.3) pic [anchor=west, scale=0.1, fill=green] {key};
-        \draw[->] (encrypt.east) -- ++(2, 0) node [anchor=south] {c} -- ++(2,0) node (decrypt) [anchor=west, draw] {Decrypt};
-        \path (decrypt.north) -- +(0, 0.3) pic [anchor=west, scale=0.1, fill=red] {key};
-        \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m'};
-    \end{tikzpicture}
-    \caption{Asymmetric Encryption} \label{fig:keys-asymmetric}
+    \begin{subfigure}{.7\textwidth}
+        \begin{tikzpicture}
+            \draw[->] (0, 0) node [anchor=east] {m} -- ++(1, 0) node (encrypt) [anchor=west, draw] {Encrypt};
+            \path (encrypt.north) -- +(0, 0.3) pic [anchor=west, scale=0.1, fill=green] {key};
+            \draw[->] (encrypt.east) -- ++(2, 0) node [anchor=south] {c} -- ++(2,0) node (decrypt) [anchor=west, draw] {Decrypt};
+            \path (decrypt.north) -- +(0, 0.3) pic [anchor=west, scale=0.1, fill=red] {key};
+            \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m'};
+        \end{tikzpicture}
+        \caption{Asymmetric Encryption} \label{fig:keys-asymmetric}
+    \end{subfigure}
+    \\
     \vspace{0.5cm}
-    \begin{tikzpicture}[sibling distance=4mm, level distance=3mm]
-        \draw[->] (0, 0) node [anchor=east] {m} -- ++(1, 0) node (encrypt) [anchor=west, draw] {Encrypt};
-        
-        \scoped{
-            \tikzstyle{every node}=[fill, circle, draw, inner sep=0.5mm];
-            \tikzstyle{level 2}=[sibling distance=1.5mm];
-            \fill[olive] (encrypt.north) -- ++(0, 0.7) node [anchor=south] {} child {node {} child {node {}} child {node {}} child {node {}}} child { node {} child {node {}}};
-        };
-        \draw[->] (encrypt.east) -- ++(2, 0) node [anchor=south] {c} -- ++(2,0) node (decrypt) [anchor=west, draw] {Decrypt};
-        \path (decrypt.north) -- +(0, 0.3) pic [anchor=west, scale=0.1, fill=magenta] {key};
-        \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m'};
-    \end{tikzpicture}
-    \caption{Attribute-Based encryption} \label{fig:keys-abe}
+    \begin{subfigure}{.7\textwidth}
+        \begin{tikzpicture}[sibling distance=4mm, level distance=3mm]
+            \draw[->] (0, 0) node [anchor=east] {m} -- ++(1, 0) node (encrypt) [anchor=west, draw] {Encrypt};
+            
+            \scoped{
+                \tikzstyle{every node}=[fill, circle, draw, inner sep=0.5mm];
+                \tikzstyle{level 2}=[sibling distance=1.5mm];
+                \fill[olive] (encrypt.north) -- ++(0, 0.7) node [anchor=south] {} child {node {} child {node {}} child {node {}} child {node {}}} child { node {} child {node {}}};
+            };
+            \draw[->] (encrypt.east) -- ++(2, 0) node [anchor=south] {c} -- ++(2,0) node (decrypt) [anchor=west, draw] {Decrypt};
+            \path (decrypt.north) -- +(0, 0.3) pic [anchor=west, scale=0.1, fill=magenta] {key};
+            \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m'};
+        \end{tikzpicture}
+        \caption{Attribute-Based encryption} \label{fig:keys-abe}
+    \end{subfigure}
+    \caption{Keys used for encryption and decryption in different classes of encryption schemes}
 \end{figure}
 
 \section{Classic Symmetric and Asymmetric Cryptography}
@@ -102,15 +111,16 @@ An Attribute-Based Encryption scheme (ABE scheme) consists of the following four
 
 The mathematics of modern cryptosystems (including, but not limited to ABE) work on a great variety of mathematical structures, and elliptic curves are just one of them.
 They have become very popular since their discovery by \emph{citation needed} in \emph{year needed} because they provide an equivalent security level at shorter key length and smaller computational cost than other systems (e.g. based on RSA) \cite{katz_introduction_2015}.
+Exact definitions and notations differ, these are taken from Katz and Lindell~\cite{katz_introduction_2015}.
 
 Elliptic curves (over finite fields) are defined by equations of the following form, where $p \leq 5$ prime: \cite{katz_introduction_2015}
 \begin{equation}
     y^2 = x^3 + a x + b \pmod{p}
 \end{equation}
-$a$ and $b$ are the curve parameters, and it is required that $4a^2 + 27b^2 \neq 0 \pmod{p}$.\cite{katz_introduction_2015}
+$a$ and $b$ are the curve parameters, and it is required that $4a^2 + 27b^2 \neq 0 \pmod{p}$ (this makes sure there are no repeated roots).\cite{katz_introduction_2015}
 
 Then, the elliptic curve $E(\mathbb{Z}_p)$ is the set of coordinates $(x, y) \in \mathbb{Z}_p^2$ that satisfies the equation above. 
-A special value $\mathcal{O}$ to denote the special \emph{point at infinity}. \cite{katz_introduction_2015}
+A special value $\mathcal{O}$ is added to denote the \emph{point at infinity}. \cite{katz_introduction_2015}
 \begin{equation}
     E(\mathbb{Z}_p) := \{(x, y) | x,y \in \mathbb{Z}_p \text{ and } y^2 = x^3 + a x + b \text{ mod } b\} \cup \{\mathcal{O}\}
 \end{equation}
@@ -128,7 +138,73 @@ Using this intersecting line, we can define an operation on curve points called 
         If $P_3 = \mathcal{O}$, then the result of the addition is $\mathcal{O}$.
 \end{itemize}
 
-For any point $P = (x,y)$, there is unique inverse $-P = (x, -y)$ and associativity holds (i.e. for all $P_1, P_2, P_3 \in E(\mathbb{Z}_p)$, $(P_1 + P_2) + P_3 = P_1 + (P_2 + P_3))$. Thus, $E(\mathbb{Z}_q)$ with point addition is a group. \cite{katz_introduction_2015}
+\begin{figure}
+    TODO: add picture of EC point addition
+    \caption{Elliptic Curve point addition}
+\end{figure}
 
-For ease of notation, we define multiplication of a point with an integer as follows: 
+In addition, we define multiplication of a point $P \in E(\mathbb{Z}_p)$ with a scalar $n \in \mathbb{N}$ as follows:
+\begin{equation}
+    n \cdot P = \underbrace{P + P + \cdots + P}_{n \text{ times}}
+\end{equation}
 
+That is, the product of a scalar with a point is again a point on our curve.
+\\
+
+For any point $P = (x,y)$, there is unique inverse $-P = (x, -y)$.
+In addition associativity holds (i.e. for all $P_1, P_2, P_3 \in E(\mathbb{Z}_p)$, $(P_1 + P_2) + P_3 = P_1 + (P_2 + P_3))$.
+Thus, $E(\mathbb{Z}_q)$ with point addition is a group. \cite{katz_introduction_2015}
+
+Of particular interest to cryptography are \emph{cyclic} groups on elliptic curves. 
+A (multiplicative) group $\mathbb{G}$ is cyclic if there is an element $g \in \mathbb{G}$ that generates $\mathbb{G}$, i.e. $G = \langle g \rangle = \{g^n | n \in \mathbb{Z}\}$.
+Translated to our (additive) groups on elliptic curves, this means that there is a generator point $P \in E(\mathbb{Z}_p)$, such that every point $Q \in E(\mathbb{Z}_p)$ can be written as $Q = nP$ with some $n \in \mathbb{N}$.
+
+In particular, if a group has prime order (i.e. the number of points $\#E(\mathbb{Z}_p)$ on a curve is prime), all points except $\mathcal{O}$ are generators.
+This follows from the fact that for any point $P \in E(\mathbb{Z}_p)$, its order $\text{ord}(P) = | \langle P \rangle |$ must divide the group order.
+A prime has exactly two divisors: One (the order of $\mathcal{O}$) and itself (the order of all other points).
+
+These cyclic elliptic curve groups (or, cyclic subgroups of non-cyclic elliptic curves) are exactly the groups we are interested in for doing actual cryptography. See also \cite[p.~321]{katz_introduction_2015}.
+
+\subsection{Hardness Assumptions on Elliptic Curves}
+
+Most ECC schemes are build upon three hardness assumptions: The Discrete Logarithm Problem (DLP), the Decisional Diffie-Hellman Problem (DDHP) and the Computational Diffie-Hellman Problem (CDHP).
+Given an additive, cyclic group $\mathbb{G}$ with $P \in \mathbb{G}$ a generator, they are stated as follows:
+\\
+
+\emph{Discrete Logarithm Problem.} Given an arbitrary $Q \in \mathbb{G}$, compute an $n \in \mathbb{N}$ such that $n P = Q$. % n from Zq?
+
+\emph{Computational Diffie-Hellman Problem.} Given the triple $(P, aP, bP)$ where $a, b \in \mathbb{N}$ chosen uniformly at random, compute $abP$.
+
+\emph{Decisional Diffie-Hellman Problem.} Given two triples $(aP, bP, abP)$ and $(aP, bP, Q)$ where $a, b \in \mathbb{N}$ and $C \in \mathbb{G}$ chosen uniformly at random, distinguish between the two.
+\\
+
+Now, the hardness \emph{assumption} is that, for some groups, these problems are hard to solve, i.e. solving them requires so much time and computational power that it is infeasible.
+From this, we can build secure asymmetric encryption schemes.
+
+These three problems might all be assumed to be \emph{hard}, but that doesn't mean they are equally so:
+If, in a certain group $\mathbb{G}$, the DLP problem is easy, so is CDHP: Just compute $a$ and $b$, and then use them to calculate $abP$.
+And if CDHP is easy w.r.t some $\mathbb{G}$, so is DDHP: Just compute $abP$, and compare the third element of each tuple.
+The inverse is not generally true, i.e. there are groups in which DLP and CDHP are hard to solve, even though DDHP is easy to solve.
+In that sense, DLP is the hardest and DDHP the easiest of the three. \cite{katz_introduction_2015}
+
+\subsection{Bilinear Pairings on Elliptic Curve}
+The final primitive needed for pairing-based encryption schemes are bilinear pairings. These are functions mapping two points on (possibly different) elliptic curves to elements of a finite field (\emph{not} another point on a curve).\cite{blake_advances_2005}
+
+Let $n \in \mathbb{N}_0$, $\mathbb{G}_1, \mathbb{G}_1$ denote an additive abelian groups with exponent $n$ (i.e. $nP = \mathcal{O}$ for all $P \in \mathbb{G}_1, \mathbb{G}_2$ ). 
+Let $\mathbb{G}_3$ be another cyclic group of order $n$, this time written multiplicatively.
+A \emph{bilinear pairing} then is a function $e: \mathbb{G}_1 \times \mathbb{G}_2 \rightarrow \mathbb{G}_3$ with the following properties:
+\begin{itemize}
+    \item \emph{Bilinearity.} For all $P, P' \in \mathbb{G}_1$ and $Q, Q' \in \mathbb{G}_2$: e(P + P', Q) = e(P, Q) + e(P', Q) and e(P, Q + Q') = e(P, Q) + e(P, Q')
+    \item \emph{Non-Degeneracy.}
+    \begin{itemize}
+        \item For all $P \in \mathbb{G}_1$ with $P \neq \mathcal{O}$, there is some $Q \in \mathbb{G}_2$ such that $e(P,Q) \neq 1$
+        \item For all $Q \in \mathbb{G}_2$ with $Q \neq \mathcal{O}$, there is some $P \in \mathbb{G}_1$ such that $e(P,Q) \neq 1$
+    \end{itemize}
+\end{itemize}
+
+Using these, we can restate the DDH assumption as follows: \cite{sahai_fuzzy_2005}
+
+TODO make clear whether we have a $G \times G \rightarrow G_2$ pairing (symmetric) or $G_1 \times G_2 \rightarrow G_3$ pairing (not symmetric) and adapt BDDH accordingly.
+\\
+
+Again, $P$ is a generator and $a, b, c, z \in \mathbb{Z}_p$ are chosen uniformly at random. Then, it is computationally infeasible to distinguish the tuples $(aP, bP, cP, e(P,P)^{abc})$ and $(aP, aB, cP, e(P,P)^z)$.
