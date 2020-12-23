@@ -1,4 +1,2 @@
-target
-/build/*
-!/build/main.pdf
-/logos/*.pdf
+yao-abe-rust/target
+thesis/build/*
