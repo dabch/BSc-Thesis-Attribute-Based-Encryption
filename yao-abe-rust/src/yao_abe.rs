@@ -23,11 +23,16 @@ pub struct YaoABEPrivate<'a> {
   
   /// represents an access structure that defines the powers of a key.
   /// This is passed to keygen() by the KGC, and then embedded in the private key issued to the user.
-  //#[derive(Debug)]
-  pub enum AccessStructure<'a> {
-    Node(u64, Vec<AccessStructure<'a>, consts::U16>), // threshold, children
+  #[derive(Debug)]
+  pub enum AccessNode<'a> {
+    Node(u64, Vec<u8, consts::U16>), // threshold, children
     Leaf(&'a str),
   }
+
+  /// Represents an access structure defined as a threshold-tree
+  // Implementation: Array of 256 AccessNodes, the first one is the root
+  // size of this is 10248 bytes (!)
+  pub type AccessStructure<'a> = Vec<AccessNode<'a>, consts::U256>; 
   
   /// Represents a ciphertext as obtained by encrypt() and consumed by decrypt()
   /// Contains both the actual (symetrically) encrypted data and all data required to reconstruct the 
@@ -44,14 +49,11 @@ pub struct YaoABEPrivate<'a> {
   /// of decryption. The secret shared (D_u in the original paper) allowing decryption are embedded
   /// in the leaves of the tree.
   //#[derive(Debug)]
-  pub enum PrivateKey<'a> {
-    Node(u64, Vec<PrivateKey<'a>, consts::U16>),
-    Leaf(Fr, &'a str),
-  }
+  pub struct PrivateKey(AccessStructure<'static>, FnvIndexMap<u8, Fr, consts::U64>);
   
   /// Polynomial p(x) = a0 + a1 * x + a2 * x^2 + ... defined by a vector of coefficients [a0, a1, a2, ...]
   //#[derive(Debug)]
-  struct Polynomial(Vec<Fr, consts::U32>);
+  struct Polynomial(Vec<Fr, consts::U16>);
   
   impl Polynomial {
     /// Evaluates the polynomial p(x) at a given x
@@ -61,7 +63,7 @@ pub struct YaoABEPrivate<'a> {
   
     /// Generates a random polynomial p(x) of degree `coeffs` coefficients, where p(0) = `a0`
     fn randgen(a0: Fr, coeffs: u64) -> Polynomial {
-      let mut coefficients: Vec<Fr, consts::U32> = Vec::from_slice(&[a0]).unwrap();
+      let mut coefficients: Vec<Fr, consts::U16> = Vec::from_slice(&[a0]).unwrap();
       let mut rng = rand::thread_rng();
       coefficients.extend((1..coeffs).map(|_| -> Fr { rng.gen() }));
       assert_eq!(coefficients.len() as u64, coeffs);
@@ -98,7 +100,7 @@ pub struct YaoABEPrivate<'a> {
       for attr in att_names {
         let si: Fr = rng.gen();
         let gi = g * si;
-        att_map.insert(attr, (si, gi));
+        att_map.insert(attr, (si, gi)).unwrap();
       }
       
       let pk = g * master_secret; // master public key, corresponds to `PK`
@@ -124,42 +126,47 @@ pub struct YaoABEPrivate<'a> {
     /// attributes satisfy the given access structure.
     pub fn keygen(
       &self,
-      access_structure: &'a AccessStructure
+      access_structure: &'static AccessStructure<'static>
     ) ->
       PrivateKey
     { 
-      self.keygen_node(
+      let tuple_arr = self.keygen_node(
         &access_structure,
+        0,
         &Polynomial::randgen(self.master_secret, 1),
         Fr::zero(), // this is the only node ever to have index 0, all others have index 1..n
-      )
+      );
+      return PrivateKey(*access_structure, tuple_arr.into_iter().collect());
     }
   
     /// internal recursive helper to ease key generation
     fn keygen_node (&self,
-      tree: &'a AccessStructure,
+      tree_arr: &AccessStructure<'static>,
+      tree_ptr: u8,
       parent_poly: &Polynomial,
       index: Fr
     ) ->
-      PrivateKey
+      Vec<(u8, Fr), consts::U64>
     {
       // own polynomial at x = 0. Exactly q_parent(index).
       let q_of_zero = parent_poly.eval(index);
-      match tree {
-        AccessStructure::Leaf(attr_name) => {
+      let own_node = &tree_arr[tree_ptr as usize];
+      match own_node {
+        AccessNode::Leaf(attr_name) => {
           // terminate recursion, embed secret share in the leaf
           let q_of_zero = parent_poly.eval(index);
           let (s, _) = self.atts.get(attr_name).unwrap();
           let s_inverse = s.inverse().unwrap();
-          return PrivateKey::Leaf(q_of_zero * s_inverse, attr_name.clone());
+          return Vec::from_slice(&[(tree_ptr, q_of_zero * s_inverse)]).unwrap();
         },
-        AccessStructure::Node(thresh, children) => {
+        AccessNode::Node(thresh, children) => {
           // continue recursion, call recursively for all children and return a key node that contains children's key subtrees
           let own_poly = Polynomial::randgen(q_of_zero, thresh.clone()); // `thres`-degree polynomial determined by q_of_zero and `thresh` random coefficients
-          let children_res: Vec<PrivateKey, consts::U16> = children.iter().enumerate().
-            map(|(i, child)| self.keygen_node(child, &own_poly, Fr::from((i+1) as u64)))
+          let children_res: Vec<(u8, Fr), consts::U64> = children.iter().enumerate().
+            map(|(i, child_ptr)| self.keygen_node(tree_arr, *child_ptr, &own_poly, Fr::from((i+1) as u64)))
+            .flatten()
             .collect();
-          return PrivateKey::Node(*thresh, children_res);
+          return children_res;
         }
       }
     }
@@ -192,7 +199,7 @@ pub struct YaoABEPrivate<'a> {
       for att in atts {
         let att_pubkey: &G1 = self.atts.get(att).unwrap();
         let c_i = *att_pubkey * k;
-        att_cs.insert(att, c_i);
+        att_cs.insert(att, c_i).unwrap();
       }
       //println!("---------- ENCRYPT: encrypting with point ------------\n{:?}", c_prime.to_affine());
       let (x, y) = c_prime.coordinates();
@@ -212,7 +219,7 @@ pub struct YaoABEPrivate<'a> {
       aes_ctr.process(&plaintext, &mut encrypted);
   
       let mut full_ciphertext: Vec<u8, consts::U4096> = Vec::from_slice(&iv).unwrap();
-      full_ciphertext.extend_from_slice(&encrypted);
+      full_ciphertext.extend_from_slice(&encrypted).unwrap();
   
       YaoABECiphertext {
         c: full_ciphertext,
@@ -223,24 +230,31 @@ pub struct YaoABEPrivate<'a> {
   
     /// Recursive helper function for decryption
     fn decrypt_node(
-      key: &PrivateKey<'a>,
+      tree_arr: &AccessStructure<'a>,
+      tree_ptr: u8,
+      secret_shares: &FnvIndexMap<u8, Fr, consts::U64>,
       att_cs: &FnvIndexMap<& 'a str, G1, consts::U64>
     ) -> Option<G1> {
-      match key {
-        PrivateKey::Leaf(d_u, name) => {
+      let own_node = &tree_arr[tree_ptr as usize];
+      match own_node {
+        AccessNode::Leaf(name) => {
           // terminate recursion - we have reached a leaf node containing a secret share. Encryption can only be successful if
           // the matching remaining part of the secret is embedded within the ciphertext (that is the case iff the ciphertext
           // was encrypted under the attribute that our current Leaf node represents)
+          let d_u = match secret_shares.get(&tree_ptr) {
+            None => return None,
+            Some(d_u) => d_u,
+          };
           match att_cs.get(name) {
             None => return None,
             Some(c_i) => return Some(c_i.clone() * *d_u),
           }
         },
-        PrivateKey::Node(thresh, children) => {
+        AccessNode::Node(thresh, children) => {
           // continue recursion - call for all children and then, if enough children decrypt successfully, reconstruct the secret share for 
           // this intermediate node.
-          let children_result: Vec<(Fr, G1), consts::U64> = children.into_iter().enumerate()
-            .map(|(i, child)| (Fr::from((i + 1) as u64), Self::decrypt_node(child, att_cs))) // node indexes start at one, enumerate() starts at zero! 
+          let children_result: Vec<(Fr, G1), consts::U16> = children.into_iter().enumerate()
+            .map(|(i, child_ptr)| (Fr::from((i + 1) as u64), Self::decrypt_node(tree_arr, *child_ptr, secret_shares, att_cs))) // node indexes start at one, enumerate() starts at zero! 
             .filter_map(|(i, x)| match x { None => None, Some(y) => Some((i, y))}) // filter out all children that couldn't decrypt because of missing ciphertext secret shares
             .collect();
           // we can only reconstruct our secret share if at least `thresh` children decrypted successfully (interpolation of `thresh-1`-degree polynomial)
@@ -262,9 +276,11 @@ pub struct YaoABEPrivate<'a> {
     pub fn decrypt(
       &self,
       ciphertext: &'a YaoABECiphertext<'a>,
-      key: &PrivateKey<'a>,
+      key: &PrivateKey,
     ) -> Option<Vec<u8, consts::U2048>> {
-      let res = Self::decrypt_node(&key, &ciphertext.c_i);
+      let PrivateKey(access_structure, secret_shares) = key;
+
+      let res = Self::decrypt_node(&access_structure, 0, &secret_shares, &ciphertext.c_i);
       let c_prime = match res {
         None => return None,
         Some(p) => p,
@@ -305,24 +321,31 @@ mod tests {
 
   #[test]
   fn leaf_only_access_tree() {
-    let atts: Vec<&str, consts::U256> = Vec::from_slice(&["student", "tum", "has_bachelor", "over21"]).unwrap();
-    let (es, public) = crate::YaoABEPrivate::setup(&atts);
-    //println!("{:#?}", es);
-    //println!("\n public params:\n{:?}", public);
+    let mut access_structure: AccessStructure = Vec::new();
+    access_structure.push(AccessNode::Leaf("student"));
 
-    let access_structure = crate::AccessStructure::Leaf("student");
-
-    // //println!("access structure:\n{:#?}", access_structure);
-
-    let priv_key = es.keygen(&access_structure);
-    //println!("private key:\n{:?}", priv_key);
 
     let mut rng = rand::thread_rng();
     let data: Vec<u8, consts::U2048> = (0..500).map(|_| rng.gen()).collect();
 
-    let attributes: Vec<&str, consts::U64> = Vec::from_slice(&["student", "tum", "has_bachelor", "over21"]).unwrap();
+    let attributes_1: Vec<&str, consts::U64> = Vec::from_slice(&["student", "tum", "has_bachelor", "over21"]).unwrap();
+    let attributes_2 = Vec::from_slice(&["tum", "over21"]).unwrap();
 
-    let ciphertext =  public.encrypt(&attributes, &data);
+    let system_atts: Vec<&str, consts::U256> = Vec::from_slice(&["student", "tum", "has_bachelor", "over21"]).unwrap();
+    let (private, public) = crate::YaoABEPrivate::setup(&system_atts);
+    //println!("{:#?}", es);
+    //println!("\n public params:\n{:?}", public);
+
+    
+    
+
+    println!("access structure:\n{:#?}", access_structure);
+
+    let priv_key = private.keygen(&access_structure);
+    //println!("private key:\n{:?}", priv_key);
+
+
+    let ciphertext =  public.encrypt(&attributes_1, &data);
 
     // //println!("ciphertext:\n{:?}", ciphertext);
     
@@ -347,56 +370,56 @@ mod tests {
     //   _ => assert!(false),
     // }
 
-    let attributes = vec!["tum", "over21"];
-    let ciphertext = public.encrypt(&attributes, &data);
+    let ciphertext = public.encrypt(&attributes_2, &data);
     let decrypted = public.decrypt(&ciphertext, &priv_key);
     assert_eq!(None, decrypted);
   }
 
 
-  #[test]
-  fn flat_access_tree() {
-    let atts: Vec<&str, consts::U256> = Vec::from_slice(&["student", "tum", "has_bachelor", "over21"]).unwrap();
-    let (es, public) = crate::YaoABEPrivate::setup(&atts);
-    //println!("{:#?}", es);
-    //println!("\n public params:\n{:#?}", public);
+  // #[test]
+  // fn flat_access_tree() {
+  //   let atts: Vec<&str, consts::U256> = Vec::from_slice(&["student", "tum", "has_bachelor", "over21"]).unwrap();
+  //   let (es, public) = crate::YaoABEPrivate::setup(&atts);
+  //   //println!("{:#?}", es);
+  //   //println!("\n public params:\n{:#?}", public);
   
-    let inner_vec: Vec<AccessStructure, consts::U16c> = Vec::new();
-    inner_vec.push(AccessStructure::Leaf("tum"));
-    let access_structure = AccessStructure::Node(
-      2,
-      inner_vec,
-    );
-      // Vec::from_slice(&[
-      //   AccessStructure::Leaf("tum"),
-      //   AccessStructure::Leaf("student"),
-      //   AccessStructure::Leaf("has_bachelor"),
-      //   AccessStructure::Leaf("over21"),
-      // ]).unwrap());
-  
-  
-    let priv_key = es.keygen(&access_structure);
-    //println!("private key:\n{:?}", priv_key);
-  
-    let mut rng = rand::thread_rng();
-    let data: Vec<u8, consts::U2048> = (0..500).map(|_| rng.gen()).collect();
+  //   let inner_vec: Vec<AccessStructure, consts::U16> = Vec::new();
+  //   inner_vec.push(AccessStructure::Leaf("tum"));
 
-    let attributes = Vec::from_slice(&["student", "tum", "has_bachelor", "over21"]).unwrap();
+  //   let access_structure = AccessStructure::Node(
+  //     2,
+  //     inner_vec,
+  //   );
+  //     // Vec::from_slice(&[
+  //     //   AccessStructure::Leaf("tum"),
+  //     //   AccessStructure::Leaf("student"),
+  //     //   AccessStructure::Leaf("has_bachelor"),
+  //     //   AccessStructure::Leaf("over21"),
+  //     // ]).unwrap());
   
-    let ciphertext = public.encrypt(&attributes, &data);
   
-    // println!("ciphertext:\n{:?}", ciphertext);
+  //   let priv_key = es.keygen(&access_structure);
+  //   //println!("private key:\n{:?}", priv_key);
+  
+  //   let mut rng = rand::thread_rng();
+  //   let data: Vec<u8, consts::U2048> = (0..500).map(|_| rng.gen()).collect();
+
+  //   let attributes = Vec::from_slice(&["student", "tum", "has_bachelor", "over21"]).unwrap();
+  
+  //   let ciphertext = public.encrypt(&attributes, &data);
+  
+  //   // println!("ciphertext:\n{:?}", ciphertext);
     
-    let decrypted = public.decrypt(&ciphertext, &priv_key).unwrap();
+  //   let decrypted = public.decrypt(&ciphertext, &priv_key).unwrap();
     
-    assert_eq!(decrypted, data);
+  //   assert_eq!(decrypted, data);
     
-    // failing decryption
-    let attributes = Vec::from_slice(&["tum"]).unwrap();
-    let ciphertext = public.encrypt(&attributes, &data);
-    let decrypted = public.decrypt(&ciphertext, &priv_key);
-    assert_eq!(None, decrypted);
-  }
+  //   // failing decryption
+  //   let attributes = Vec::from_slice(&["tum"]).unwrap();
+  //   let ciphertext = public.encrypt(&attributes, &data);
+  //   let decrypted = public.decrypt(&ciphertext, &priv_key);
+  //   assert_eq!(None, decrypted);
+  // }
 
 
   // #[test]
