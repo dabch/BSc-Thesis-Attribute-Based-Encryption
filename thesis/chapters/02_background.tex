@@ -125,6 +125,7 @@ A special value $\mathcal{O}$ is added to denote the \emph{point at infinity}. \
     E(\mathbb{Z}_p) := \{(x, y) | x,y \in \mathbb{Z}_p \text{ and } y^2 = x^3 + a x + b \text{ mod } b\} \cup \{\mathcal{O}\}
 \end{equation}
 
+\subsection{Point Addition}
 Now, it is possible to show that every line intersecting a curve $E(\mathbb{Z}_p)$ intersects it in exactly three points, if you (1) count tangential intersections double and (2) count any vertical line as intersecting the curve in the point at infinity $\mathcal{O}$.
 Therefore, $\mathcal{O}$ can be thought of as sitting 'above' the end of the y-axis.\cite{katz_introduction_2015}
 
@@ -151,6 +152,7 @@ In addition, we define multiplication of a point $P \in E(\mathbb{Z}_p)$ with a 
 That is, the product of a scalar with a point is again a point on our curve.
 \\
 
+\subsection{Groups on Elliptic Curves}
 For any point $P = (x,y)$, there is unique inverse $-P = (x, -y)$.
 In addition associativity holds (i.e. for all $P_1, P_2, P_3 \in E(\mathbb{Z}_p)$, $(P_1 + P_2) + P_3 = P_1 + (P_2 + P_3))$.
 Thus, $E(\mathbb{Z}_q)$ with point addition is a group. \cite{katz_introduction_2015}
@@ -165,7 +167,7 @@ A prime has exactly two divisors: One (the order of $\mathcal{O}$) and itself (t
 
 These cyclic elliptic curve groups (or, cyclic subgroups of non-cyclic elliptic curves) are exactly the groups we are interested in for doing actual cryptography. See also \cite[p.~321]{katz_introduction_2015}.
 
-\subsection{Hardness Assumptions on Elliptic Curves}
+\subsection{Hardness Assumptions}
 
 Most ECC schemes are build upon three hardness assumptions: The Discrete Logarithm Problem (DLP), the Decisional Diffie-Hellman Problem (DDHP) and the Computational Diffie-Hellman Problem (CDHP).
 Given an additive, cyclic group $\mathbb{G}$ with $P \in \mathbb{G}$ a generator, they are stated as follows:
@@ -175,7 +177,7 @@ Given an additive, cyclic group $\mathbb{G}$ with $P \in \mathbb{G}$ a generator
 
 \emph{Computational Diffie-Hellman Problem.} Given the triple $(P, aP, bP)$ where $a, b \in \mathbb{N}$ chosen uniformly at random, compute $abP$.
 
-\emph{Decisional Diffie-Hellman Problem.} Given two triples $(aP, bP, abP)$ and $(aP, bP, Q)$ where $a, b \in \mathbb{N}$ and $C \in \mathbb{G}$ chosen uniformly at random, distinguish between the two.
+\emph{Decisional Diffie-Hellman Problem.} Given two triples $(aP, bP, abP)$ and $(aP, bP, Q)$ where $a, b \in \mathbb{N}$ and $Q \in \mathbb{G}$ chosen uniformly at random, distinguish between the two.
 \\
 
 Now, the hardness \emph{assumption} is that, for some groups, these problems are hard to solve, i.e. solving them requires so much time and computational power that it is infeasible.
@@ -185,26 +187,28 @@ These three problems might all be assumed to be \emph{hard}, but that doesn't me
 If, in a certain group $\mathbb{G}$, the DLP problem is easy, so is CDHP: Just compute $a$ and $b$, and then use them to calculate $abP$.
 And if CDHP is easy w.r.t some $\mathbb{G}$, so is DDHP: Just compute $abP$, and compare the third element of each tuple.
 The inverse is not generally true, i.e. there are groups in which DLP and CDHP are hard to solve, even though DDHP is easy to solve.
-In that sense, DLP is the hardest and DDHP the easiest of the three. \cite{katz_introduction_2015}
+In that sense, DLP is the hardest and DDHP the easiest of the three. \cite{katz_introduction_2015} (TODO find out if this is true. \cite{menezes_introduction_2009})
 
-\subsection{Bilinear Pairings on Elliptic Curve}
+\subsection{Bilinear Pairings}
+\subsubsection{Introduction}
 The final primitive needed for pairing-based encryption schemes are bilinear pairings. These are functions mapping two points on (possibly different) elliptic curves to elements of a finite field (\emph{not} another point on a curve).\cite{blake_advances_2005}
 
-Let $n \in \mathbb{N}_0$, $\mathbb{G}_1, \mathbb{G}_1$ denote an additive abelian groups with exponent $n$ (i.e. $nP = \mathcal{O}$ for all $P \in \mathbb{G}_1, \mathbb{G}_2$ ). 
-Let $\mathbb{G}_3$ be another cyclic group of order $n$, this time written multiplicatively.
-A \emph{bilinear pairing} then is a function $e: \mathbb{G}_1 \times \mathbb{G}_2 \rightarrow \mathbb{G}_3$ with the following properties:
+Let $n \in \mathbb{N}_0$, $\mathbb{G}_1$ denote an additive abelian group of order $n$ with generator $P$ and identity $\mathcal{O}$. 
+Let $\mathbb{G}_T$ be another group of order $n$, this time written multiplicatively with generator $g$ and identity $1$.
+A \emph{bilinear pairing} then is a function $e: \mathbb{G}_1 \times \mathbb{G}_1 \rightarrow \mathbb{G}_T$ with the following properties:
 \begin{itemize}
-    \item \emph{Bilinearity.} For all $P, P' \in \mathbb{G}_1$ and $Q, Q' \in \mathbb{G}_2$: e(P + P', Q) = e(P, Q) + e(P', Q) and e(P, Q + Q') = e(P, Q) + e(P, Q')
-    \item \emph{Non-Degeneracy.}
-    \begin{itemize}
-        \item For all $P \in \mathbb{G}_1$ with $P \neq \mathcal{O}$, there is some $Q \in \mathbb{G}_2$ such that $e(P,Q) \neq 1$
-        \item For all $Q \in \mathbb{G}_2$ with $Q \neq \mathcal{O}$, there is some $P \in \mathbb{G}_1$ such that $e(P,Q) \neq 1$
-    \end{itemize}
+    \item \emph{Bilinearity.} For all $Q_1, Q_2, Q_3 \in \mathbb{G}_1$, $e(Q_1+Q_2, Q_3) = e(Q_1,Q_3)+e(Q_2,Q_3)$ and $e(Q_1, Q_2+Q_3)=e(Q_1,Q_2)+e(Q_1,Q_3)$
+    \item \emph{Non-Degeneracy.} $e(P,P) \neq 1$
 \end{itemize}
 
-Using these, we can restate the DDH assumption as follows: \cite{sahai_fuzzy_2005}
+Using a bilinear pairing with a group $\mathbb{G}_T$ where the DLP is easy to solve, the DLP in $\mathbb{G}_1$ can also be solved easily:
+To find $n$ such that $Q = nP$, compute $e(P,Q) = e(P, nP) = e(P, \underbrace{P+\cdots+P}_{n \text{ times}}) = \underbrace{e(P,P) \cdots e(P,P)}_{n \text{ times}} = e(P,P)^n$.
+Thus, the discrete logarithm of $Q$ with respect to $P$ is the discrete logarithm of $e(P,Q)$ with respect to $g = e(P,P) \in \mathbb{G}_T$.~\cite{menezes_introduction_2009}
 
-TODO make clear whether we have a $G \times G \rightarrow G_2$ pairing (symmetric) or $G_1 \times G_2 \rightarrow G_3$ pairing (not symmetric) and adapt BDDH accordingly.
-\\
+\subsubsection{Bilinear Hardness Assumption}
 
-Again, $P$ is a generator and $a, b, c, z \in \mathbb{Z}_p$ are chosen uniformly at random. Then, it is computationally infeasible to distinguish the tuples $(aP, bP, cP, e(P,P)^{abc})$ and $(aP, aB, cP, e(P,P)^z)$.
+Since the DLP can be easy to solve using pairings, we need to adapt our hardness assumption. Therefore, we define
+
+The \emph{Bilinear Diffie-Hellman Problem} (BDHP): Given $P, aP, bP, cP$ with $a,b,c \in \{1,\dots,n-1\}$ chosen randomly, compute $e(P, P)^{abc}$.~\cite{menezes_introduction_2009}
+
+If the BDHP is hard for a pairing $e$ on groups $\mathbb{G}_1 \text{ and } \mathbb{G}_T$, this implies that the DLP is hard in both $\mathbb{G}_1 \text{ and } \mathbb{G}_T$.~\cite{menezes_introduction_2009}
