@@ -344,7 +344,7 @@ mod tests {
     
     
 
-    println!("access structure:\n{:#?}", access_structure);
+    // println!("access structure:\n{:#?}", access_structure);
 
     let priv_key = private.keygen(&access_structure);
     //println!("private key:\n{:?}", priv_key);
@@ -507,19 +507,19 @@ mod tests {
   
 
     // example 1 - shall decrypt
-    let attributes = vec!["student", "tum"];
+    let attributes = &["student", "tum"][..];
     let ciphertext = public.encrypt(&attributes, &data);
     let decrypted = public.decrypt(&ciphertext, &priv_key).unwrap();
     assert_eq!(decrypted, data);
 
     // example 2 - shall decrypt
-    let attributes = vec!["student", "has_bachelor", "cs", "over21"];
+    let attributes = &["student", "has_bachelor", "cs", "over21"][..];
     let ciphertext = public.encrypt(&attributes, &data);
     let decrypted = public.decrypt(&ciphertext, &priv_key).unwrap();
     assert_eq!(decrypted, data);
 
     // example 2 - shall not decrypt
-    let attributes = vec!["student", "cs", "over21"];
+    let attributes = &["student", "cs", "over21"][..];
     let ciphertext = public.encrypt(&attributes, &data);
     let decrypted = public.decrypt(&ciphertext, &priv_key);
     assert_eq!(None, decrypted);
