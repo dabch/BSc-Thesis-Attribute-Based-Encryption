@@ -49,7 +49,7 @@ pub struct YaoABEPrivate<'a> {
   /// of decryption. The secret shared (D_u in the original paper) allowing decryption are embedded
   /// in the leaves of the tree.
   //#[derive(Debug)]
-  pub struct PrivateKey(AccessStructure<'static>, FnvIndexMap<u8, Fr, consts::U64>);
+  pub struct PrivateKey<'a>(&'a AccessStructure<'a>, FnvIndexMap<u8, Fr, consts::U64>);
   
   /// Polynomial p(x) = a0 + a1 * x + a2 * x^2 + ... defined by a vector of coefficients [a0, a1, a2, ...]
   //#[derive(Debug)]
@@ -88,7 +88,10 @@ pub struct YaoABEPrivate<'a> {
   
     /// Corresponds to the `(A) Setup` phase in the original paper. Sets up an encryption scheme with a fixed set of attributes and 
     /// generates both public and private parameter structs. This is typically run exactly once by the KGC.
-    pub fn setup(att_names: &Vec<&'static str, consts::U256>) -> (Self, YaoABEPublic<'a>) {
+    pub fn setup(
+      att_names: &Vec<&'a str, consts::U256>
+    ) -> (Self, YaoABEPublic<'a>) 
+    {
       let mut rng = rand::thread_rng();
       let master_secret: Fr = rng.gen(); // corresponds to "s" in the original paper
       let g: G1 = rng.gen();
@@ -126,9 +129,9 @@ pub struct YaoABEPrivate<'a> {
     /// attributes satisfy the given access structure.
     pub fn keygen(
       &self,
-      access_structure: &'static AccessStructure<'static>
+      access_structure: &'a AccessStructure<'a>
     ) ->
-      PrivateKey
+      PrivateKey<'a>
     { 
       let tuple_arr = self.keygen_node(
         &access_structure,
@@ -136,12 +139,12 @@ pub struct YaoABEPrivate<'a> {
         &Polynomial::randgen(self.master_secret, 1),
         Fr::zero(), // this is the only node ever to have index 0, all others have index 1..n
       );
-      return PrivateKey(*access_structure, tuple_arr.into_iter().collect());
+      return PrivateKey(access_structure, tuple_arr.into_iter().collect());
     }
   
     /// internal recursive helper to ease key generation
     fn keygen_node (&self,
-      tree_arr: &AccessStructure<'static>,
+      tree_arr: &AccessStructure<'a>,
       tree_ptr: u8,
       parent_poly: &Polynomial,
       index: Fr
@@ -172,7 +175,7 @@ pub struct YaoABEPrivate<'a> {
     }
   }
   
-  impl<'a> YaoABEPublic<'a> {
+  impl<'a, 'b> YaoABEPublic<'a> {
   
     /// Encrypt a plaintext under a set of attributes so that it can be decrypted only with a matching key
     /// TODO for now this does not actually encrypt any data. It just generates a random curve element c_prime (whose
@@ -275,8 +278,8 @@ pub struct YaoABEPrivate<'a> {
     /// Decrypt a ciphertext using a given private key. At this point, doesn't actually do any decryption, it just reconstructs the point used as encryption/mac key.
     pub fn decrypt(
       &self,
-      ciphertext: &'a YaoABECiphertext<'a>,
-      key: &PrivateKey,
+      ciphertext: &YaoABECiphertext<'a>,
+      key: &PrivateKey<'a>,
     ) -> Option<Vec<u8, consts::U2048>> {
       let PrivateKey(access_structure, secret_shares) = key;
 
