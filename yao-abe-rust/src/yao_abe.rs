@@ -32,7 +32,8 @@ pub struct YaoABEPrivate<'a> {
   /// Represents an access structure defined as a threshold-tree
   // Implementation: Array of 256 AccessNodes, the first one is the root
   // size of this is 10248 bytes (!)
-  pub type AccessStructure<'a> = Vec<AccessNode<'a>, consts::U256>; 
+  // pub type AccessStructure<'a> = Vec<AccessNode<'a>, consts::U256>; 
+  pub type AccessStructure<'a> = &'a [AccessNode<'a>];
   
   /// Represents a ciphertext as obtained by encrypt() and consumed by decrypt()
   /// Contains both the actual (symetrically) encrypted data and all data required to reconstruct the 
@@ -144,7 +145,7 @@ pub struct YaoABEPrivate<'a> {
   
     /// internal recursive helper to ease key generation
     fn keygen_node (&self,
-      tree_arr: &AccessStructure<'a>,
+      tree_arr: AccessStructure<'a>,
       tree_ptr: u8,
       parent_poly: &Polynomial,
       index: Fr
@@ -184,7 +185,7 @@ pub struct YaoABEPrivate<'a> {
     /// This is the only part of our cryptosystem that needs to run on the Cortex M4 in the end.
     pub fn encrypt(
       &self,
-      atts: &'a Vec<&'a str, consts::U64>,
+      atts: &[&'a str],
       plaintext: &'a Vec<u8, consts::U2048>,
       ) -> YaoABECiphertext<'a>
     {
@@ -324,15 +325,16 @@ mod tests {
 
   #[test]
   fn leaf_only_access_tree() {
-    let mut access_structure: AccessStructure = Vec::new();
-    access_structure.push(AccessNode::Leaf("student"));
+    let mut access_structure_vec: Vec<AccessNode, consts::U64> = Vec::new();
+    access_structure_vec.push(AccessNode::Leaf("student")).unwrap();
+    let access_structure = &access_structure_vec[..];
 
 
     let mut rng = rand::thread_rng();
     let data: Vec<u8, consts::U2048> = (0..500).map(|_| rng.gen()).collect();
 
     let attributes_1: Vec<&str, consts::U64> = Vec::from_slice(&["student", "tum", "has_bachelor", "over21"]).unwrap();
-    let attributes_2 = Vec::from_slice(&["tum", "over21"]).unwrap();
+    let attributes_2: Vec<&str, consts::U64> = Vec::from_slice(&["tum", "over21"]).unwrap();
 
     let system_atts: Vec<&str, consts::U256> = Vec::from_slice(&["student", "tum", "has_bachelor", "over21"]).unwrap();
     let (private, public) = crate::YaoABEPrivate::setup(&system_atts);
@@ -379,150 +381,149 @@ mod tests {
   }
 
 
-  // #[test]
-  // fn flat_access_tree() {
-  //   let atts: Vec<&str, consts::U256> = Vec::from_slice(&["student", "tum", "has_bachelor", "over21"]).unwrap();
-  //   let (es, public) = crate::YaoABEPrivate::setup(&atts);
-  //   //println!("{:#?}", es);
-  //   //println!("\n public params:\n{:#?}", public);
-  
-  //   let inner_vec: Vec<AccessStructure, consts::U16> = Vec::new();
-  //   inner_vec.push(AccessStructure::Leaf("tum"));
+  #[test]
+  fn flat_access_tree() {
 
-  //   let access_structure = AccessStructure::Node(
-  //     2,
-  //     inner_vec,
-  //   );
-  //     // Vec::from_slice(&[
-  //     //   AccessStructure::Leaf("tum"),
-  //     //   AccessStructure::Leaf("student"),
-  //     //   AccessStructure::Leaf("has_bachelor"),
-  //     //   AccessStructure::Leaf("over21"),
-  //     // ]).unwrap());
-  
-  
-  //   let priv_key = es.keygen(&access_structure);
-  //   //println!("private key:\n{:?}", priv_key);
-  
-  //   let mut rng = rand::thread_rng();
-  //   let data: Vec<u8, consts::U2048> = (0..500).map(|_| rng.gen()).collect();
+    let access_structure: AccessStructure = &[
+      AccessNode::Node(2, Vec::from_slice(&[1,2,3,4]).unwrap()),
+      AccessNode::Leaf("tum"),
+      AccessNode::Leaf("student"),
+      AccessNode::Leaf("has_bachelor"),
+      AccessNode::Leaf("over21"),
+    ];
 
-  //   let attributes = Vec::from_slice(&["student", "tum", "has_bachelor", "over21"]).unwrap();
-  
-  //   let ciphertext = public.encrypt(&attributes, &data);
-  
-  //   // println!("ciphertext:\n{:?}", ciphertext);
+
+    let attributes_1 = &["student", "tum", "has_bachelor", "over21"][..];
+    let attributes_2 = &["tum"][..];
+
+    let mut rng = rand::thread_rng();
+    let data: Vec<u8, consts::U2048> = (0..500).map(|_| rng.gen()).collect();
+
     
-  //   let decrypted = public.decrypt(&ciphertext, &priv_key).unwrap();
+    let system_atts: Vec<&str, consts::U256> = Vec::from_slice(&["student", "tum", "has_bachelor", "over21"]).unwrap();
+
+
+    let (es, public) = crate::YaoABEPrivate::setup(&system_atts);
+    //println!("{:#?}", es);
+    //println!("\n public params:\n{:#?}", public);
+  
+      
+  
+    let priv_key = es.keygen(&access_structure);
+    //println!("private key:\n{:?}", priv_key)
+
+  
+    let ciphertext = public.encrypt(&attributes_1, &data);
+  
+    // println!("ciphertext:\n{:?}", ciphertext);
     
-  //   assert_eq!(decrypted, data);
+    let decrypted = public.decrypt(&ciphertext, &priv_key).unwrap();
     
-  //   // failing decryption
-  //   let attributes = Vec::from_slice(&["tum"]).unwrap();
-  //   let ciphertext = public.encrypt(&attributes, &data);
-  //   let decrypted = public.decrypt(&ciphertext, &priv_key);
-  //   assert_eq!(None, decrypted);
-  // }
-
-
-  // #[test]
-  // fn malleability() {
-  //   let atts: Vec<&str, consts::U256> = Vec::from_slice(&["student", "tum", "has_bachelor", "over21"]).unwrap();
-  //   let (es, public) = crate::YaoABEPrivate::setup(&atts);
-  //   //println!("{:#?}", es);
-  //   //println!("\n public params:\n{:#?}", public);
-  
-  //   let access_structure = AccessStructure::Node(
-  //     2,
-  //     vec![
-  //       AccessStructure::Leaf("tum"),
-  //       AccessStructure::Leaf("student"),
-  //       AccessStructure::Leaf("has_bachelor"),
-  //       AccessStructure::Leaf("over21"),
-  //     ]);
-  
-  
-  //   let priv_key = es.keygen(&access_structure);
-  //   //println!("private key:\n{:?}", priv_key);
-  
-  //   let mut rng = rand::thread_rng();
-  //   let data: Vec<u8> = (0..500).map(|_| rng.gen()).collect();
-  //   // let mut data: Vec<u8> = (0..500).map(|_| 0).collect();
-
-  //   let attributes = vec!["student", "tum", "has_bachelor", "over21"];
-  
-  //   let mut ciphertext = public.encrypt(&attributes, &data);
-
-  //   assert_eq!(data, public.decrypt(&ciphertext, &priv_key).unwrap());
-
-  //   ciphertext.c[16] ^= 0xaf; // skip IV
-  //   let mut data2 = data.clone();
-  //   data2[0] ^= 0xaf;
-
-  
-  //   // println!("ciphertext:\n{:?}", ciphertext);
+    assert_eq!(decrypted, data);
     
-  //   let decrypted = public.decrypt(&ciphertext, &priv_key);
+    // failing decryption
+    let ciphertext = public.encrypt(&attributes_2, &data);
+    let decrypted = public.decrypt(&ciphertext, &priv_key);
+    assert_eq!(None, decrypted);
+  }
+
+
+  #[test]
+  fn malleability() {
+
+
+    let access_structure: AccessStructure = &[
+      AccessNode::Node(2, Vec::from_slice(&[1,2,3,4]).unwrap()),
+      AccessNode::Leaf("tum"),
+      AccessNode::Leaf("student"),
+      AccessNode::Leaf("has_bachelor"),
+      AccessNode::Leaf("over21"),
+    ];
+
+
+    let attributes = &["student", "tum", "has_bachelor", "over21"][..];
+
+    let mut rng = rand::thread_rng();
+    let data: Vec<u8, consts::U2048> = (0..500).map(|_| rng.gen()).collect();
+
+    let atts: Vec<&str, consts::U256> = Vec::from_slice(&["student", "tum", "has_bachelor", "over21"]).unwrap();
+    let (es, public) = crate::YaoABEPrivate::setup(&atts);
+    //println!("{:#?}", es);
+    //println!("\n public params:\n{:#?}", public);
+  
+  
+    let priv_key = es.keygen(&access_structure);
+    //println!("private key:\n{:?}", priv_key);
+  
+    // let mut data: Vec<u8> = (0..500).map(|_| 0).collect();
+  
+    let mut ciphertext = public.encrypt(&attributes, &data);
+
+    assert_eq!(data, public.decrypt(&ciphertext, &priv_key).unwrap());
+
+    ciphertext.c[16] ^= 0xaf; // skip IV
+    let mut data2 = data.clone();
+    data2[0] ^= 0xaf;
+
+  
+    // println!("ciphertext:\n{:?}", ciphertext);
     
-  //   // decryption should fail because MAC is wrong
-  //   assert_eq!(decrypted, None);
-  // }
+    let decrypted = public.decrypt(&ciphertext, &priv_key);
+    
+    // decryption should fail because MAC is wrong
+    assert_eq!(decrypted, None);
+  }
 
-  // #[test]
-  // fn deep_access_tree() {
+  #[test]
+  fn deep_access_tree() {
 
-  //   let atts = vec!["student", "tum", "over21", "over25", "has_bachelor", "cs"];
-  //   let (es, public) = crate::YaoABEPrivate::setup(&atts);
+    // this represents the following logical access structure:
+    // (tum AND student) OR (cs AND has_bachelor AND (over21 OR over25))
+    let access_structure: AccessStructure = &[
+      AccessNode::Node(1, Vec::from_slice(&[1, 2]).unwrap()), // 0
+      AccessNode::Node(2, Vec::from_slice(&[3, 4]).unwrap()), // 1
+      AccessNode::Node(3, Vec::from_slice(&[5, 6, 7]).unwrap()),// 2
+      AccessNode::Leaf("student"),                            // 3
+      AccessNode::Leaf("tum"),                                // 4
+      AccessNode::Leaf("cs"),                                 // 5
+      AccessNode::Leaf("has_bachelor"),                       // 6
+      AccessNode::Node(1, Vec::from_slice(&[8, 9]).unwrap()), // 7
+      AccessNode::Leaf("over21"),                             // 8
+      AccessNode::Leaf("over25"),                             // 9
+    ];
+    
+    
+    let mut rng = rand::thread_rng();
+    let data: Vec<u8, consts::U2048> = (0..500).map(|_| rng.gen()).collect();
 
-  //   //println!("{:#?}", es);
-  //   //println!("\n public params:\n{:?}", public);
+    let system_atts = Vec::from_slice(&["student", "tum", "over21", "over25", "has_bachelor", "cs"]).unwrap();
+    let (es, public) = crate::YaoABEPrivate::setup(&system_atts);
+
+    //println!("{:#?}", es);
+    //println!("\n public params:\n{:?}", public);
   
-  //   // this represents the following logical access structure
-  //   // (tum AND student) OR (cs AND has_bachelor AND (over21 OR over25))
-  //   let access_structure = AccessStructure::Node(
-  //     1,
-  //     vec![
-  //       AccessStructure::Node(2,
-  //         vec![
-  //           AccessStructure::Leaf("student"),
-  //           AccessStructure::Leaf("tum"),
-  //         ]),
-  //       AccessStructure::Node(3,
-  //         vec![
-  //           AccessStructure::Leaf("cs"),
-  //           AccessStructure::Node(1,
-  //             vec![
-  //               AccessStructure::Leaf("over21"),
-  //               AccessStructure::Leaf("over25"),
-  //             ]),
-  //           AccessStructure::Leaf("has_bachelor"),
-  //         ]),
-  //     ]); 
+    let priv_key = es.keygen(&access_structure);
+    //println!("private key:\n{:?}", priv_key);
   
-  //   let priv_key = es.keygen(&access_structure);
-  //   //println!("private key:\n{:?}", priv_key);
-  
-  //   let mut rng = rand::thread_rng();
-  //   let data: Vec<u8> = (0..500).map(|_| rng.gen()).collect();
 
-  //   // example 1 - shall decrypt
-  //   let attributes = vec!["student", "tum"];
-  //   let ciphertext = public.encrypt(&attributes, &data);
-  //   let decrypted = public.decrypt(&ciphertext, &priv_key).unwrap();
-  //   assert_eq!(decrypted, data);
+    // example 1 - shall decrypt
+    let attributes = vec!["student", "tum"];
+    let ciphertext = public.encrypt(&attributes, &data);
+    let decrypted = public.decrypt(&ciphertext, &priv_key).unwrap();
+    assert_eq!(decrypted, data);
 
-  //   // example 2 - shall decrypt
-  //   let attributes = vec!["student", "has_bachelor", "cs", "over21"];
-  //   let ciphertext = public.encrypt(&attributes, &data);
-  //   let decrypted = public.decrypt(&ciphertext, &priv_key).unwrap();
-  //   assert_eq!(decrypted, data);
+    // example 2 - shall decrypt
+    let attributes = vec!["student", "has_bachelor", "cs", "over21"];
+    let ciphertext = public.encrypt(&attributes, &data);
+    let decrypted = public.decrypt(&ciphertext, &priv_key).unwrap();
+    assert_eq!(decrypted, data);
 
-  //   // example 2 - shall not decrypt
-  //   let attributes = vec!["student", "cs", "over21"];
-  //   let ciphertext = public.encrypt(&attributes, &data);
-  //   let decrypted = public.decrypt(&ciphertext, &priv_key);
-  //   assert_eq!(None, decrypted);
-  // }
+    // example 2 - shall not decrypt
+    let attributes = vec!["student", "cs", "over21"];
+    let ciphertext = public.encrypt(&attributes, &data);
+    let decrypted = public.decrypt(&ciphertext, &priv_key);
+    assert_eq!(None, decrypted);
+  }
 
   // #[bench]
   // fn benchmark_deeptree(b: &mut Bencher) {
