@@ -1,22 +1,27 @@
 use rabe_bn::{Group, Fr, G1};
 use heapless::{IndexMap, FnvIndexMap, Vec, consts};
 use rand::Rng;
-use crypto::{aes, mac::{Mac, MacResult}, hmac, sha2};
+
+use ccm::{Ccm};
+use aes::Aes256;
+use ccm::aead::{self, Tag, AeadInPlace, Key, NewAead, generic_array::GenericArray};
+
+pub use ccm::aead::Error;
 
 
 /// Represents the full parameters of an ABE scheme, known in full only to the KGC
 //#[derive(Debug)]
 pub struct YaoABEPrivate<'a> {
-    gen: G1,
+    // gen: G1,
     atts: FnvIndexMap<&'a str, (Fr, G1), consts::U256>,
-    pk: G1,
+    // pk: G1,
     master_secret: Fr,
   }
   
   /// represents the public ABE parameters, known to all participants and used for encryption, decryption and the like
   //#[derive(Debug)]
   pub struct YaoABEPublic<'a> {
-    gen: G1,
+    // gen: G1,
     atts: FnvIndexMap<&'a str, G1, consts::U256>,
     pk: G1,
   }
@@ -40,8 +45,9 @@ pub struct YaoABEPrivate<'a> {
   /// symmetric keys given a private key created under a matching access structure.
   // #[derive(Debug)]
   pub struct YaoABECiphertext<'a> {
-    c: Vec<u8, consts::U4096>, // actual ciphertext (output of AES)
-    mac: MacResult, // mac over the cleartext (TODO better encrypt-then-mac?)
+    c: &'a mut [u8], // actual ciphertext (output of AES)
+    mac: Tag<aead::consts::U10>, // mac over the cleartext (TODO better encrypt-then-mac?)
+    nonce: [u8; 13],
     c_i: FnvIndexMap<&'a str, G1, consts::U64>, // attributes and their respective curve elements
   }
   
@@ -85,13 +91,13 @@ pub struct YaoABEPrivate<'a> {
     }
   }
   
-  impl<'a> YaoABEPrivate<'a> {
+  impl<'es, 'key> YaoABEPrivate<'es> {
   
     /// Corresponds to the `(A) Setup` phase in the original paper. Sets up an encryption scheme with a fixed set of attributes and 
     /// generates both public and private parameter structs. This is typically run exactly once by the KGC.
     pub fn setup(
-      att_names: &Vec<&'a str, consts::U256>
-    ) -> (Self, YaoABEPublic<'a>) 
+      att_names: &Vec<&'es str, consts::U256>
+    ) -> (Self, YaoABEPublic<'es>) 
     {
       let mut rng = rand::thread_rng();
       let master_secret: Fr = rng.gen(); // corresponds to "s" in the original paper
@@ -114,13 +120,13 @@ pub struct YaoABEPrivate<'a> {
   
       (
         YaoABEPrivate {
-          gen: g,
+          // gen: g,
           atts: att_map,
-          pk,
+          // pk,
           master_secret,
         },
         YaoABEPublic {
-          gen: g,
+          // gen: g,
           atts: atts_public,
           pk,
         })
@@ -130,9 +136,10 @@ pub struct YaoABEPrivate<'a> {
     /// attributes satisfy the given access structure.
     pub fn keygen(
       &self,
-      access_structure: &'a AccessStructure<'a>
+      access_structure: &'key AccessStructure<'es>
     ) ->
-      PrivateKey<'a>
+      PrivateKey<'key>
+    where 'es: 'key
     { 
       let tuple_arr = self.keygen_node(
         &access_structure,
@@ -145,7 +152,7 @@ pub struct YaoABEPrivate<'a> {
   
     /// internal recursive helper to ease key generation
     fn keygen_node (&self,
-      tree_arr: AccessStructure<'a>,
+      tree_arr: AccessStructure<'es>,
       tree_ptr: u8,
       parent_poly: &Polynomial,
       index: Fr
@@ -176,7 +183,7 @@ pub struct YaoABEPrivate<'a> {
     }
   }
   
-  impl<'a, 'b> YaoABEPublic<'a> {
+  impl<'data, 'key, 'es> YaoABEPublic<'es> {
   
     /// Encrypt a plaintext under a set of attributes so that it can be decrypted only with a matching key
     /// TODO for now this does not actually encrypt any data. It just generates a random curve element c_prime (whose
@@ -185,9 +192,10 @@ pub struct YaoABEPrivate<'a> {
     /// This is the only part of our cryptosystem that needs to run on the Cortex M4 in the end.
     pub fn encrypt(
       &self,
-      atts: &[&'a str],
-      plaintext: &'a Vec<u8, consts::U2048>,
-      ) -> YaoABECiphertext<'a>
+      atts: &[&'es str],
+      data: &'data mut [u8],
+      ) -> Result<YaoABECiphertext<'data>, aead::Error>
+    where 'es: 'key, 'key: 'data
     {
       let mut rng = rand::thread_rng();
       // choose a C', which is then used to encrypt the actual plaintext with a symmetric cipher
@@ -206,39 +214,38 @@ pub struct YaoABEPrivate<'a> {
         att_cs.insert(att, c_i).unwrap();
       }
       //println!("---------- ENCRYPT: encrypting with point ------------\n{:?}", c_prime.to_affine());
-      let (x, y) = c_prime.coordinates();
-      let x_arr = <[u8; 8 * 4]>::from(x);
-      let y_arr = <[u8; 8 * 4]>::from(y);
+      let (x, _) = c_prime.coordinates();
+      // let x_arr = <[u8; 8 * 4]>::from(x);
+      // let y_arr = <[u8; 8 * 4]>::from(y);
     //   println!("Encryption with x {:x?}\narray: {:x?}", x, x_arr);
     //   println!("Encryption with y {:x?}\narray: {:x?}", y, y_arr);
-  
-      let sha256_hasher = sha2::Sha256::new();
-      let mut mac_maker = hmac::Hmac::new(sha256_hasher, &y_arr);
-      mac_maker.input(&plaintext);
-      let mac = mac_maker.result();
-  
-      let mut encrypted: Vec<u8, consts::U2048> = plaintext.clone(); // todo make more fitting size
-      let iv: [u8; 16] = rng.gen();
-      let mut aes_ctr = aes::ctr(aes::KeySize::KeySize256, &x_arr, &iv);
-      aes_ctr.process(&plaintext, &mut encrypted);
-  
-      let mut full_ciphertext: Vec<u8, consts::U4096> = Vec::from_slice(&iv).unwrap();
-      full_ciphertext.extend_from_slice(&encrypted).unwrap();
-  
-      YaoABECiphertext {
-        c: full_ciphertext,
+      
+      type YaoCcm = Ccm<Aes256, ccm::consts::U10, ccm::consts::U13>;
+
+      let key: Key<YaoCcm> = GenericArray::from(<[u8; 8 *4]>::from(x));
+      let ccm = YaoCcm::new(&key);
+      
+      let nonce: [u8; 13] = rng.gen();
+      let nonce_ga = GenericArray::from(nonce);
+      let mac = ccm.encrypt_in_place_detached(&nonce_ga, &[], data)?;
+
+      Ok(YaoABECiphertext {
+        c: data,
         mac,
+        nonce,
         c_i: att_cs,
-      }
+      })
     }
   
     /// Recursive helper function for decryption
     fn decrypt_node(
-      tree_arr: &AccessStructure<'a>,
+      tree_arr: &AccessStructure<'key>,
       tree_ptr: u8,
       secret_shares: &FnvIndexMap<u8, Fr, consts::U64>,
-      att_cs: &FnvIndexMap<& 'a str, G1, consts::U64>
-    ) -> Option<G1> {
+      att_cs: &FnvIndexMap<& 'data str, G1, consts::U64>
+    ) -> Option<G1> 
+    where 'es: 'key, 'key: 'data
+    {
       let own_node = &tree_arr[tree_ptr as usize];
       match own_node {
         AccessNode::Leaf(name) => {
@@ -279,33 +286,28 @@ pub struct YaoABEPrivate<'a> {
     /// Decrypt a ciphertext using a given private key. At this point, doesn't actually do any decryption, it just reconstructs the point used as encryption/mac key.
     pub fn decrypt(
       &self,
-      ciphertext: &YaoABECiphertext<'a>,
-      key: &PrivateKey<'a>,
-    ) -> Option<Vec<u8, consts::U2048>> {
+      ciphertext: &mut YaoABECiphertext<'data>,
+      key: &PrivateKey<'key>,
+    ) -> Result<(), aead::Error>
+    where 'es: 'key, 'key: 'data
+    {
       let PrivateKey(access_structure, secret_shares) = key;
 
       let res = Self::decrypt_node(&access_structure, 0, &secret_shares, &ciphertext.c_i);
       let c_prime = match res {
-        None => return None,
+        None => return Err(aead::Error),
         Some(p) => p,
       };
-      let (x, y) = c_prime.coordinates();
-      let mut iv: Vec<u8, consts::U16> = ciphertext.c.iter().take(16).map(|x| x.clone()).collect();
-      let mut aes_ctr = aes::ctr(aes::KeySize::KeySize256, &(<[u8; 4 * 8]>::from(x)), &mut iv);
-      let mut plaintext: Vec<u8, consts::U2048> = Vec::new();
-      plaintext.resize(ciphertext.c.len() - 16, 0);
-      aes_ctr.process(&ciphertext.c[16..], &mut plaintext);
-  
-      let sha256_hasher = sha2::Sha256::new();
-      let mut mac_maker = hmac::Hmac::new(sha256_hasher, &(<[u8; 4 * 8]>::from(y)));
-      mac_maker.input(&plaintext);
-      let mac_ = mac_maker.result();
-  
-      if mac_ == ciphertext.mac {
-        return Some(plaintext);
-      } else {
-        return None;
-      }
+      let (x, _) = c_prime.coordinates();
+      let nonce = GenericArray::from(ciphertext.nonce);
+      
+
+      type YaoCcm = Ccm<Aes256, ccm::consts::U10, ccm::consts::U13>;
+
+      let key: Key<YaoCcm> = GenericArray::from(<[u8; 8 *4]>::from(x));
+      let ccm = YaoCcm::new(&key);
+      
+      ccm.decrypt_in_place_detached(&nonce, &[], ciphertext.c, &ciphertext.mac)
     }
   }
 
@@ -331,7 +333,8 @@ mod tests {
 
 
     let mut rng = rand::thread_rng();
-    let data: Vec<u8, consts::U2048> = (0..500).map(|_| rng.gen()).collect();
+    let data_orig: Vec<u8, consts::U2048> = (0..500).map(|_| rng.gen()).collect();
+    let mut data = data_orig.clone();
 
     let attributes_1: Vec<&str, consts::U64> = Vec::from_slice(&["student", "tum", "has_bachelor", "over21"]).unwrap();
     let attributes_2: Vec<&str, consts::U64> = Vec::from_slice(&["tum", "over21"]).unwrap();
@@ -350,13 +353,13 @@ mod tests {
     //println!("private key:\n{:?}", priv_key);
 
 
-    let ciphertext =  public.encrypt(&attributes_1, &data);
+    let mut ciphertext =  public.encrypt(&attributes_1, &mut data).unwrap();
 
     // //println!("ciphertext:\n{:?}", ciphertext);
     
-    let decrypted = public.decrypt(&ciphertext, &priv_key).unwrap();  
+    public.decrypt(&mut ciphertext, &priv_key).unwrap();  
 
-    assert_eq!(decrypted, data);
+    assert_eq!(data_orig, ciphertext.c);
 
     // match priv_key { 
     //   crate::PrivateKey::Leaf(d, name) =>  {
@@ -374,10 +377,11 @@ mod tests {
     //   },
     //   _ => assert!(false),
     // }
+    let mut data = data_orig.clone();
 
-    let ciphertext = public.encrypt(&attributes_2, &data);
-    let decrypted = public.decrypt(&ciphertext, &priv_key);
-    assert_eq!(None, decrypted);
+    let mut ciphertext = public.encrypt(&attributes_2, &mut data).unwrap();
+    let decrypted = public.decrypt(&mut ciphertext, &priv_key);
+    assert_eq!(Err(Error), decrypted);
   }
 
 
@@ -397,8 +401,8 @@ mod tests {
     let attributes_2 = &["tum"][..];
 
     let mut rng = rand::thread_rng();
-    let data: Vec<u8, consts::U2048> = (0..500).map(|_| rng.gen()).collect();
-
+    let data_orig: Vec<u8, consts::U2048> = (0..500).map(|_| rng.gen()).collect();
+    let mut data = data_orig.clone();
     
     let system_atts: Vec<&str, consts::U256> = Vec::from_slice(&["student", "tum", "has_bachelor", "over21"]).unwrap();
 
@@ -413,18 +417,19 @@ mod tests {
     //println!("private key:\n{:?}", priv_key)
 
   
-    let ciphertext = public.encrypt(&attributes_1, &data);
+    let mut ciphertext = public.encrypt(&attributes_1, &mut data).unwrap();
   
     // println!("ciphertext:\n{:?}", ciphertext);
     
-    let decrypted = public.decrypt(&ciphertext, &priv_key).unwrap();
+    public.decrypt(&mut ciphertext, &priv_key).unwrap();
     
-    assert_eq!(decrypted, data);
+    assert_eq!(data_orig, ciphertext.c);
     
     // failing decryption
-    let ciphertext = public.encrypt(&attributes_2, &data);
-    let decrypted = public.decrypt(&ciphertext, &priv_key);
-    assert_eq!(None, decrypted);
+    let mut data = data_orig.clone();
+    let mut ciphertext = public.encrypt(&attributes_2, &mut data).unwrap();
+    let res = public.decrypt(&mut ciphertext, &priv_key);
+    assert_eq!(Err(Error), res);
   }
 
 
@@ -444,7 +449,8 @@ mod tests {
     let attributes = &["student", "tum", "has_bachelor", "over21"][..];
 
     let mut rng = rand::thread_rng();
-    let data: Vec<u8, consts::U2048> = (0..500).map(|_| rng.gen()).collect();
+    let data_orig: Vec<u8, consts::U2048> = (0..500).map(|_| rng.gen()).collect();
+    let mut data = data_orig.clone();
 
     let atts: Vec<&str, consts::U256> = Vec::from_slice(&["student", "tum", "has_bachelor", "over21"]).unwrap();
     let (es, public) = crate::YaoABEPrivate::setup(&atts);
@@ -457,21 +463,18 @@ mod tests {
   
     // let mut data: Vec<u8> = (0..500).map(|_| 0).collect();
   
-    let mut ciphertext = public.encrypt(&attributes, &data);
+    let mut ciphertext = public.encrypt(&attributes, &mut data).unwrap();
 
-    assert_eq!(data, public.decrypt(&ciphertext, &priv_key).unwrap());
+    // assert_eq!(data, public.decrypt(&ciphertext, &priv_key).unwrap());
 
     ciphertext.c[16] ^= 0xaf; // skip IV
-    let mut data2 = data.clone();
-    data2[0] ^= 0xaf;
-
   
     // println!("ciphertext:\n{:?}", ciphertext);
     
-    let decrypted = public.decrypt(&ciphertext, &priv_key);
+    let res = public.decrypt(&mut ciphertext, &priv_key);
     
     // decryption should fail because MAC is wrong
-    assert_eq!(decrypted, None);
+    assert_eq!(res, Err(Error));
   }
 
   #[test]
@@ -494,7 +497,7 @@ mod tests {
     
     
     let mut rng = rand::thread_rng();
-    let data: Vec<u8, consts::U2048> = (0..500).map(|_| rng.gen()).collect();
+    let data_orig: Vec<u8, consts::U2048> = (0..500).map(|_| rng.gen()).collect();
 
     let system_atts = Vec::from_slice(&["student", "tum", "over21", "over25", "has_bachelor", "cs"]).unwrap();
     let (es, public) = crate::YaoABEPrivate::setup(&system_atts);
@@ -508,27 +511,35 @@ mod tests {
 
     // example 1 - shall decrypt
     let attributes = &["student", "tum"][..];
-    let ciphertext = public.encrypt(&attributes, &data);
-    let decrypted = public.decrypt(&ciphertext, &priv_key).unwrap();
-    assert_eq!(decrypted, data);
+    let mut data = data_orig.clone();
+    let mut ciphertext = public.encrypt(&attributes, &mut data).unwrap();
+    let res = public.decrypt(&mut ciphertext, &priv_key);
+    assert_eq!(Ok(()), res);
+    assert_eq!(data_orig, ciphertext.c);
 
     // example 2 - shall decrypt
     let attributes = &["student", "has_bachelor", "cs", "over21"][..];
-    let ciphertext = public.encrypt(&attributes, &data);
-    let decrypted = public.decrypt(&ciphertext, &priv_key).unwrap();
-    assert_eq!(decrypted, data);
+    let mut data = data_orig.clone();
+    let mut ciphertext = public.encrypt(&attributes, &mut data).unwrap();
+    let res = public.decrypt(&mut ciphertext, &priv_key);
+    assert_eq!(Ok(()), res);
+    assert_eq!(data_orig, ciphertext.c);
+    // let ciphertext = public.encrypt(&attributes, &data);
+    // let decrypted = public.decrypt(&ciphertext, &priv_key).unwrap();
+    // assert_eq!(decrypted, data);
 
     // example 2 - shall not decrypt
     let attributes = &["student", "cs", "over21"][..];
-    let ciphertext = public.encrypt(&attributes, &data);
-    let decrypted = public.decrypt(&ciphertext, &priv_key);
-    assert_eq!(None, decrypted);
+    let mut data = data_orig.clone();
+    let mut ciphertext = public.encrypt(&attributes, &mut data).unwrap();
+    let res = public.decrypt(&mut ciphertext, &priv_key);
+    assert_eq!(Err(Error), res);
+    assert_ne!(data_orig, ciphertext.c);
+    // let ciphertext = public.encrypt(&attributes, &data);
+    // let decrypted = public.decrypt(&ciphertext, &priv_key);
+    // assert_eq!(None, decrypted);
   }
 
-  // #[bench]
-  // fn benchmark_deeptree(b: &mut Bencher) {
-
-  // }
 
   #[test]
   fn curve_operations_dry_run() {
