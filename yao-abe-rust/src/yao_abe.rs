@@ -1,6 +1,6 @@
 use rabe_bn::{Group, Fr, G1};
 use heapless::{IndexMap, FnvIndexMap, Vec, consts};
-use rand::Rng;
+use rand::{Rng, RngCore};
 
 use ccm::{Ccm};
 use aes::Aes256;
@@ -69,9 +69,8 @@ pub struct YaoABEPrivate<'a> {
     }
   
     /// Generates a random polynomial p(x) of degree `coeffs` coefficients, where p(0) = `a0`
-    fn randgen(a0: Fr, coeffs: u64) -> Polynomial {
+    fn randgen(a0: Fr, coeffs: u64, rng: &mut dyn RngCore) -> Polynomial {
       let mut coefficients: Vec<Fr, consts::U16> = Vec::from_slice(&[a0]).unwrap();
-      let mut rng = rand::thread_rng();
       coefficients.extend((1..coeffs).map(|_| -> Fr { rng.gen() }));
       assert_eq!(coefficients.len() as u64, coeffs);
       Polynomial(coefficients)
@@ -96,7 +95,8 @@ pub struct YaoABEPrivate<'a> {
     /// Corresponds to the `(A) Setup` phase in the original paper. Sets up an encryption scheme with a fixed set of attributes and 
     /// generates both public and private parameter structs. This is typically run exactly once by the KGC.
     pub fn setup(
-      att_names: &Vec<&'es str, consts::U256>
+      att_names: &Vec<&'es str, consts::U256>,
+      rng: &mut dyn RngCore,
     ) -> (Self, YaoABEPublic<'es>) 
     {
       let mut rng = rand::thread_rng();
@@ -136,7 +136,8 @@ pub struct YaoABEPrivate<'a> {
     /// attributes satisfy the given access structure.
     pub fn keygen(
       &self,
-      access_structure: &'key AccessStructure<'es>
+      access_structure: &'key AccessStructure<'es>,
+      rng: &mut dyn RngCore,
     ) ->
       PrivateKey<'key>
     where 'es: 'key
@@ -144,8 +145,9 @@ pub struct YaoABEPrivate<'a> {
       let tuple_arr = self.keygen_node(
         &access_structure,
         0,
-        &Polynomial::randgen(self.master_secret, 1),
+        &Polynomial::randgen(self.master_secret, 1, rng),
         Fr::zero(), // this is the only node ever to have index 0, all others have index 1..n
+        rng,
       );
       return PrivateKey(access_structure, tuple_arr.into_iter().collect());
     }
@@ -155,7 +157,8 @@ pub struct YaoABEPrivate<'a> {
       tree_arr: AccessStructure<'es>,
       tree_ptr: u8,
       parent_poly: &Polynomial,
-      index: Fr
+      index: Fr,
+      rng: &mut dyn RngCore,
     ) ->
       Vec<(u8, Fr), consts::U64>
     {
@@ -172,9 +175,9 @@ pub struct YaoABEPrivate<'a> {
         },
         AccessNode::Node(thresh, children) => {
           // continue recursion, call recursively for all children and return a key node that contains children's key subtrees
-          let own_poly = Polynomial::randgen(q_of_zero, thresh.clone()); // `thres`-degree polynomial determined by q_of_zero and `thresh` random coefficients
+          let own_poly = Polynomial::randgen(q_of_zero, thresh.clone(), rng); // `thres`-degree polynomial determined by q_of_zero and `thresh` random coefficients
           let children_res: Vec<(u8, Fr), consts::U64> = children.iter().enumerate().
-            map(|(i, child_ptr)| self.keygen_node(tree_arr, *child_ptr, &own_poly, Fr::from((i+1) as u64)))
+            map(|(i, child_ptr)| self.keygen_node(tree_arr, *child_ptr, &own_poly, Fr::from((i+1) as u64), rng))
             .flatten()
             .collect();
           return children_res;
@@ -194,10 +197,10 @@ pub struct YaoABEPrivate<'a> {
       &self,
       atts: &[&'es str],
       data: &'data mut [u8],
+      rng: &mut dyn RngCore,
       ) -> Result<YaoABECiphertext<'data>, aead::Error>
     where 'es: 'key, 'key: 'data
     {
-      let mut rng = rand::thread_rng();
       // choose a C', which is then used to encrypt the actual plaintext with a symmetric cipher
       let (k, c_prime) = loop {
         let k: Fr = rng.gen();
