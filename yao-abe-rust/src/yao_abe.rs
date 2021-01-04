@@ -8,21 +8,22 @@ use ccm::aead::{self, Tag, AeadInPlace, Key, NewAead, generic_array::GenericArra
 
 pub use ccm::aead::Error;
 
+type S = consts::U16;
 
 /// Represents the full parameters of an ABE scheme, known in full only to the KGC
 //#[derive(Debug)]
-pub struct YaoABEPrivate<'a> {
+pub struct YaoABEPrivate<'attr, 'own> {
     // gen: G1,
-    atts: FnvIndexMap<&'a str, (Fr, G1), consts::U256>,
+    atts: &'own FnvIndexMap<&'attr str, (Fr, G1), S>,
     // pk: G1,
     master_secret: Fr,
   }
   
   /// represents the public ABE parameters, known to all participants and used for encryption, decryption and the like
   //#[derive(Debug)]
-  pub struct YaoABEPublic<'a> {
+  pub struct YaoABEPublic<'attr, 'own> {
     // gen: G1,
-    atts: FnvIndexMap<&'a str, G1, consts::U256>,
+    atts: &'own FnvIndexMap<&'attr str, G1, S>,
     pk: G1,
   }
   
@@ -56,7 +57,7 @@ pub struct YaoABEPrivate<'a> {
   /// of decryption. The secret shared (D_u in the original paper) allowing decryption are embedded
   /// in the leaves of the tree.
   //#[derive(Debug)]
-  pub struct PrivateKey<'a>(&'a AccessStructure<'a>, FnvIndexMap<u8, Fr, consts::U64>);
+  pub struct PrivateKey<'attr, 'own>(&'own AccessStructure<'attr>, FnvIndexMap<u8, Fr, consts::U64>);
   
   /// Polynomial p(x) = a0 + a1 * x + a2 * x^2 + ... defined by a vector of coefficients [a0, a1, a2, ...]
   //#[derive(Debug)]
@@ -90,44 +91,47 @@ pub struct YaoABEPrivate<'a> {
     }
   }
   
-  impl<'es, 'key> YaoABEPrivate<'es> {
+  impl<'attr, 'es, 'key> YaoABEPrivate<'attr, 'es> {
   
     /// Corresponds to the `(A) Setup` phase in the original paper. Sets up an encryption scheme with a fixed set of attributes and 
     /// generates both public and private parameter structs. This is typically run exactly once by the KGC.
     pub fn setup(
-      att_names: &Vec<&'es str, consts::U256>,
-      rng: &mut dyn RngCore,
-    ) -> (Self, YaoABEPublic<'es>) 
+      att_names: &[&'attr str],
+      public_map: &'es mut FnvIndexMap<&'attr str, G1, S>,
+      private_map: &'es mut FnvIndexMap<&'attr str, (Fr, G1), S>,
+    ) -> (Self, YaoABEPublic<'attr, 'es>) 
+    where 'attr: 'es
     {
       let mut rng = rand::thread_rng();
       let master_secret: Fr = rng.gen(); // corresponds to "s" in the original paper
       let g: G1 = rng.gen();
       
       // save all attributes with their corresponding public and private parameters (private is needed by kgc for key generation)
-      let mut att_map: FnvIndexMap<&str, (Fr, G1), consts::U256> = IndexMap::new();
+      // let mut att_map: FnvIndexMap<&str, (Fr, G1), S> = IndexMap::new();
   
       // for each attribute, choose a private field element s_i and make G * s_i public
       for attr in att_names {
         let si: Fr = rng.gen();
         let gi = g * si;
-        att_map.insert(attr, (si, gi)).unwrap();
+        private_map.insert(attr, (si, gi)).unwrap();
+        public_map.insert(attr, gi).unwrap();
       }
       
       let pk = g * master_secret; // master public key, corresponds to `PK`
   
       // create equivalend HashMap for public parameters, but of course remove the private parameters for each attribute
-      let atts_public: FnvIndexMap<&str, G1, consts::U256> = att_map.iter().map(|(k, (_, p))| (k.clone(), p.clone())).collect();
+      // let atts_public: FnvIndexMap<&str, G1, S> = att_map.iter().map(|(k, (_, p))| (k.clone(), p.clone())).collect();
   
       (
         YaoABEPrivate {
           // gen: g,
-          atts: att_map,
+          atts: private_map,
           // pk,
           master_secret,
         },
         YaoABEPublic {
           // gen: g,
-          atts: atts_public,
+          atts: public_map,
           pk,
         })
     }
@@ -139,7 +143,7 @@ pub struct YaoABEPrivate<'a> {
       access_structure: &'key AccessStructure<'es>,
       rng: &mut dyn RngCore,
     ) ->
-      PrivateKey<'key>
+      PrivateKey<'attr, 'key>
     where 'es: 'key
     { 
       let tuple_arr = self.keygen_node(
@@ -154,7 +158,7 @@ pub struct YaoABEPrivate<'a> {
   
     /// internal recursive helper to ease key generation
     fn keygen_node (&self,
-      tree_arr: AccessStructure<'es>,
+      tree_arr: AccessStructure<'key>,
       tree_ptr: u8,
       parent_poly: &Polynomial,
       index: Fr,
@@ -169,7 +173,7 @@ pub struct YaoABEPrivate<'a> {
         AccessNode::Leaf(attr_name) => {
           // terminate recursion, embed secret share in the leaf
           let q_of_zero = parent_poly.eval(index);
-          let (s, _) = self.atts.get(attr_name).unwrap();
+          let (s, _) = self.atts.get(*attr_name).unwrap();
           let s_inverse = s.inverse().unwrap();
           return Vec::from_slice(&[(tree_ptr, q_of_zero * s_inverse)]).unwrap();
         },
@@ -186,7 +190,7 @@ pub struct YaoABEPrivate<'a> {
     }
   }
   
-  impl<'data, 'key, 'es> YaoABEPublic<'es> {
+  impl<'data, 'key, 'es, 'attr> YaoABEPublic<'attr, 'es> {
   
     /// Encrypt a plaintext under a set of attributes so that it can be decrypted only with a matching key
     /// TODO for now this does not actually encrypt any data. It just generates a random curve element c_prime (whose
@@ -195,11 +199,11 @@ pub struct YaoABEPrivate<'a> {
     /// This is the only part of our cryptosystem that needs to run on the Cortex M4 in the end.
     pub fn encrypt(
       &self,
-      atts: &[&'es str],
+      atts: &[&'attr str],
       data: &'data mut [u8],
       rng: &mut dyn RngCore,
       ) -> Result<YaoABECiphertext<'data>, aead::Error>
-    where 'es: 'key, 'key: 'data
+    where 'attr: 'es, 'es: 'key, 'key: 'data
     {
       // choose a C', which is then used to encrypt the actual plaintext with a symmetric cipher
       let (k, c_prime) = loop {
@@ -247,7 +251,7 @@ pub struct YaoABEPrivate<'a> {
       secret_shares: &FnvIndexMap<u8, Fr, consts::U64>,
       att_cs: &FnvIndexMap<& 'data str, G1, consts::U64>
     ) -> Option<G1> 
-    where 'es: 'key, 'key: 'data
+    where 'attr: 'es, 'es: 'key, 'key: 'data
     {
       let own_node = &tree_arr[tree_ptr as usize];
       match own_node {
@@ -290,9 +294,9 @@ pub struct YaoABEPrivate<'a> {
     pub fn decrypt(
       &self,
       ciphertext: &mut YaoABECiphertext<'data>,
-      key: &PrivateKey<'key>,
+      key: &PrivateKey<'attr, 'key>,
     ) -> Result<(), aead::Error>
-    where 'es: 'key, 'key: 'data
+    where 'attr: 'es, 'es: 'key, 'key: 'data
     {
       let PrivateKey(access_structure, secret_shares) = key;
 
@@ -326,6 +330,8 @@ mod tests {
 
   use heapless::{Vec, consts};
 
+  use super::*;
+
   // use test::Bencher;
 
   #[test]
@@ -333,6 +339,10 @@ mod tests {
     let mut access_structure_vec: Vec<AccessNode, consts::U64> = Vec::new();
     access_structure_vec.push(AccessNode::Leaf("student")).unwrap();
     let access_structure = &access_structure_vec[..];
+
+    let mut public_map: FnvIndexMap<&str, G1, S> = FnvIndexMap::new();
+    let mut private_map: FnvIndexMap<&str, (Fr, G1), S> = FnvIndexMap::new();
+
 
 
     let mut rng = rand::thread_rng();
@@ -343,7 +353,7 @@ mod tests {
     let attributes_2: Vec<&str, consts::U64> = Vec::from_slice(&["tum", "over21"]).unwrap();
 
     let system_atts: Vec<&str, consts::U256> = Vec::from_slice(&["student", "tum", "has_bachelor", "over21"]).unwrap();
-    let (private, public) = crate::YaoABEPrivate::setup(&system_atts);
+    let (private, public) = crate::YaoABEPrivate::setup(&system_atts, &mut public_map, &mut private_map);
     //println!("{:#?}", es);
     //println!("\n public params:\n{:?}", public);
 
@@ -399,6 +409,9 @@ mod tests {
       AccessNode::Leaf("over21"),
     ];
 
+    let mut public_map: FnvIndexMap<&str, G1, S> = FnvIndexMap::new();
+    let mut private_map: FnvIndexMap<&str, (Fr, G1), S> = FnvIndexMap::new();
+
 
     let attributes_1 = &["student", "tum", "has_bachelor", "over21"][..];
     let attributes_2 = &["tum"][..];
@@ -410,7 +423,7 @@ mod tests {
     let system_atts: Vec<&str, consts::U256> = Vec::from_slice(&["student", "tum", "has_bachelor", "over21"]).unwrap();
 
 
-    let (es, public) = crate::YaoABEPrivate::setup(&system_atts);
+    let (es, public) = crate::YaoABEPrivate::setup(&system_atts, &mut public_map, &mut private_map);
     //println!("{:#?}", es);
     //println!("\n public params:\n{:#?}", public);
   
@@ -448,6 +461,8 @@ mod tests {
       AccessNode::Leaf("over21"),
     ];
 
+    let mut public_map: FnvIndexMap<&str, G1, S> = FnvIndexMap::new();
+    let mut private_map: FnvIndexMap<&str, (Fr, G1), S> = FnvIndexMap::new();
 
     let attributes = &["student", "tum", "has_bachelor", "over21"][..];
 
@@ -456,7 +471,7 @@ mod tests {
     let mut data = data_orig.clone();
 
     let atts: Vec<&str, consts::U256> = Vec::from_slice(&["student", "tum", "has_bachelor", "over21"]).unwrap();
-    let (es, public) = crate::YaoABEPrivate::setup(&atts);
+    let (es, public) = crate::YaoABEPrivate::setup(&atts, &mut public_map, &mut private_map);
     //println!("{:#?}", es);
     //println!("\n public params:\n{:#?}", public);
   
@@ -498,12 +513,14 @@ mod tests {
       AccessNode::Leaf("over25"),                             // 9
     ];
     
+    let mut public_map: FnvIndexMap<&str, G1, S> = FnvIndexMap::new();
+    let mut private_map: FnvIndexMap<&str, (Fr, G1), S> = FnvIndexMap::new();
     
     let mut rng = rand::thread_rng();
     let data_orig: Vec<u8, consts::U2048> = (0..500).map(|_| rng.gen()).collect();
 
-    let system_atts = Vec::from_slice(&["student", "tum", "over21", "over25", "has_bachelor", "cs"]).unwrap();
-    let (es, public) = crate::YaoABEPrivate::setup(&system_atts);
+    let system_atts = ["student", "tum", "over21", "over25", "has_bachelor", "cs"];
+    let (es, public) = crate::YaoABEPrivate::setup(&system_atts, &mut public_map, &mut private_map);
 
     //println!("{:#?}", es);
     //println!("\n public params:\n{:?}", public);
@@ -544,19 +561,31 @@ mod tests {
   }
 
 
+  // #[test]
+  // fn curve_operations_dry_run() {
+  //   let mut rng = rand::thread_rng();
+
+  //   let s: Fr = rng.gen();
+  //   let s_inv = s.inverse().unwrap();
+
+  //   let g: G1 = rng.gen();
+
+  //   let c = g * s;
+
+  //   let c_dec = c * s_inv;
+  //   assert_eq!(g, c_dec);
+
+  // }
+
   #[test]
-  fn curve_operations_dry_run() {
-    let mut rng = rand::thread_rng();
+  fn setup_only_test() {
 
-    let s: Fr = rng.gen();
-    let s_inv = s.inverse().unwrap();
-
-    let g: G1 = rng.gen();
-
-    let c = g * s;
-
-    let c_dec = c * s_inv;
-    assert_eq!(g, c_dec);
-
+    let atts: Vec<&str, S> = Vec::from_slice(&["student", "tum", "has_bachelor", "over21"]).unwrap();
+    
+    // let mut public_map: FnvIndexMap<&str, G1, S> = FnvIndexMap::new();
+    let mut public_map: FnvIndexMap<&str, G1, S> = FnvIndexMap::new();
+    let mut private_map: FnvIndexMap<&str, (Fr, G1), S> = FnvIndexMap::new();
+    
+    let es = YaoABEPrivate::setup(&atts, &mut public_map, &mut private_map);
   }
 }
