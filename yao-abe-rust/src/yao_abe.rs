@@ -1,6 +1,6 @@
 // use rabe_bn::{Group, Fr, G};
 use elliptic_curve::{Group, Field, sec1::ToEncodedPoint, generic_array::sequence::Split};
-use k256::{Scalar, ProjectivePoint, AffinePoint};
+use k256::{Scalar, ProjectivePoint};
 use heapless::{IndexMap, FnvIndexMap, Vec, consts};
 use rand::{Rng, RngCore};
 
@@ -121,9 +121,6 @@ pub struct YaoABEPrivate<'attr, 'own> {
       let master_secret: F = F::random(&mut rng); // corresponds to "s" in the original paper
       let g: G = G::random(&mut rng);
       
-      // save all attributes with their corresponding public and private parameters (private is needed by kgc for key generation)
-      let mut att_map: FnvIndexMap<&str, (F, G), consts::U4> = IndexMap::new();
-  
       // for each attribute, choose a private field element s_i and make G * s_i public
       for attr in att_names {
         let si: F = F::random(&mut rng);
@@ -133,10 +130,7 @@ pub struct YaoABEPrivate<'attr, 'own> {
       }
       
       let pk = g * master_secret; // master public key, corresponds to `PK`
-  
-      // create equivalend HashMap for public parameters, but of course remove the private parameters for each attribute
-      let atts_public: FnvIndexMap<&str, G, consts::U4> = att_map.iter().map(|(k, (_, p))| (k.clone(), p.clone())).collect();
-  
+
       (
         YaoABEPrivate {
           // gen: g,
@@ -345,7 +339,6 @@ mod tests {
   
   use crate::*;
   use rand::{self, Rng};
-  use rabe_bn::{F, G};
 
   use heapless::{Vec, consts};
 
@@ -372,209 +365,185 @@ mod tests {
     let attributes_2: Vec<&str, consts::U64> = Vec::from_slice(&["tum", "over21"]).unwrap();
 
     let system_atts: Vec<&str, consts::U256> = Vec::from_slice(&["student", "tum", "has_bachelor", "over21"]).unwrap();
-    let (private, public) = crate::YaoABEPrivate::setup(&system_atts, &mut public_map, &mut private_map);
-    // println!("{:#?}", es);
-    // println!("\n public params:\n{:?}", public);
-
-    
-    
-
-    // println!("access structure:\n{:#?}", access_structure);
-
-    let priv_key = private.keygen(&access_structure);
-    //println!("private key:\n{:?}", priv_key);
+    let (private, public) = crate::YaoABEPrivate::setup(&system_atts, &mut public_map, &mut private_map, &mut rng);
+    let priv_key = private.keygen(&access_structure, &mut rng);
 
 
-    let mut ciphertext =  public.encrypt(&attributes_1, &mut data).unwrap();
-
-    // //println!("ciphertext:\n{:?}", ciphertext);
+    let mut ciphertext =  public.encrypt(&attributes_1, &mut data, &mut rng).unwrap();
     
     public.decrypt(&mut ciphertext, &priv_key).unwrap();  
 
     assert_eq!(data_orig, ciphertext.c);
 
-    // match priv_key { 
-    //   crate::PrivateKey::Leaf(d, name) =>  {
-    //     let c_i = ciphertext.c_i.get(name).unwrap();
-    //     let (s_i, _) = es.atts.get(name).unwrap();
-    //     let c_i2 = public.gen * ciphertext.secret_k * *s_i;
-    //     let d2 = es.master_secret * s_i.inverse().unwrap();
-    //     assert_eq!(*c_i, c_i2);
-    //     assert_eq!(d, d2);
-    //     assert_eq!(public.pk, public.gen * es.master_secret);
-    //     // let manual_decryption = (C_i2 * d2).to_affine();
-    //     let manual_decryption = (es.pk * ciphertext.secret_k);
-    //     //println!("------------ manual leaf dec ------------\n{:?}", manual_decryption);
-    //     assert_eq!(ciphertext.secret_c, manual_decryption);
-    //   },
-    //   _ => assert!(false),
-    // }
     let mut data = data_orig.clone();
 
-    let mut ciphertext = public.encrypt(&attributes_2, &mut data).unwrap();
+    let mut ciphertext = public.encrypt(&attributes_2, &mut data, &mut rng).unwrap();
     let decrypted = public.decrypt(&mut ciphertext, &priv_key);
     assert_eq!(Err(Error), decrypted);
   }
 
 
-//   #[test]
-//   fn flat_access_tree() {
+  #[test]
+  fn flat_access_tree() {
 
-//     let access_structure: AccessStructure = &[
-//       AccessNode::Node(2, Vec::from_slice(&[1,2,3,4]).unwrap()),
-//       AccessNode::Leaf("tum"),
-//       AccessNode::Leaf("student"),
-//       AccessNode::Leaf("has_bachelor"),
-//       AccessNode::Leaf("over21"),
-//     ];
+    let access_structure: AccessStructure = &[
+      AccessNode::Node(2, Vec::from_slice(&[1,2,3,4]).unwrap()),
+      AccessNode::Leaf("tum"),
+      AccessNode::Leaf("student"),
+      AccessNode::Leaf("has_bachelor"),
+      AccessNode::Leaf("over21"),
+    ];
 
 
-//     let attributes_1 = &["student", "tum", "has_bachelor", "over21"][..];
-//     let attributes_2 = &["tum"][..];
+    let attributes_1 = &["student", "tum", "has_bachelor", "over21"][..];
+    let attributes_2 = &["tum"][..];
 
-//     let mut rng = rand::thread_rng();
-//     let data_orig: Vec<u8, consts::U2048> = (0..500).map(|_| rng.gen()).collect();
-//     let mut data = data_orig.clone();
+    let mut public_map: FnvIndexMap<&str, G, S> = FnvIndexMap::new();
+    let mut private_map: FnvIndexMap<&str, (F, G), S> = FnvIndexMap::new();
+
+    let mut rng = rand::thread_rng();
+    let data_orig: Vec<u8, consts::U2048> = (0..500).map(|_| rng.gen()).collect();
+    let mut data = data_orig.clone();
     
-//     let system_atts: Vec<&str, consts::U256> = Vec::from_slice(&["student", "tum", "has_bachelor", "over21"]).unwrap();
+    let system_atts: Vec<&str, consts::U256> = Vec::from_slice(&["student", "tum", "has_bachelor", "over21"]).unwrap();
 
 
-//     let (es, public) = crate::YaoABEPrivate::setup(&system_atts);
-//     //println!("{:#?}", es);
-//     //println!("\n public params:\n{:#?}", public);
+    let (es, public) = crate::YaoABEPrivate::setup(&system_atts, &mut public_map, &mut private_map, &mut rng);
+    //println!("{:#?}", es);
+    //println!("\n public params:\n{:#?}", public);
   
       
   
-//     let priv_key = es.keygen(&access_structure);
-//     //println!("private key:\n{:?}", priv_key)
+    let priv_key = es.keygen(&access_structure, &mut rng);
+    //println!("private key:\n{:?}", priv_key)
 
   
-//     let mut ciphertext = public.encrypt(&attributes_1, &mut data).unwrap();
+    let mut ciphertext = public.encrypt(&attributes_1, &mut data, &mut rng).unwrap();
   
-//     // println!("ciphertext:\n{:?}", ciphertext);
+    // println!("ciphertext:\n{:?}", ciphertext);
     
-//     public.decrypt(&mut ciphertext, &priv_key).unwrap();
+    public.decrypt(&mut ciphertext, &priv_key).unwrap();
     
-//     assert_eq!(data_orig, ciphertext.c);
+    assert_eq!(data_orig, ciphertext.c);
     
-//     // failing decryption
-//     let mut data = data_orig.clone();
-//     let mut ciphertext = public.encrypt(&attributes_2, &mut data).unwrap();
-//     let res = public.decrypt(&mut ciphertext, &priv_key);
-//     assert_eq!(Err(Error), res);
-//   }
+    // failing decryption
+    let mut data = data_orig.clone();
+    let mut ciphertext = public.encrypt(&attributes_2, &mut data, &mut rng).unwrap();
+    let res = public.decrypt(&mut ciphertext, &priv_key);
+    assert_eq!(Err(Error), res);
+  }
 
 
-//   #[test]
-//   fn malleability() {
+  #[test]
+  fn malleability() {
 
 
-//     let access_structure: AccessStructure = &[
-//       AccessNode::Node(2, Vec::from_slice(&[1,2,3,4]).unwrap()),
-//       AccessNode::Leaf("tum"),
-//       AccessNode::Leaf("student"),
-//       AccessNode::Leaf("has_bachelor"),
-//       AccessNode::Leaf("over21"),
-//     ];
+    let access_structure: AccessStructure = &[
+      AccessNode::Node(2, Vec::from_slice(&[1,2,3,4]).unwrap()),
+      AccessNode::Leaf("tum"),
+      AccessNode::Leaf("student"),
+      AccessNode::Leaf("has_bachelor"),
+      AccessNode::Leaf("over21"),
+    ];
 
-    // let mut public_map: FnvIndexMap<&str, G, S> = FnvIndexMap::new();
-    // let mut private_map: FnvIndexMap<&str, (F, G), S> = FnvIndexMap::new();
+    let mut public_map: FnvIndexMap<&str, G, S> = FnvIndexMap::new();
+    let mut private_map: FnvIndexMap<&str, (F, G), S> = FnvIndexMap::new();
 
-//     let attributes = &["student", "tum", "has_bachelor", "over21"][..];
+    let attributes = &["student", "tum", "has_bachelor", "over21"][..];
 
-//     let mut rng = rand::thread_rng();
-//     let data_orig: Vec<u8, consts::U2048> = (0..500).map(|_| rng.gen()).collect();
-//     let mut data = data_orig.clone();
+    let mut rng = rand::thread_rng();
+    let data_orig: Vec<u8, consts::U2048> = (0..500).map(|_| rng.gen()).collect();
+    let mut data = data_orig.clone();
 
-//     let atts: Vec<&str, consts::U256> = Vec::from_slice(&["student", "tum", "has_bachelor", "over21"]).unwrap();
-//     let (es, public) = crate::YaoABEPrivate::setup(&atts);
-//     //println!("{:#?}", es);
-//     //println!("\n public params:\n{:#?}", public);
+    let atts: Vec<&str, consts::U256> = Vec::from_slice(&["student", "tum", "has_bachelor", "over21"]).unwrap();
+    let (es, public) = crate::YaoABEPrivate::setup(&atts, &mut public_map, &mut private_map, &mut rng);
+    //println!("{:#?}", es);
+    //println!("\n public params:\n{:#?}", public);
   
   
-//     let priv_key = es.keygen(&access_structure);
-//     //println!("private key:\n{:?}", priv_key);
+    let priv_key = es.keygen(&access_structure, &mut rng);
+    //println!("private key:\n{:?}", priv_key);
   
-//     // let mut data: Vec<u8> = (0..500).map(|_| 0).collect();
+    // let mut data: Vec<u8> = (0..500).map(|_| 0).collect();
   
-//     let mut ciphertext = public.encrypt(&attributes, &mut data).unwrap();
+    let mut ciphertext = public.encrypt(&attributes, &mut data, &mut rng).unwrap();
 
-//     // assert_eq!(data, public.decrypt(&ciphertext, &priv_key).unwrap());
+    // assert_eq!(data, public.decrypt(&ciphertext, &priv_key).unwrap());
 
-//     ciphertext.c[16] ^= 0xaf; // skip IV
+    ciphertext.c[16] ^= 0xaf; // skip IV
   
-//     // println!("ciphertext:\n{:?}", ciphertext);
+    // println!("ciphertext:\n{:?}", ciphertext);
     
-//     let res = public.decrypt(&mut ciphertext, &priv_key);
+    let res = public.decrypt(&mut ciphertext, &priv_key);
     
-//     // decryption should fail because MAC is wrong
-//     assert_eq!(res, Err(Error));
-//   }
+    // decryption should fail because MAC is wrong
+    assert_eq!(res, Err(Error));
+  }
 
-//   #[test]
-//   fn deep_access_tree() {
+  #[test]
+  fn deep_access_tree() {
 
-//     // this represents the following logical access structure:
-//     // (tum AND student) OR (cs AND has_bachelor AND (over21 OR over25))
-//     let access_structure: AccessStructure = &[
-//       AccessNode::Node(1, Vec::from_slice(&[1, 2]).unwrap()), // 0
-//       AccessNode::Node(2, Vec::from_slice(&[3, 4]).unwrap()), // 1
-//       AccessNode::Node(3, Vec::from_slice(&[5, 6, 7]).unwrap()),// 2
-//       AccessNode::Leaf("student"),                            // 3
-//       AccessNode::Leaf("tum"),                                // 4
-//       AccessNode::Leaf("cs"),                                 // 5
-//       AccessNode::Leaf("has_bachelor"),                       // 6
-//       AccessNode::Node(1, Vec::from_slice(&[8, 9]).unwrap()), // 7
-//       AccessNode::Leaf("over21"),                             // 8
-//       AccessNode::Leaf("over25"),                             // 9
-//     ];
+    // this represents the following logical access structure:
+    // (tum AND student) OR (cs AND has_bachelor AND (over21 OR over25))
+    let access_structure: AccessStructure = &[
+      AccessNode::Node(1, Vec::from_slice(&[1, 2]).unwrap()), // 0
+      AccessNode::Node(2, Vec::from_slice(&[3, 4]).unwrap()), // 1
+      AccessNode::Node(3, Vec::from_slice(&[5, 6, 7]).unwrap()),// 2
+      AccessNode::Leaf("student"),                            // 3
+      AccessNode::Leaf("tum"),                                // 4
+      AccessNode::Leaf("cs"),                                 // 5
+      AccessNode::Leaf("has_bachelor"),                       // 6
+      AccessNode::Node(1, Vec::from_slice(&[8, 9]).unwrap()), // 7
+      AccessNode::Leaf("over21"),                             // 8
+      AccessNode::Leaf("over25"),                             // 9
+    ];
     
-    // let mut public_map: FnvIndexMap<&str, G, S> = FnvIndexMap::new();
-    // let mut private_map: FnvIndexMap<&str, (F, G), S> = FnvIndexMap::new();
+    let mut public_map: FnvIndexMap<&str, G, S> = FnvIndexMap::new();
+    let mut private_map: FnvIndexMap<&str, (F, G), S> = FnvIndexMap::new();
     
-//     let mut rng = rand::thread_rng();
-//     let data_orig: Vec<u8, consts::U2048> = (0..500).map(|_| rng.gen()).collect();
+    let mut rng = rand::thread_rng();
+    let data_orig: Vec<u8, consts::U2048> = (0..500).map(|_| rng.gen()).collect();
 
-//     let system_atts = Vec::from_slice(&["student", "tum", "over21", "over25", "has_bachelor", "cs"]).unwrap();
-//     let (es, public) = crate::YaoABEPrivate::setup(&system_atts);
+    let system_atts = ["student", "tum", "over21", "over25", "has_bachelor", "cs"];
+    let (es, public) = crate::YaoABEPrivate::setup(&system_atts, &mut public_map, &mut private_map, &mut rng);
 
-//     //println!("{:#?}", es);
-//     //println!("\n public params:\n{:?}", public);
+    //println!("{:#?}", es);
+    //println!("\n public params:\n{:?}", public);
   
-//     let priv_key = es.keygen(&access_structure);
-//     //println!("private key:\n{:?}", priv_key);
+    let priv_key = es.keygen(&access_structure, &mut rng);
+    //println!("private key:\n{:?}", priv_key);
   
 
-//     // example 1 - shall decrypt
-//     let attributes = &["student", "tum"][..];
-//     let mut data = data_orig.clone();
-//     let mut ciphertext = public.encrypt(&attributes, &mut data).unwrap();
-//     let res = public.decrypt(&mut ciphertext, &priv_key);
-//     assert_eq!(Ok(()), res);
-//     assert_eq!(data_orig, ciphertext.c);
+    // example 1 - shall decrypt
+    let attributes = &["student", "tum"][..];
+    let mut data = data_orig.clone();
+    let mut ciphertext = public.encrypt(&attributes, &mut data, &mut rng).unwrap();
+    let res = public.decrypt(&mut ciphertext, &priv_key);
+    assert_eq!(Ok(()), res);
+    assert_eq!(data_orig, ciphertext.c);
 
-//     // example 2 - shall decrypt
-//     let attributes = &["student", "has_bachelor", "cs", "over21"][..];
-//     let mut data = data_orig.clone();
-//     let mut ciphertext = public.encrypt(&attributes, &mut data).unwrap();
-//     let res = public.decrypt(&mut ciphertext, &priv_key);
-//     assert_eq!(Ok(()), res);
-//     assert_eq!(data_orig, ciphertext.c);
-//     // let ciphertext = public.encrypt(&attributes, &data);
-//     // let decrypted = public.decrypt(&ciphertext, &priv_key).unwrap();
-//     // assert_eq!(decrypted, data);
+    // example 2 - shall decrypt
+    let attributes = &["student", "has_bachelor", "cs", "over21"][..];
+    let mut data = data_orig.clone();
+    let mut ciphertext = public.encrypt(&attributes, &mut data, &mut rng).unwrap();
+    let res = public.decrypt(&mut ciphertext, &priv_key);
+    assert_eq!(Ok(()), res);
+    assert_eq!(data_orig, ciphertext.c);
+    // let ciphertext = public.encrypt(&attributes, &data);
+    // let decrypted = public.decrypt(&ciphertext, &priv_key).unwrap();
+    // assert_eq!(decrypted, data);
 
-//     // example 2 - shall not decrypt
-//     let attributes = &["student", "cs", "over21"][..];
-//     let mut data = data_orig.clone();
-//     let mut ciphertext = public.encrypt(&attributes, &mut data).unwrap();
-//     let res = public.decrypt(&mut ciphertext, &priv_key);
-//     assert_eq!(Err(Error), res);
-//     assert_ne!(data_orig, ciphertext.c);
-//     // let ciphertext = public.encrypt(&attributes, &data);
-//     // let decrypted = public.decrypt(&ciphertext, &priv_key);
-//     // assert_eq!(None, decrypted);
-//   }
+    // example 2 - shall not decrypt
+    let attributes = &["student", "cs", "over21"][..];
+    let mut data = data_orig.clone();
+    let mut ciphertext = public.encrypt(&attributes, &mut data, &mut rng).unwrap();
+    let res = public.decrypt(&mut ciphertext, &priv_key);
+    assert_eq!(Err(Error), res);
+    assert_ne!(data_orig, ciphertext.c);
+    // let ciphertext = public.encrypt(&attributes, &data);
+    // let decrypted = public.decrypt(&ciphertext, &priv_key);
+    // assert_eq!(None, decrypted);
+  }
 
 
 //   #[test]
