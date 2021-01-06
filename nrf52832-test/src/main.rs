@@ -54,8 +54,8 @@ fn main() -> ! {
 
     let start = _timer.read();
     let (private, public) = YaoABEPrivate::setup(&system_atts, &mut public_map, &mut private_map, &mut rng);
-    let ms = _timer.read() - start;
-    rprintln!("Setup took {:?}ms", ms);
+    let us = _timer.read() - start;
+    rprintln!("Setup took {:?}ms", us / 1000);
 
     // let es = YaoABEPrivate::setup(&system_atts, &mut rng);
 
@@ -65,8 +65,8 @@ fn main() -> ! {
     rprintln!("starting encrypt");
     let start = _timer.read();
     let mut ciphertext = public.encrypt(&atts, &mut data, &mut rng);
-    let ms = _timer.read() - start;
-    rprintln!("Encryption took {:?}ms", ms);
+    let us = _timer.read() - start;
+    rprintln!("Encryption took {:?}ms", us / 1000);
 
     loop {
       asm::bkpt();  
