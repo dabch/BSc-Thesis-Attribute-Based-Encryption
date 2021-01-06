@@ -8,10 +8,10 @@ use rtt_target::{rtt_init_print, rprintln};
 use core::panic::PanicInfo;
 use nrf52832_hal as hal;
 use hal::{timer::Instance, };
-use yao_abe_rust::{AccessNode, AccessStructure, YaoABECiphertext, YaoABEPrivate, YaoABEPublic, S};
+use yao_abe_rust::{AccessNode, AccessStructure, YaoABECiphertext, YaoABEPrivate, YaoABEPublic, S, F, G};
 use heapless::{Vec, consts, IndexMap, FnvIndexMap};
 use heapless;
-use rabe_bn::{G1, Fr};
+// use rabe_bn::{G1, Fr};
 // use aes;
 // use ccm;
 
@@ -31,8 +31,8 @@ fn main() -> ! {
     let mut _timer = hal::Timer::new(p.TIMER0);
 
     rprintln!("Hello World!");
-    let system_atts: Vec<&str, S> = Vec::from_slice(&["student", "tum", "has_bachelor", "over21"]).unwrap();
-    let arr: Vec<(&str, G1, Fr), S> = Vec::new();
+    let system_atts: Vec<&str, S> = Vec::from_slice(&["student", "tum", "has_bachelor", "over21", "lives_in_munich", "lives_in_garching", "works_at_aisec", "knows_crypto", "wears_glasses", "blabla", "owns_thinkpad"]).unwrap();
+    // let arr: Vec<(&str, G, Fr), S> = Vec::new();
 
     rprintln!("Hello World!");
     let access_structure: AccessStructure = &[
@@ -45,8 +45,8 @@ fn main() -> ! {
 
 
     rprintln!("Hello World!");
-    let mut public_map: FnvIndexMap<&str, G1, S> = FnvIndexMap::new();
-    let mut private_map: FnvIndexMap<&str, (Fr, G1), S> = FnvIndexMap::new();
+    let mut public_map: FnvIndexMap<&str, G, S> = FnvIndexMap::new();
+    let mut private_map: FnvIndexMap<&str, (F, G), S> = FnvIndexMap::new();
 
     rprintln!("Hello World!");
     rprintln!("starting setup");
@@ -60,13 +60,15 @@ fn main() -> ! {
     // let es = YaoABEPrivate::setup(&system_atts, &mut rng);
 
     let mut data: [u8; 32] = [0xa; 32];
-    let atts = ["student", "tum", "has_bachelor", "over21"];
+    let atts = ["student", "tum", "has_bachelor", "over21", "owns_thinkpad"];
 
     rprintln!("starting encrypt");
     let start = _timer.read();
-    let mut ciphertext = public.encrypt(&atts, &mut data, &mut rng);
+    let mut ciphertext = public.encrypt(&atts, &mut data, &mut rng).unwrap();
     let us = _timer.read() - start;
     rprintln!("Encryption took {:?}ms", us / 1000);
+
+    rprintln!("MAC: {:?}", ciphertext.mac);
 
     loop {
       asm::bkpt();  
