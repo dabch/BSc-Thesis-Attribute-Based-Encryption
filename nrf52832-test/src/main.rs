@@ -68,8 +68,23 @@ fn main() -> ! {
     let us = _timer.read() - start;
     rprintln!("Encryption took {:?}ms", us / 1000);
 
-    rprintln!("MAC: {:?}", ciphertext.mac);
 
+    rprintln!("Starting keygen");
+    let start = _timer.read();
+    let private_key = private.keygen(&access_structure, &mut rng);
+    let us = _timer.read() - start;
+    rprintln!("keygen took {}ms", us / 1000);
+
+    rprintln!("MAC: {:?}", ciphertext.mac);
+    rprintln!("encrypted data: {:?}", ciphertext.c);
+
+    rprintln!("Starting decrypt");
+    let start = _timer.read();
+    let res = public.decrypt(&mut ciphertext, &private_key);
+    let us = _timer.read() - start;
+    rprintln!("decrypt took {}ms", us / 1000);
+
+    rprintln!("decrypted data: {:?}", ciphertext.c);
     loop {
       asm::bkpt();  
     }

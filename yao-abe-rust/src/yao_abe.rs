@@ -10,7 +10,7 @@ use ccm::aead::{self, Tag, AeadInPlace, Key, NewAead, generic_array::GenericArra
 
 pub use ccm::aead::Error;
 
-pub type S = consts::U64;
+pub type S = consts::U16;
 
 pub type G = ProjectivePoint;
 pub type F = Scalar;
@@ -51,7 +51,7 @@ pub struct YaoABEPrivate<'attr, 'own> {
   /// symmetric keys given a private key created under a matching access structure.
   // #[derive(Debug)]
   pub struct YaoABECiphertext<'a> {
-    c: &'a mut [u8], // actual ciphertext (output of AES)
+    pub c: &'a mut [u8], // actual ciphertext (output of AES)
     pub mac: Tag<aead::consts::U10>, // mac over the cleartext (TODO better encrypt-then-mac?)
     nonce: [u8; 13],
     c_i: FnvIndexMap<&'a str, G, S>, // attributes and their respective curve elements
