@@ -51,8 +51,8 @@ pub struct YaoABEPrivate<'attr, 'own> {
   /// symmetric keys given a private key created under a matching access structure.
   // #[derive(Debug)]
   pub struct YaoABECiphertext<'attr, 'data> {
-    pub c: &'data mut [u8], // actual ciphertext (output of AES)
-    pub mac: Tag<aead::consts::U10>, // mac over the cleartext (TODO better encrypt-then-mac?)
+    c: &'data mut [u8], // actual ciphertext (output of AES)
+    mac: Tag<aead::consts::U10>, // mac over the cleartext (TODO better encrypt-then-mac?)
     nonce: [u8; 13],
     c_i: FnvIndexMap<&'attr str, G, S>, // attributes and their respective curve elements
   }
@@ -302,10 +302,9 @@ pub struct YaoABEPrivate<'attr, 'own> {
   
     /// Decrypt a ciphertext using a given private key. At this point, doesn't actually do any decryption, it just reconstructs the point used as encryption/mac key.
     pub fn decrypt(
-      &self,
-      ciphertext: &mut YaoABECiphertext<'attr, 'data>,
+      ciphertext: YaoABECiphertext<'attr, 'data>,
       key: &PrivateKey<'attr, 'key>,
-    ) -> Result<(), aead::Error>
+    ) -> Result<&'data [u8], aead::Error>
     where 'attr: 'es, 'es: 'key, 'key: 'data
     {
       let PrivateKey(access_structure, secret_shares) = key;
@@ -325,7 +324,8 @@ pub struct YaoABEPrivate<'attr, 'own> {
       let key: Key<YaoCcm> = x;
       let ccm = YaoCcm::new(&key);
       
-      ccm.decrypt_in_place_detached(&nonce, &[], ciphertext.c, &ciphertext.mac)
+      ccm.decrypt_in_place_detached(&nonce, &[], ciphertext.c, &ciphertext.mac)?;
+      Ok(ciphertext.c)
     }
   }
 
@@ -345,8 +345,6 @@ mod tests {
     let mut public_map: FnvIndexMap<&str, G, S> = FnvIndexMap::new();
     let mut private_map: FnvIndexMap<&str, (F, G), S> = FnvIndexMap::new();
 
-
-
     let mut rng = rand::thread_rng();
     let data_orig: Vec<u8, consts::U2048> = (0..500).map(|_| rng.gen()).collect();
     let mut data = data_orig.clone();
@@ -359,17 +357,17 @@ mod tests {
     let priv_key = private.keygen(&access_structure, &mut rng);
 
 
-    let mut ciphertext =  public.encrypt(&attributes_1, &mut data, &mut rng).unwrap();
+    let ciphertext =  public.encrypt(&attributes_1, &mut data, &mut rng).unwrap();
     
-    public.decrypt(&mut ciphertext, &priv_key).unwrap();  
+    let res = YaoABEPublic::decrypt(ciphertext, &priv_key);  
 
-    assert_eq!(data_orig, ciphertext.c);
+    assert_eq!(Ok(&data_orig[..]), res);
 
     let mut data = data_orig.clone();
 
-    let mut ciphertext = public.encrypt(&attributes_2, &mut data, &mut rng).unwrap();
-    let decrypted = public.decrypt(&mut ciphertext, &priv_key);
-    assert_eq!(Err(Error), decrypted);
+    let ciphertext = public.encrypt(&attributes_2, &mut data, &mut rng).unwrap();
+    let res = YaoABEPublic::decrypt(ciphertext, &priv_key);
+    assert_eq!(Err(Error), res);
   }
 
 
@@ -412,14 +410,14 @@ mod tests {
   
     // println!("ciphertext:\n{:?}", ciphertext);
     
-    public.decrypt(&mut ciphertext, &priv_key).unwrap();
+    let res = YaoABEPublic::decrypt(ciphertext, &priv_key);
     
-    assert_eq!(data_orig, ciphertext.c);
+    assert_eq!(Ok(&data_orig[..]), res);
     
     // failing decryption
     let mut data = data_orig.clone();
-    let mut ciphertext = public.encrypt(&attributes_2, &mut data, &mut rng).unwrap();
-    let res = public.decrypt(&mut ciphertext, &priv_key);
+    let ciphertext = public.encrypt(&attributes_2, &mut data, &mut rng).unwrap();
+    let res = YaoABEPublic::decrypt(ciphertext, &priv_key);
     assert_eq!(Err(Error), res);
   }
 
@@ -452,19 +450,14 @@ mod tests {
   
   
     let priv_key = es.keygen(&access_structure, &mut rng);
-    //println!("private key:\n{:?}", priv_key);
-  
-    // let mut data: Vec<u8> = (0..500).map(|_| 0).collect();
   
     let mut ciphertext = public.encrypt(&attributes, &mut data, &mut rng).unwrap();
-
-    // assert_eq!(data, public.decrypt(&ciphertext, &priv_key).unwrap());
 
     ciphertext.c[16] ^= 0xaf; // skip IV
   
     // println!("ciphertext:\n{:?}", ciphertext);
     
-    let res = public.decrypt(&mut ciphertext, &priv_key);
+    let res = YaoABEPublic::decrypt(ciphertext, &priv_key);
     
     // decryption should fail because MAC is wrong
     assert_eq!(res, Err(Error));
@@ -509,17 +502,15 @@ mod tests {
   
 
     // example 1 - shall decrypt (defined above)
-    let res = public.decrypt(&mut ciphertext, &priv_key);
-    assert_eq!(Ok(()), res);
-    assert_eq!(data_orig, ciphertext.c);
+    let res = YaoABEPublic::decrypt(ciphertext, &priv_key);
+    assert_eq!(Ok(&data_orig[..]), res);
 
     // example 2 - shall decrypt 
     let attributes = &["student", "has_bachelor", "cs", "over21"][..];
     let mut data = data_orig.clone();
     let mut ciphertext = public.encrypt(&attributes, &mut data, &mut rng).unwrap();
-    let res = public.decrypt(&mut ciphertext, &priv_key);
-    assert_eq!(Ok(()), res);
-    assert_eq!(data_orig, ciphertext.c);
+    let res = YaoABEPublic::decrypt(ciphertext, &priv_key);
+    assert_eq!(Ok(&data_orig[..]), res);
     // let ciphertext = public.encrypt(&attributes, &data);
     // let decrypted = public.decrypt(&ciphertext, &priv_key).unwrap();
     // assert_eq!(decrypted, data);
@@ -528,9 +519,8 @@ mod tests {
     let attributes = &["student", "cs", "over21"][..];
     let mut data = data_orig.clone();
     let mut ciphertext = public.encrypt(&attributes, &mut data, &mut rng).unwrap();
-    let res = public.decrypt(&mut ciphertext, &priv_key);
+    let res = YaoABEPublic::decrypt(ciphertext, &priv_key);
     assert_eq!(Err(Error), res);
-    assert_ne!(data_orig, ciphertext.c);
     // let ciphertext = public.encrypt(&attributes, &data);
     // let decrypted = public.decrypt(&ciphertext, &priv_key);
     // assert_eq!(None, decrypted);

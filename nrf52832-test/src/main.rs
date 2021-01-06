@@ -7,7 +7,7 @@ use rtt_target::{rtt_init_print, rprintln};
 use core::panic::PanicInfo;
 use nrf52832_hal as hal;
 use hal::{timer::Instance, };
-use yao_abe_rust::{AccessNode, AccessStructure, YaoABECiphertext, YaoABEPrivate, S, F, G};
+use yao_abe_rust::{AccessNode, AccessStructure, YaoABECiphertext, YaoABEPrivate, YaoABEPublic, S, F, G};
 use heapless::{Vec, FnvIndexMap};
 use heapless;
 // use rabe_bn::{G1, Fr};
@@ -60,16 +60,13 @@ fn main() -> ! {
     let us = _timer.read() - start;
     rprintln!("keygen took {}ms", us / 1000);
 
-    rprintln!("MAC: {:?}", ciphertext.mac);
-    rprintln!("encrypted data: {:?}", ciphertext.c);
-
     rprintln!("Starting decrypt");
     let start = _timer.read();
-    let res = public.decrypt(&mut ciphertext, &private_key);
+    let res = YaoABEPublic::decrypt(ciphertext, &private_key);
     let us = _timer.read() - start;
     rprintln!("decrypt took {}ms", us / 1000);
 
-    rprintln!("decrypted data: {:?}", ciphertext.c);
+    rprintln!("decrypted data: {:?}", res.unwrap());
     loop {
       asm::bkpt();  
     }
