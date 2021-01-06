@@ -1,15 +1,14 @@
 #![no_main]
 #![no_std]
 
-use rand::Rng;
 use cortex_m::asm;
 use cortex_m_rt::entry;
 use rtt_target::{rtt_init_print, rprintln};
 use core::panic::PanicInfo;
 use nrf52832_hal as hal;
 use hal::{timer::Instance, };
-use yao_abe_rust::{AccessNode, AccessStructure, YaoABECiphertext, YaoABEPrivate, YaoABEPublic, S, F, G};
-use heapless::{Vec, consts, IndexMap, FnvIndexMap};
+use yao_abe_rust::{AccessNode, AccessStructure, YaoABECiphertext, YaoABEPrivate, S, F, G};
+use heapless::{Vec, FnvIndexMap};
 use heapless;
 // use rabe_bn::{G1, Fr};
 // use aes;
@@ -18,23 +17,15 @@ use heapless;
 #[entry]
 fn main() -> ! {
     rtt_init_print!();
-    //println!("Hello, world!");
-    rprintln!("Hello World!");
-
-    for _ in (0..10000) {
-      asm::nop();
-    }
     let p = hal::pac::Peripherals::take().unwrap();
     let mut rng = hal::Rng::new(p.RNG);
 
     p.TIMER0.timer_start(0 as u32);
     let mut _timer = hal::Timer::new(p.TIMER0);
 
-    rprintln!("Hello World!");
     let system_atts: Vec<&str, S> = Vec::from_slice(&["student", "tum", "has_bachelor", "over21", "lives_in_munich", "lives_in_garching", "works_at_aisec", "knows_crypto", "wears_glasses", "blabla", "owns_thinkpad"]).unwrap();
     // let arr: Vec<(&str, G, Fr), S> = Vec::new();
 
-    rprintln!("Hello World!");
     let access_structure: AccessStructure = &[
       AccessNode::Node(2, Vec::from_slice(&[1,2,3,4]).unwrap()),
       AccessNode::Leaf("tum"),
@@ -43,28 +34,22 @@ fn main() -> ! {
       AccessNode::Leaf("over21"),
     ];
 
-
-    rprintln!("Hello World!");
     let mut public_map: FnvIndexMap<&str, G, S> = FnvIndexMap::new();
     let mut private_map: FnvIndexMap<&str, (F, G), S> = FnvIndexMap::new();
 
-    rprintln!("Hello World!");
     rprintln!("starting setup");
-    // panic!("test panick");
 
     let start = _timer.read();
     let (private, public) = YaoABEPrivate::setup(&system_atts, &mut public_map, &mut private_map, &mut rng);
     let us = _timer.read() - start;
     rprintln!("Setup took {:?}ms", us / 1000);
 
-    // let es = YaoABEPrivate::setup(&system_atts, &mut rng);
-
     let mut data: [u8; 32] = [0xa; 32];
     let atts = ["student", "tum", "has_bachelor", "over21", "owns_thinkpad"];
 
     rprintln!("starting encrypt");
     let start = _timer.read();
-    let mut ciphertext = public.encrypt(&atts, &mut data, &mut rng).unwrap();
+    let mut ciphertext: YaoABECiphertext = public.encrypt(&atts, &mut data, &mut rng).unwrap();
     let us = _timer.read() - start;
     rprintln!("Encryption took {:?}ms", us / 1000);
 

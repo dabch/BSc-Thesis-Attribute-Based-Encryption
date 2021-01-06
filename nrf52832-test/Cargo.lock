@@ -580,6 +580,5 @@ dependencies = [
  "elliptic-curve",
  "heapless",
  "k256",
- "rabe-bn",
  "rand",
 ]
