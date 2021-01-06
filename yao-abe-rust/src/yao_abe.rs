@@ -333,18 +333,8 @@ pub struct YaoABEPrivate<'attr, 'own> {
 
 #[cfg(test)]
 mod tests {
-
-  // extern crate test;
-  // extern crate std;
-  
-  use crate::*;
-  use rand::{self, Rng};
-
-  use heapless::{Vec, consts};
-
+  extern crate std;
   use super::*;
-
-  // use test::Bencher;
 
   #[test]
   fn leaf_only_access_tree() {

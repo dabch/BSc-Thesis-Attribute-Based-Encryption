@@ -320,7 +320,3 @@ dependencies = [
  "k256",
  "rand",
 ]
-
-[[patch.unused]]
-name = "rabe-bn"
-version = "0.4.12"
