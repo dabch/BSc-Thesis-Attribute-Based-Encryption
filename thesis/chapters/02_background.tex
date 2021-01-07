@@ -25,7 +25,7 @@ This chapter shall provide a high-level introduction to the cryptographical and 
         \end{tikzpicture}
         \caption{Asymmetric Encryption} \label{fig:keys-asymmetric}
     \end{subfigure}
-    \\
+    \\ 
     \vspace{0.5cm}
     \begin{subfigure}{.7\textwidth}
         \begin{tikzpicture}[sibling distance=4mm, level distance=3mm]
@@ -106,12 +106,54 @@ An Attribute-Based Encryption scheme (ABE scheme) consists of the following four
     \end{itemize}
 \end{itemize}
 
+\section{Shamir's Secret Sharing}
+This secret sharing scheme based on polynomial interpolation was first introduced by Adi Shamir in 1979~\cite{shamir_how_1979}.
+It allows a secret $s$, which is generally just a number, to be shared among a number of $n$ participants.
+The shares are computed such that $s$ can be reconstructed if, and only if, at least $k$ participants meet and combine their shares.
+Such a theme is then called a $(k,n)$-threshold scheme.~\cite{shamir_how_1979}
+
+Shamir's scheme makes use of a property of polynomials: A polynomial of degree $d$ is unambiguously determined by $d+1$ points $(x_i, y_i)$.
+In other words, any polynomial of degree $d$ can be unambiguously interpolated (reconstructed) from $d+1$ distinct points.
+Thus, if we hide our secret in a polynomial $p(x)$ of degree $d$ and give out secret shares as $(x, p(x))$ with $x = 1, 2, 3, \dots$, we can use $d+1$ shares to reconstruct $p(x)$ and by that the secret.\cite{shamir_how_1979}
+
+\begin{figure}
+    \centering
+    \begin{tikzpicture}
+        \begin{axis} [axis lines=center, xlabel=$x$, ylabel=$p(x)$]
+            \addplot [domain=-0.1:5.05, smooth, thick, color=red] { \PolynomialSSS(x)};
+            \fill (axis cs:0,\PolynomialSSS(0)) circle [radius=2pt] node [right] {(0,s)};
+            \fill (axis cs:1,\PolynomialSSS(1)) circle [radius=2pt] node [right] {(1,$p(1)$)};
+            \fill (axis cs:2,\PolynomialSSS(2)) circle [radius=2pt] node [right] {(2,$p(2)$)};
+            \fill (axis cs:3,\PolynomialSSS(3)) circle [radius=2pt] node [above] {(3,$p(3)$)};
+            \fill (axis cs:4,\PolynomialSSS(4)) circle [radius=2pt] node [right] {(4,$p(4)$)};
+            \fill (axis cs:5,\PolynomialSSS(5)) circle [radius=2pt] node [left] {(5,$p(5)$)};
+          \end{axis}
+    \end{tikzpicture}
+    \caption{Example for a $(5, 4)$-threshold scheme with $s=12$ and $p(x) = 12 + 7x - 6x^2 + x^3$. As $p(x)$ has degree three, at least four of the five shares are required to reconstruct $s$.}
+    \label{fig:sss}
+\end{figure}
+
+That is, to create a simple $(k, n)$-threshold scheme to share a secret $s$, do the following:~\cite{shamir_how_1979}
+\begin{enumerate}
+    \item Pick coefficients $a_1, ..., a_{k-1}$ at random 
+    \item Set $a_0 = s$. This results in the polynomial $p(x) = a_0 + a_1x + \cdots + a_{k-1}x^{k-1}$. Note that $p(0) = s$.
+    \item The secret shares are $(1, p(1)), (2, p(2)), \dots, (n, p(n))$. Give one to each participant.
+\end{enumerate}
+
+To reconstruct the secret from any subset of $k$ shares, simply interpolate the polynomial $p(x)$ and evaluate $p(0) = s$~\cite{shamir_how_1979}.
+See also Figure~\ref{fig:sss} for illustration.
+
+The polynomial can be interpolated unambiguously if at least $k$ points are known, because it has degree $k-1$.
+If only $k-1$ points (or less) are known, there are infinitely many ways to construct a polynomial that passed through all $k-1$ points.
+Therefore, then there are also infinitely many possibilities for $s$.~\cite{shamir_how_1979}
+
+
 
 \section{Elliptic Curves}
 
 The mathematics of modern cryptosystems (including, but not limited to ABE) work on a great variety of mathematical structures, and elliptic curves are just one of them.
 They have become very popular since their discovery by \emph{citation needed} in \emph{year needed} because they provide an equivalent security level at shorter key length and smaller computational cost than other systems (e.g. based on RSA) \cite{katz_introduction_2015}.
-Exact definitions and notations differ, these are taken from Katz and Lindell~\cite{katz_introduction_2015}.
+Exact definitions and notations differ, these are taken from the textbook \emph{Introduction to Modern Cryptogaphy} by Katz and Lindell~\cite{katz_introduction_2015}.
 
 Elliptic curves (over finite fields) are defined by equations of the following form, where $p \leq 5$ prime: \cite{katz_introduction_2015}
 \begin{equation}
@@ -140,15 +182,16 @@ Using this intersecting line, we can define an operation on curve points called 
 \end{itemize}
 
 \begin{figure}
-    TODO: add picture of EC point addition
-    \caption{Elliptic Curve point addition}
+    \includegraphics[width=\textwidth]{figures/ecc_point_addition.png}
+    \caption{Elliptic Curve point addition\\(Image by \href{https://commons.wikimedia.org/wiki/File:ECClines.svg}{SuperManu}, licensed under \href{https://creativecommons.org/licenses/by-sa/3.0/deed.en}{Creative Commons}.)}
+    \label{fig:ecc-point-addition}
 \end{figure}
 
 In addition, we define multiplication of a point $P \in E(\mathbb{Z}_p)$ with a scalar $n \in \mathbb{N}$ as follows:
 \begin{equation}
     n \cdot P = \underbrace{P + P + \cdots + P}_{n \text{ times}}
 \end{equation}
-
+ 
 That is, the product of a scalar with a point is again a point on our curve.
 \\
 
@@ -212,3 +255,5 @@ Since the DLP can be easy to solve using pairings, we need to adapt our hardness
 The \emph{Bilinear Diffie-Hellman Problem} (BDHP): Given $P, aP, bP, cP$ with $a,b,c \in \{1,\dots,n-1\}$ chosen randomly, compute $e(P, P)^{abc}$.~\cite{menezes_introduction_2009}
 
 If the BDHP is hard for a pairing $e$ on groups $\mathbb{G}_1 \text{ and } \mathbb{G}_T$, this implies that the DLP is hard in both $\mathbb{G}_1 \text{ and } \mathbb{G}_T$.~\cite{menezes_introduction_2009}
+
+\section{Different ABE schemes for use in Embedded Devices}
