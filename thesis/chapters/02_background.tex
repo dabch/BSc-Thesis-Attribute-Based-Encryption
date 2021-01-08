@@ -116,24 +116,55 @@ It allows a secret $s$, which is generally just a number, to be shared among a n
 The shares are computed such that $s$ can be reconstructed if, and only if, at least $k$ participants meet and combine their shares.
 Such a theme is then called a $(k,n)$-threshold scheme.~\cite{shamir_how_1979}
 
+\subsection{Lagrange interpolation}
 Shamir's scheme makes use of a property of polynomials: A polynomial of degree $d$ is unambiguously determined by $d+1$ points $(x_i, y_i)$.
 In other words, any polynomial of degree $d$ can be unambiguously interpolated (reconstructed) from $d+1$ distinct points.
-Thus, if we hide our secret in a polynomial $p(x)$ of degree $d$ and give out secret shares as $(x, p(x))$ with $x = 1, 2, 3, \dots$, we can use $d+1$ shares to reconstruct $p(x)$ and by that the secret.~\cite{shamir_how_1979}
+
+To interpolate a polynomial of degree $d$ from $d+1$ given points $(x_1, y_1), \dots, (x_{d+1}, y_{d+1})$, we can make use of the lagrange basis polynomials:~\cite{yao_lightweight_2015}
+
+\begin{definition}
+    Lagrange interpolation: Given a set of $d+1$ points $(x_1, y_1), \dots, (x_{d+1}, y_{d+1})$.
+
+    Then the polynomial 
+    \begin{equation}
+        L(x) = \sum_{k=0}^d l_k(x) \cdot y_k
+    \end{equation}
+    is the lagrange interpolation polynomial for that set of points, where $l_k(x)$ are the Lagrange basis polynomials:
+    \begin{equation}
+        l_k(x) = \prod_{\substack{i=0\\ i \neq k}}^d \frac{x-x_i}{x_k-x_i}
+    \end{equation}
+\end{definition}
+
+This polynomial has degree $d$. If the points $(x_i, y_i)$ lie on a $d$-degree polynomial, then the lagrange interpolation $L(x)$ is \emph{exactly} that polynomial.
+
+On the other hand, if there are less than $d+1$ points of a $d$-degree polynomial known, there are infinitely many $d$-degree polynomials that pass through all given points.~\cite{shamir_how_1979}
+
+% The polynomial can be interpolated unambiguously if at least $k$ points are known, because it has degree $k-1$.
+% If only $k-1$ points (or less) are known, there are infinitely many ways to construct a polynomial that passed through all $k-1$ points.
+% Therefore, then there are also infinitely many possibilities for $s$.
+
+\subsection{Secret sharing with polynomials}
+To share our secret, we now hide it in a polynomial and give out points on this polynomial as secret shares.
+Using the lagrange basis polynomials, we can then reconstruct $p(x)$ and thus the secret if we know enough shares.~\cite{shamir_how_1979}
 
 \begin{figure}
     \centering
     \begin{tikzpicture}
-        \begin{axis} [axis lines=center, xlabel=$x$, ylabel=$p(x)$]
+        \begin{axis} [axis lines=center, xlabel=$x$, ylabel=$p(x)$, ymin=0]
             \addplot [domain=-0.1:5.05, smooth, thick, color=red] { \PolynomialSSS(x)};
-            \fill (axis cs:0,\PolynomialSSS(0)) circle [radius=2pt] node [right] {(0,s)};
-            \fill (axis cs:1,\PolynomialSSS(1)) circle [radius=2pt] node [right] {(1,$p(1)$)};
-            \fill (axis cs:2,\PolynomialSSS(2)) circle [radius=2pt] node [right] {(2,$p(2)$)};
-            \fill (axis cs:3,\PolynomialSSS(3)) circle [radius=2pt] node [above] {(3,$p(3)$)};
-            \fill (axis cs:4,\PolynomialSSS(4)) circle [radius=2pt] node [right] {(4,$p(4)$)};
-            \fill (axis cs:5,\PolynomialSSS(5)) circle [radius=2pt] node [left] {(5,$p(5)$)};
+            \fill (axis cs:0,\PolynomialSSS(0)) circle [radius=2pt] node [right] {(0,~s)};
+            \fill[color=ForestGreen] (axis cs:1,\PolynomialSSS(1)) circle [radius=2pt] node [right] {(1,~10)};
+            \fill[color=ForestGreen] (axis cs:2,\PolynomialSSS(2)) circle [radius=2pt] node [right] {(2,~6)};
+            \fill[color=ForestGreen] (axis cs:3,\PolynomialSSS(3)) circle [radius=2pt] node [above] {(3,~2)};
+            \fill[color=ForestGreen] (axis cs:4,\PolynomialSSS(4)) circle [radius=2pt] node [right] {(4,~4)};
+            \fill[color=ForestGreen] (axis cs:5,\PolynomialSSS(5)) circle [radius=2pt] node [left] {(5,~18)};
           \end{axis}
     \end{tikzpicture}
-    \caption[Plot of $(5,4)$-threshold secret sharing scheme]{Example for a $(5, 4)$-threshold scheme with $s=12$ and $p(x) = 12 + 7x - 6x^2 + x^3$. As $p(x)$ has degree three, at least four of the five shares are required to reconstruct $s$.}
+    \caption[Plot of $(5,4)$-threshold secret sharing scheme]{
+        Example for a $(5, 4)$-threshold scheme with $s=8$ and $p(x) = 8 + 7x - 6x^2 + x^3$.
+        The five green-colored points are distributed as the secret shares.
+        As $p(x)$ has degree three, at least four shares are required to reconstruct $s$.
+    }
     \label{fig:sss}
 \end{figure}
 
@@ -146,13 +177,10 @@ Thus, if we hide our secret in a polynomial $p(x)$ of degree $d$ and give out se
         \item The secret shares are $(1, p(1)), (2, p(2)), \dots, (n, p(n))$. Give one to each participant.
     \end{enumerate}
     To reconstruct the secret from any subset of $k$ shares, interpolate the polynomial $p(x)$ and evaluate $p(0) = s$. 
-    See also Figure~\ref{fig:sss} for illustration.
 \end{definition}
 
-
-The polynomial can be interpolated unambiguously if at least $k$ points are known, because it has degree $k-1$.
-If only $k-1$ points (or less) are known, there are infinitely many ways to construct a polynomial that passed through all $k-1$ points.
-Therefore, then there are also infinitely many possibilities for $s$.~\cite{shamir_how_1979}
+See also Figure~\ref{fig:sss} for illustration.
+In practice, the numbers would be far bigger and calculations wouldn't be performed over the real numbers, but rather a finite field modulo a prime.~\cite{shamir_how_1979}
 
 \section{Elliptic Curves}
 
