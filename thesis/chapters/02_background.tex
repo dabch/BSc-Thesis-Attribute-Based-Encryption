@@ -242,7 +242,7 @@ That is, the product of a scalar with a point is again a point on our curve.
     The points of an Elliptic Curve $E(\mathbb{Z}_p)$ plus the addition law as stated in Definition~\ref{def:point-add} forms an abelian (commutative group)~\cite{katz_introduction_2015, washington_elliptic_2008}:
 \end{theorem}
 \begin{proof}
-    An actual proof is omitted, but here's why: 
+    A formal proof is outside the scope of this thesis, but here's some informal reasoning about the group axioms:
     \begin{itemize}
         \item Existence of Identity: $P + \mathcal{O} = P$ (as per definition)
         \item Commutativity: For all $P_1, P_2 \in E(\mathbb{Z}_p)$, $P_1 + P_2 = P_2 + P_1$ (obvious, because the line through $P_1$ and $P_2$ will be the same)
@@ -251,17 +251,30 @@ That is, the product of a scalar with a point is again a point on our curve.
     \end{itemize}
 \end{proof}
 
-Of particular interest to cryptography are \emph{cyclic} groups on elliptic curves. 
+Of particular interest to cryptography are \emph{cyclic} groups on elliptic curves:
 \begin{definition}
     A (multiplicative) group $\mathbb{G}$ is cyclic if there is an element $g \in \mathbb{G}$ that generates $\mathbb{G}$, i.e. $\mathbb{G} = \langle g \rangle = \{g^n | n \in \mathbb{Z}\}$.
 \end{definition}
 
 Translated to our (additive) groups on elliptic curves, this means that there is a generator point $P \in E(\mathbb{Z}_p)$, such that every point $Q \in E(\mathbb{Z}_p)$ can be written as $Q = nP$ with some $n \in \mathbb{N}$.
 
-In particular, if a group has prime order (i.e. the number of points $\#E(\mathbb{Z}_p)$ on a curve is prime), all points except $\mathcal{O}$ are generators.
+\begin{theorem}\cite{katz_introduction_2015}
+    Let $\mathbb{G}$ be a finite group of order $n$, i.e. $|\mathbb{G}| = n$.
+    Let $g \in \mathbb{G}$ be an element of $\mathbb{G}$ with order $k$, i.e. $k = |\langle g \rangle |$
+
+    Then $k|n$, i.e. the order of $g$ divides the group order $n$.
+\end{theorem}
+\begin{proof}
+    See \cite*[Proposition 8.54]{katz_introduction_2015}.
+\end{proof}
+
+There is an important consequence to this fact: If a group has prime order, all points except the identity are generators.
+This stems from the fact that a prime number has exactly two divisors: One (the order of the identity) and itself (the order of all other points).
+\\
 This follows from the fact that for any point $P \in E(\mathbb{Z}_p)$, its order $\text{ord}(P) = | \langle P \rangle |$ must divide the group order.
 A prime has exactly two divisors: One (the order of $\mathcal{O}$) and itself (the order of all other points).
 
+Again, translated to Elliptic Curves this means that if the number of points $\#E(\mathbb{Z}_p)$ on a curve is prime, all points except $\mathcal{O}$ are generators.
 These cyclic elliptic curve groups (or, cyclic subgroups of non-cyclic elliptic curves) are exactly the groups we are interested in for doing actual cryptography. See also \cite[p.~321]{katz_introduction_2015}.
 
 \subsection{Hardness Assumptions}
