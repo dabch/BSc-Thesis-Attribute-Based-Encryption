@@ -394,3 +394,95 @@ The \emph{Bilinear Diffie-Hellman Problem} (BDHP): Given $P, aP, bP, cP$ with $a
 If the BDHP is hard for a pairing $e$ on groups $\mathbb{G}_1 \text{ and } \mathbb{G}_T$, this implies that the DLP is hard in both $\mathbb{G}_1 \text{ and } \mathbb{G}_T$.~\cite{menezes_introduction_2009}
 
 \section{Different ABE schemes for use in Embedded Devices}\label{sec:concrete-schemes} 
+\subsection{Yao, Chen and Tian 2015}
+
+This scheme was described by Yao, Chen and Tian \cite{yao_lightweight_2015} in 2015.
+In 2019, Tan, Yeow and Hwang \cite{tan_enhancement_2019} proposed an enhancement, fixing a flaw in the scheme and extending it to be a hierarchical KP-ABE scheme. %TODO explain what that is.
+
+Yao, Chen and Tian's ABE scheme (hereafter written just YCT) is a KP-ABE scheme that does not use any bilinear pairing operations.
+Instead, the only operation performed on Elliptic Curves are point-scalar multiplication~\cite{yao_lightweight_2015}.
+This makes it especially useful for our resource-constrained context, as bilinear pairings are significantly more costly in terms of computation and memory.
+
+As opposed to other ABE schemes based on pairings, YCT uses a hybrid approach similar to Elliptic Curve Integrated Encryption Standard (ECIES):
+The actual encryption of the plaintext is done by a symmetric cipher, for which the key is derived from a curve point output by the YCT scheme.
+If a key's access policy is satisfied by a certain plaintext, this curve point and thus the symmetric encryption key can be reconstructed, allowing for decryption.~\cite{yao_lightweight_2015}
+
+The four algorithms of an ABE scheme are defined as follows: \\
+
+\emph{Setup}~\cite{yao_lightweight_2015}.
+The attribute universe is defined as $\text{U} = \{1, 2, \dots, n\}$ and is fixed.
+
+For every attribute $i \in U$, choose uniformly at random a secret number $s_i \in \mathbb{Z}_q^*$. % TODO define Zq* somewhere
+Then the public key of attribute $i$ is $P_i = s_i \cdot G$ (i.e. a curve point).
+
+Also, choose uniformly at random the master private key $s \in \mathbb{Z}_q^*$, from which the master public key $PK = s \cdot G$ is derived.
+
+Publish $Params=(PK, P_1, \dots, P_n)$ as the public parameters, privately save $MK = (s, s_1, \dots, s_n)$ as the private master key.
+\\
+
+\emph{KeyGen($\Gamma$, MK)}~\cite{yao_lightweight_2015}.
+Input: Access Tree $\Gamma$ and master key $MK$.
+
+For each node $u$ in the Access Tree $\Gamma$, recursively define polynomials $q_u(x)$ with degree $(d_u - 1)$, starting from the root.
+
+For the root $r$, set $q_r(0) = s$ and randomly choose $(d_r - 1)$ other points to determine the polynomial $q_r(x)$.
+Then, for any other node $u$ (including leafs), set $q_u(0) = q_{\text{parent}(u)}(\text{index(u)})$ and choose $(d_u -1)$ other points for $q_u$, similar to above.
+
+Whenever $u$ is a leaf node, use $q_u(x)$ to define a secret share $D_u = \frac{q_u(0)}{s_i}$; where $i = \text{attr}(u)$, $s_i$ the randomly chosen secret number from \emph{Setup} and $s_i^{-1}$ the inverse of $s_i$ in $\mathbb{Z}_q^*$.
+
+Return the generated key as $D = \{D_u | u \text{ leaf node of } \Gamma\}$.\\
+
+\emph{Encrypt(m, $\omega$, Params)}~\cite{yao_lightweight_2015}.
+Input: Message $m$, set of attributes $\omega$ and public parameters $Params$.
+
+Randomly choose $k \in \mathbb{Z}_q^*$ and compute $C' = k \cdot PK = (k_x, k_y)$. If $C' = \mathcal{O}$, repeat until $C' \neq \mathcal{O}$.
+$k_x$ is the encryption key and $k_y$ is the integrity key.
+
+Then compute $C_i = k \cdot P_i$ for all attributes $i \in \omega$.
+
+Encrypt the actual message as $c = \text{Enc}(m, k_x)$, generate a Message Authentication Code $\text{mac}_m = \text{HMAC}(m, k_y)$.
+
+Return the ciphertext $CM = (\omega, c, \text{mac}_m, \{C_i | i \in \omega\})$\\
+
+\emph{Decrypt(CM, D, Params)}~\cite{yao_lightweight_2015}. Input: Ciphertext $CM$, decryption key $D$ and public parameters $Params$.
+
+Decryption is split into two phases: Reconstructing the curve point $C'$ to get the encryption and integrity keys, and actual decryption of the ciphertext.
+
+For the first phase, define a recursive decryption procedure for a node $u$ $\text{DecryptNode}(CM, D, u)$. \\ % TODO fix this weird latex problem
+For leaf nodes with $i = \text{attr}(u)$:
+\begin{equation*}
+    \text{DecryptNode}(CM, D, u) = \begin{cases}
+        D_u \cdot C_i \stackrel{(*)}{=} q_u(0) \cdot k \cdot G & i \in \omega\\
+        \perp & i \notin \omega
+    \end{cases}\\
+\end{equation*}
+
+Where the equality $(*)$ holds because $s_i$ and $s_i^{-1}$ cancel out: 
+\begin{equation*}
+    D_u \cdot C_i = q_u(0) \cdot s_i^{-1} \cdot k \cdot P_i = q_u(0) \cdot s_i^{-1} \cdot k \cdot s_i \cdot G = q_u(0) \cdot k \cdot G
+\end{equation*}
+
+For an internal node $u$, call $\text{DecryptNode}(CM, D, v)$ for each of its childen $v$. If for less than $d_u$ of the child nodes $\text{DecryptNode}(CM, D, v) \neq \perp$, return $\text{DecryptNode}(CM, D, )=\perp$.
+Then let $\omega_u$ be an arbitrary subset of child nodes of $u$, where for all $v \in \omega_u$, $\text{DecryptNode}(CM, D, v) \neq \perp$.
+Then $\text{DecryptNode}(CM, D, u)$ is defined as follows, where $i = \text{index}(v)$, $\omega'_u = \{\text{index}(v) | v \in \omega_u\}$.
+\begin{equation*}
+    \begin{split}
+        &~\text{DecryptNode}(CM, D, u)\\
+        =& \sum_{v \in \omega_u} l_{\omega'_u, i}(0) \cdot \text{DecryptNode}(CM, D, v)\\
+        =& \sum_{v \in \omega_u} l_{\omega'_u, i}(0) \cdot q_v(0) \cdot k \cdot G\\
+        =& \sum_{v \in \omega_u} l_{\omega'_u, i}(0) \cdot q_{\text{parent}(v)}(\text{index}(v)) \cdot k \cdot G\\
+        =& \sum_{v \in \omega_u} l_{\omega'_u, i}(0) \cdot q_u(i) \cdot k \cdot G\\
+        \stackrel{(*)}{=}&~q_u(0) \cdot k \cdot G
+    \end{split}
+\end{equation*}
+
+The equality $(*)$ holds because $\sum_{v \in \omega_u} l_{\omega'_u, i}(0) \cdot q_u(i) = q_u(0)$ is exactly the lagrange interpolation polynomial $q_u(x)$ at $x = 0$ with respect to the points $\{(index(v), q_v(0)) | v \in \omega_u\}$. 
+
+This means for the root $r$ of the access tree $\Gamma$, we have
+\begin{equation*}
+    \text{DecryptNode}(CM, D, r) =  q_r(0) \cdot k \cdot G = s \cdot k \cdot G = (k'_x, k'_y)
+\end{equation*}
+
+With $k'_x$ the decryption key for $m$ and $k'_y$ the integrity key. Therefore now decrypt $m' = \text{Dec}(c, k'_x)$.
+
+Now check if $\text{HMAC}(m', k'_y) = \text{mac}_m$. If yes, the ciphertext has been correctly decrypted and was not tampered with. Return $m'$, otherwise return $\perp$.
