@@ -1,6 +1,5 @@
 \chapter{Background}\label{chapter:background}
-This chapter shall provide a high-level introduction to the cryptographical and mathematical tools used to implement attribute-based encryption in this thesis. For further reference, please refer to % TODO
-
+This chapter shall provide a high-level introduction to the cryptographical and mathematical tools used to implement \acrlong{abe} in this thesis. For further reference, please refer to % TODO
 
 \begin{figure} \centering
     \begin{subfigure}{.7\textwidth}
@@ -45,16 +44,16 @@ This chapter shall provide a high-level introduction to the cryptographical and 
     \caption[Keys in different classes of encryption schemes]{Keys used for encryption and decryption in different classes of encryption schemes}
 \end{figure}
 
-\section{Classic Symmetric and Asymmetric Cryptography}
+\section{Confidentiality with Classic Symmetric and Asymmetric Confidentiality}
 Today's conventional cryptography knows two main classes of cryptosystems: \emph{Symmetric} or \emph{Private-Key systems} and \emph{Asymmetric} or \emph{Public-Key systems}.
 The main difference lies in their use of encryption and decryption keys:
 
 In \emph{symmetric} systems, the key used for encryption and decryption is identical.
-That is, a user \emph{Alice} encrypting a message to send to another user \emph{Bob} will encrypt the message using a key $k$ that she had agreed on with Bob beforehand.
-When he receives the encrypted message, Bob will use the same key $k$ to decrypt it. See Figure~\ref{fig:keys-symmetric}.
+That is, if a user \emph{Alice} wants to communicate securely with another user \emph{Bob}, they have to agree on a shared secret key $k$.
+Then Alice can use $k$ to encrypt a message for Bob, who can decrypt it using the same key $k$. See Figure~\ref{fig:keys-symmetric}.
 
 In \emph{asymmetric} systems, on the other hand, the keys used for encryption and decryption differ.
-When Alice encrypts a message with key $k_{enc}$, she will not be able to encrypt it again.
+When Alice encrypts a message with key $k_{enc}$, she will not be able to decrypt it again with the same key $k_{enc}$.
 Instead, when Bob receives the encrypted message, he will use a different key $k_{dec}$ to decrypt it. See Figure~\ref{fig:keys-asymmetric}.
 Thus, in symmetric systems, keys always come in \emph{pairs} of an \emph{encryption key} $k_{enc}$ and a \emph{decryption key} $k_{dec}$.
 Because $k_{enc}$ can not be used to decrypt messages meant for Bob, there is no harm to making it publicly available.
@@ -81,24 +80,80 @@ This is represented by a tree of attributes in Figure~\ref{fig:keys-abe}.
 
 
 \subsection{KP-ABE and CP-ABE}
-ABE schemes can further be divided into \emph{Key-Policy} and \emph{Ciphertext-Policy} schemes (KP-ABE and CP-ABE, respectively).
-In KP-ABE, the ciphertext is associated with a set of attributes, and the key is associated with an access structure.
-CP-ABE works the other way around, so the key is associated with a set of attributes and the ciphertext is encrypted under an access structure.
+\begin{figure}
+    \centering
+    \begin{subfigure}[t]{0.4\textwidth}
+        \begin{tikzpicture}
+            % \fill (0, 0) -- +(0,0) arc (180:0:2) -- +(-0.5,0) arc (0:180:1.5) -- cycle;           
+            % \fill[even odd rule] (0, 0) -- ++(0,3) -- ++(0.5,0) -- ++(0,1) arc (180:0:2) -- ++(0,-1) -- ++(0.5,0) -- ++(0,-3) -- cycle -- ++(1, 3) -- ++(0,1) arc (180:0:1.5) -- ++(0,-1) -- ++(-3,0);
+            \path (0,0) node (ciphertext) {Ciphertext};
+            \scoped[sibling distance=20, level distance=12, inner sep=2]{
+                \tikzstyle{every node}=[fill, circle, draw];
+                \tikzstyle{level 2}=[sibling distance=6];
+                \fill[olive] (ciphertext.north) -- ++(0, 3) node (root) [anchor=south] {} child {node (b) {} child {node {}} child {node {}} child {node {}}} child { node {} child {node {}}};
+            };  
+            \path (ciphertext.north) ++(0, 0.5) pic [fill=olive, scale = 0.2] {lock};
+            
+            \path (2.5,0) node (key) {Key};
+            \path (key.north) -- ++(0,2.5) node (atts) {\LARGE$\{A, B, C\}$};
+            \path (key.north) -- ++(0,1) pic [scale=0.15] {key};
+        \end{tikzpicture}
+        \caption{CP-ABE}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.4\textwidth}
+        \begin{tikzpicture}
+            % \fill (0, 0) -- +(0,0) arc (180:0:2) -- +(-0.5,0) arc (0:180:1.5) -- cycle;           
+            % \fill[even odd rule] (0, 0) -- ++(0,3) -- ++(0.5,0) -- ++(0,1) arc (180:0:2) -- ++(0,-1) -- ++(0.5,0) -- ++(0,-3) -- cycle -- ++(1, 3) -- ++(0,1) arc (180:0:1.5) -- ++(0,-1) -- ++(-3,0);
+
+            \path (2.5,0) node (key) {Key};
+            \scoped[sibling distance=20, level distance=12, inner sep=2]{
+                \tikzstyle{every node}=[fill, circle, draw];
+                \tikzstyle{level 2}=[sibling distance=6];
+                \fill (key.north) -- ++(0, 3) node (root) [anchor=south] {} child {node (b) {} child {node {}} child {node {}} child {node {}}} child { node {} child {node {}}};
+            };  
+            \path (key.north) -- ++(0,1) pic [scale=0.15] {key};
+            
+            \path (0,0) node (ciphertext) {Ciphertext};
+            \path (ciphertext.north) -- ++(0,2.5) node (atts) [olive] {\LARGE$\{A, B, C\}$};
+            \path (ciphertext.north) ++(0, 0.5) pic [fill=olive, scale = 0.2] {lock};
+        \end{tikzpicture}
+        \caption{KP-ABE}
+    \end{subfigure}
+    \caption[\acrshort{cp-abe} vs. \acrshort{kp-abe}]{\acrshort{cp-abe} vs. \acrshort{kp-abe}: Association of key and ciphertext with Access Policy and set of attributes.}
+\end{figure}
+ABE schemes can further be divided into \acrfull{cp-abe} and \acrfull{kp-abe}.
+In \acrshort{kp-abe}, the ciphertext is associated with a set of attributes, and the key is associated with an access structure.
+\acrshort{cp-abe} works the other way around, so the key is associated with a set of attributes and the ciphertext is encrypted under an access structure.
 
 In both cases, a ciphertext can be decrypted if and only if the set of attributes specified in one part satisfy the access policy associated with the other part.
 
+\acrshort{kp-abe} and \acrshort{cp-abe} allow for different use cases:
+For example, \acrshort{kp-abe} could be used to encrypt
 
+\acrshort{cp-abe} tends to be more intuitive because, when encrypting a plaintext, the encryptor controls rather explicitly who can decrypt their ciphertext:
+They set the access policy that defines which combinations of attributes are required from the users to successfully decrypt the ciphertext~\cite{bethencourt_ciphertext-policy_2007}.
 
-\subsection{Components of an ABE scheme}
+With \acrshort{kp-abe}, on the other hand, the encryptor doesn't have any control over who will be able to access the data, except for the choice of attributes under which they encrypt the plaintext~\cite{bethencourt_ciphertext-policy_2007}.
+Instead, the \acrlong{kgc} must be trusted with intelligently deciding which key to give to whom~\cite{bethencourt_ciphertext-policy_2007}.
+For example, imagine a \acrshort{kp-abe} system in which it is common practice to label all ciphertexts with an attribute corresponding to the version number of the encryption software used.
+If the \acrshort{kgc} were to give out a key containing an access structure with just a single attribute corresponding to a commonly-used version of this software, this key could be used to decrypt any ciphertext - completely disregarding any other attributes that might be associated with it.
+
+An example use case for \acrshort{cp-abe} in a hospital setting would be sending an encrypted note about problems with a specific treatment to all doctors, patients that received that treatment and nurses of the department that administered the treatment.
+This could be specified by an access policy as (\texttt{hospital-name} AND (\texttt{doctor} OR (\texttt{patient} AND \texttt{received-treatment-x}) OR (\texttt{nurse} AND \texttt{department-y}))
+
+In the same hospital setting, \acrshort{kp-abe} could be employed in a different use case: When storing medical data about a patient, \acrshort{cp-abe} would require re-encrypting the data under a new access policy whenever a patient needs to see a different doctor.
+With \acrshort{kp-abe}, the data could instead be associated with the patient's name as an attribute, and the hospital's IT department could extend the new doctor's key's policy to allow decrypting the new patient's data.
+
+\subsection{Components of an \acrshort{abe} Scheme}
 
 With respect to ABE, we say that a ciphertext is \emph{encrypted under an access structure} (\emph{under a set of attributes}, respectively) if it has been encrypted using the public key derived from the access structure (set of attributes, resp.).
 Because the public key w.r.t. some access structure (set of attributes, resp.) can be derived by anyone, private keys are usually referred to as just \emph{keys}.
 
 \begin{definition}
-    An Attribute-Based Encryption scheme (ABE scheme) consists of the following four algorithms:~\cite{goyal_attribute-based_2006}
+    An \Acrfull{abes} consists of the following four algorithms:~\cite{goyal_attribute-based_2006}
     \begin{itemize}
-        \item \emph{Setup}. Run once by the central trusted authority (key generation center). Sets up the system and outputs a public master key $PK$ and a private master secret $s$.
-        \item \emph{KeyGen(PK, s, $\omega$)}. Run exclusively by the trusted authority. For a given set of attributes (CP-ABE) or access structure (KP-ABE) $\omega$, uses the master secret $s$ to generate a private key $k$ corresponding to the given access structure.
+        \item \emph{Setup}. Run once by the \acrfull{kgc}. Sets up the system by generating public parameters $PK$ and a private master key $MK$. The public parameters are shared with all participants, while the master key remains with the \acrshort{kgc}.
+        \item \emph{KeyGen(PK, s, $\omega$)}. Run exclusively by the trusted authority, once for each user to generate their private key. For a given set of attributes (CP-ABE) or access structure (KP-ABE) $\omega$, uses the master secret $s$ to generate a private key $k$ corresponding to the given access structure.
         \item \emph{Encrypt(PK, m, $\omega$)}. Run by any participant of the system. On input of a plaintext message $m$ and an access structure (CP-ABE) or set of attributes (KP-ABE) $\omega$, outputs a ciphertext $c$
         \item \emph{Decrypt(c, k)}. Run by any participant holding a private key generated by \emph{KeyGen}. On input of a ciphertext $c$ created by \emph{Encrypt} and a key $k$ generated by \emph{KeyGen}, it outputs a correctly decrypted message if and only if
         \begin{itemize}
@@ -448,7 +503,7 @@ Return the ciphertext $CM = (\omega, c, \text{mac}_m, \{C_i | i \in \omega\})$\\
 
 Decryption is split into two phases: Reconstructing the curve point $C'$ to get the encryption and integrity keys, and actual decryption of the ciphertext.
 
-For the first phase, define a recursive decryption procedure for a node $u$ $\text{DecryptNode}(CM, D, u)$. \\ % TODO fix this weird latex problem
+First, define a recursive decryption procedure for a node $u$: $\text{DecryptNode}(CM, D, u)$. \\ % TODO fix this weird latex problem
 For leaf nodes with $i = \text{attr}(u)$:
 \begin{equation*}
     \text{DecryptNode}(CM, D, u) = \begin{cases}
