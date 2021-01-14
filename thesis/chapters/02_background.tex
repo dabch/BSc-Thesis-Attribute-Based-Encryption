@@ -1,5 +1,5 @@
 \chapter{Background}\label{chapter:background}
-This chapter introduces the relevant mathematical background for the \acrshortpl{abes} implemented in this thesis. For further reference, please refer to % TODO
+This chapter introduces \acrlong{abe} and the relevant mathematical background for implementing it. For further reference, please refer to % TODO
 
 \begin{figure} \centering
     \begin{subfigure}{.8\textwidth}
@@ -61,7 +61,13 @@ In this case, our only option using classic public-key cryptography would be to 
 Attribute-Based encryption solves this problem.
 
 \section{Attribute-Based Encryption}
+\acrfull{abe} uses a combination of attributes to define a \emph{group} of private keys that should be able to read encrypted data, instead of encrypting it for one specific private key only (as in \glspl{pkes}).
+In Figure~\ref{fig:keys-abe}, this is represented by a tree.
 
+The combination of attributes may be as restrictive or permissive as needed.
+It is possible to create ciphertexts that can be read by almost all members of an \acrshort{abes}, and ciphertexts that can be read by nobody except a few selected participants.
+
+Figure~\ref{fig:abe-system} shows a small \acrshort{abe} system with the \acrshort{kgc} initializing the system and issuing keys, and two users sharing an encrypted message.
 \subsection{Attributes and the Key Generation Center}
 
 \begin{figure}
@@ -78,8 +84,12 @@ Attribute-Based encryption solves this problem.
             \node[below, align=center] at (a.south) {$\{m, \omega\}$\\};
             \node[below, align=center] at (b.south) {$\{\}$};
 
-            \draw[->] (a) edge node[left] {\{$S_A$\}} (kgc);
-            \draw[->] (b) edge node [right] {\{$S_B$\}} (kgc);
+            % \draw[->] (a) edge node[left] {\{$S_A$\}} (kgc);
+            % \draw[->] (b) edge node [right] {\{$S_B$\}} (kgc);
+            % \draw[->] (a) edge pic [left=0.5cm, scale=0.05] {key} node [left=.5cm] {k} (kgc);
+            \draw[->] (b) edge pic [right=0.5cm, scale=0.5, blue] {tree} node [right=.75cm, blue] {$S_B$} (kgc);
+            \draw[->] (a) edge pic [left=0.5cm, scale=0.5, olive] {tree} node [left=.75cm, olive] {$S_A$} (kgc);
+            % \draw[->] (b) edge node [right] {\{$S_B$\}} (kgc);
 
         \end{tikzpicture}
         \caption{The \acrshort{kgc} sets up the system and obtains Alice's and Bob's desired access policies.}
@@ -92,16 +102,19 @@ Attribute-Based encryption solves this problem.
             \node[actor] (b) at (1,0) {Bob};
             \node[actor] (kgc) at (0,1.5) {KGC};
 
-            \node[above, align=center] at (kgc.north) {$\{PK, MK\}$\\$k_A := \text{KeyGen}(PK, MK, S_A)$\\$k_B := \text{KeyGen}(PK, MK, S_B)$};
+            \node[above, align=center] at (kgc.north) {$\{PK, MK\}$\\$\textcolor{olive}{k_A} := \text{KeyGen}(PK, MK, \textcolor{olive}{S_A})$\\$\textcolor{blue}{k_B} := \text{KeyGen}(PK, MK, \textcolor{blue}{S_B})$};
 
-            \node[below, align=center] at (a.south) {$\{PK, k_{A}\}$\\$\{m, \omega\}$};
-            \node[below, align=center] at (b.south) {$\{PK, k_{B}\}$};
+            \node[below, align=center] at (a.south) {{\{$PK$, $\textcolor{olive}{k_A}$\}}\\$\{m, \omega\}$};
+            \node[below, align=center] at (b.south) {\{$PK$, $\textcolor{blue}{k_B}$\}};
 
-            \draw[->] (kgc) edge node [left] {\{$PK$, $k_A$\}} (a);
-            \draw[->] (kgc) edge node [right] {\{$PK$, $k_B$\}} (b);
+            \draw[->] (kgc) edge pic [left=0.55cm, above=0.3cm, scale=0.05, olive] {key} node [left] {\{$PK$, $\textcolor{olive}{k_A}$\}} (a);
+            \draw[->] (kgc) edge pic [right=1.1cm, above=0.3cm, scale=0.05, blue] {key} node [right] {\{$PK$, $\textcolor{blue}{k_A}$\}} (b);
+
+            % \draw[->] (kgc) edge node [left] {\{$PK$, $\textcolor{olive}{k_A}$\}} (a);
+            % \draw[->] (kgc) edge node [right] {\{$PK$, $\textcolor{blue}{k_B}$\}} (b);
 
         \end{tikzpicture}
-        \caption{If $S_A$ and $S_B$ are allowed access policies for Alice and Bob, respectively, the \acrshort{kgc} creates their private keys and transmits them via a secure channel.}
+        \caption{If $\textcolor{olive}{S_A}$ and $\textcolor{blue}{S_B}$ are allowed access policies for Alice and Bob, respectively, the \acrshort{kgc} creates their private keys and transmits them via a secure channel.}
     \end{subfigure}
     \par\bigskip
     \begin{subfigure}[c]{0.6\textwidth}
@@ -109,22 +122,27 @@ Attribute-Based encryption solves this problem.
         \begin{tikzpicture}[actor/.style={draw, minimum width=1.5cm}]
             \node[actor] (a) at (-2,0) {Alice};
             \node[actor] (b) at (2,0) {Bob};
-            \node[actor] (kgc) at (0,2.5) {KGC};
+            \node[actor] (kgc) at (0,1.5) {KGC};
         
             \node[above, align=center] at (kgc.north) {$\{PK, MK\}$};
 
-            \node[below, align=center] at (a.south) {$\{PK, k_{A}\}$\\$\{m, \omega\}$\\$c:=\text{Encrypt}(PK, m, \omega)$};
-            \node[below, align=center] at (b.south) {$\{PK, k_{B}\}$\\$m:=\text{Decrypt}(c,k_B)$};
+            \node[below, align=center] at (a.south) {{\{$PK$, $\textcolor{olive}{k_A}$\}}\\$\{m, \omega\}$\\$\textcolor{red}{c}:=\text{Encrypt}(PK, m, \omega)$};
+            \node[below, align=center] at (b.south) {\{$PK$, $\textcolor{blue}{k_B}$\}\\$m:=\text{Decrypt}(\textcolor{red}{c},\textcolor{blue}{k_B})$};
+            % \node[below, align=center] at (a.south) {$\{PK, k_{A}\}$\\$\{m, \omega\}$};;
+            % \node[below, align=center] at (b.south) {$\{PK, k_{B}\}$\\$m:=\text{Decrypt}(c,k_B)$};
 
-            \draw[->] (a) edge node [above] {$\{c\}$} (b);
+            \draw[->] (a) edge node (c) [above] {$\textcolor{red}{c}$} (b);
+
+            % \draw[->] (c.north) -- ++(0,.2) node [anchor=south] {\small $\omega$};
         \end{tikzpicture}
-        \caption{Alice can now use the public parameters $PK$ and $\omega$ to encrypt a message for Bob, which he can decrypt only if his access policy $S_A$ is satisfied by $\omega$. Note that the \acrshort{kgc} plays no role in this step}
+        \caption{Alice can now use the public parameters $PK$ and $\omega$ to encrypt a message for Bob, which he can decrypt only if his access policy $\textcolor{blue}{S_B}$ is satisfied by $\omega$. Note that the \acrshort{kgc} plays no role in this step}
     \end{subfigure}
     \caption[Interaction of Alice, Bob and KGC in an \acrshort{abes}]{
         Alice wants to send an \acrshort{kp-abe} encrypted message $m$ to Bob. She wants to encrypt the message under a set of attributes $\omega$.
-        Both Alice and Bob create a desired Access Policy, $S_A$ and $S_B$, respectively.
+        Both Alice and Bob create a desired Access Policy, $\textcolor{olive}{S_A}$ and $\textcolor{blue}{S_B}$, respectively.
         Note that the \acrshort{kgc} will only issue a corresponding key if it deems that they should be allowed to obtain a key under the given Access Policy.
     }
+    \label{fig:abe-system}
 \end{figure}
 In essence, attributes are strings describing certain characteristics or features of actors and objects.
 For example, a typical freshman student of informatics at TUM could be described by the attributes \texttt{"semester count 1", "computer science", "tum", "is young", "started degree in 2017"}.
@@ -133,10 +151,11 @@ These attributes themselves don't contain any information to which users or obje
 Some attributes may be very clearly defined, e.g. \texttt{"started degree in 2017"} from above.
 For others, it may be more difficult to decide whether they apply, e.g. the attribute \texttt{"is young"}: Until what age is a student young?
 
-In any instance of \acrshort{abe}, there needs to arbiter who decides whether an attribute applies to a certain user or object.
+In any instance of \acrshort{abe}, there needs to exist an arbiter who decides whether an attribute applies to a certain user or object.
 This role is assumed by a trusted third party, the \acrfull{kgc}.
 It has two main responsibilities: First, the \acrshort{kgc} decides which attribute applies to which user.
 Second, it issues private keys corresponding to these attributes, and hands these to the users.
+
 Without this \acrshort{kgc}, there is no \acrshort{abe}.
 This differs from traditional public-key encryption schemes, where any user can independently create their own keypair.
 
@@ -147,6 +166,30 @@ With a \gls{small-universe} construction, the size of the public parameters usua
 
 
 \subsection{KP-ABE and CP-ABE}
+
+Two components are necessary to specify a group of keys that shall be able to decrypt a ciphertext: A number of attributes that are present, and a policy that defines a combination of required attributes. 
+Each of these can either be associated with the ciphertext, or with the decryption key:
+
+In \acrfull{cp-abe}, so the key is associated with a set of attributes and the ciphertext is encrypted under an access policy.
+\acrfull{kp-abe} works the other way around, so the ciphertext is associated with a set of attributes, and the key is associated with an access policy.
+See Figure~\ref{fig:cp-kp-abe} for illustration.
+
+In both cases, a ciphertext can be decrypted if and only if the set of attributes specified in one part satisfy the access policy associated with the other part.
+
+\acrshort{cp-abe} tends to be more intuitive because, when encrypting a plaintext, the encryptor controls rather explicitly who can decrypt their ciphertext:
+They set the access policy that defines which combinations of attributes are required from the users to successfully decrypt the ciphertext~\cite{bethencourt_ciphertext-policy_2007}.
+
+With \acrshort{kp-abe}, on the other hand, the encryptor doesn't have any control over who will be able to access the data, except for the choice of attributes under which they encrypt the plaintext~\cite{bethencourt_ciphertext-policy_2007}.
+Instead, the \acrlong{kgc} must be trusted with intelligently deciding which key to give to the decrypting party~\cite{bethencourt_ciphertext-policy_2007}.
+For example, imagine a \acrshort{kp-abe} system in which it is common practice to label all ciphertexts with an attribute corresponding to the version number of the encryption software used.
+If the \acrshort{kgc} were to give out a key containing an access structure with just a single attribute corresponding to a commonly-used version of this software, this key could be used to decrypt any ciphertext - completely disregarding any other attributes that might be associated with it.
+
+An example use case for \acrshort{cp-abe} in a hospital setting would be sending an encrypted note about problems with a specific treatment to all doctors, patients that received that treatment and nurses of the department that administered the treatment.
+This could be specified by an access policy as (\texttt{hospital-name} AND (\texttt{doctor} OR (\texttt{patient} AND \texttt{received-treatment-x}) OR (\texttt{nurse} AND \texttt{department-y}))
+
+In the same hospital setting, \acrshort{kp-abe} could be employed in a different use case: When storing medical data about a patient, \acrshort{cp-abe} would require re-encrypting the data under a new access policy whenever a patient needs to see a different doctor.
+With \acrshort{kp-abe}, the data could instead be associated with the patient's name as an attribute, and the hospital's IT department could extend the new doctor's key's policy to allow decrypting the new patient's data.
+
 \begin{figure}
     \centering
     \begin{subfigure}[t]{0.4\textwidth}
@@ -187,28 +230,10 @@ With a \gls{small-universe} construction, the size of the public parameters usua
         \caption{KP-ABE}
     \end{subfigure}
     \caption[\acrshort{cp-abe} vs. \acrshort{kp-abe}]{\acrshort{cp-abe} vs. \acrshort{kp-abe}: Association of key and ciphertext with Access Policy and set of attributes.}
+    \label{fig:cp-kp-abe}
 \end{figure}
-ABE schemes can further be divided into \acrfull{cp-abe} and \acrfull{kp-abe}.
-In \acrshort{cp-abe}, so the key is associated with a set of attributes and the ciphertext is encrypted under an access structure.
-\acrshort{kp-abe} works the other way around, so the ciphertext is associated with a set of attributes, and the key is associated with an access structure.
 
-In both cases, a ciphertext can be decrypted if and only if the set of attributes specified in one part satisfy the access policy associated with the other part.
-
-\acrshort{cp-abe} tends to be more intuitive because, when encrypting a plaintext, the encryptor controls rather explicitly who can decrypt their ciphertext:
-They set the access policy that defines which combinations of attributes are required from the users to successfully decrypt the ciphertext~\cite{bethencourt_ciphertext-policy_2007}.
-
-With \acrshort{kp-abe}, on the other hand, the encryptor doesn't have any control over who will be able to access the data, except for the choice of attributes under which they encrypt the plaintext~\cite{bethencourt_ciphertext-policy_2007}.
-Instead, the \acrlong{kgc} must be trusted with intelligently deciding which key to give to the decrypting party~\cite{bethencourt_ciphertext-policy_2007}.
-For example, imagine a \acrshort{kp-abe} system in which it is common practice to label all ciphertexts with an attribute corresponding to the version number of the encryption software used.
-If the \acrshort{kgc} were to give out a key containing an access structure with just a single attribute corresponding to a commonly-used version of this software, this key could be used to decrypt any ciphertext - completely disregarding any other attributes that might be associated with it.
-
-An example use case for \acrshort{cp-abe} in a hospital setting would be sending an encrypted note about problems with a specific treatment to all doctors, patients that received that treatment and nurses of the department that administered the treatment.
-This could be specified by an access policy as (\texttt{hospital-name} AND (\texttt{doctor} OR (\texttt{patient} AND \texttt{received-treatment-x}) OR (\texttt{nurse} AND \texttt{department-y}))
-
-In the same hospital setting, \acrshort{kp-abe} could be employed in a different use case: When storing medical data about a patient, \acrshort{cp-abe} would require re-encrypting the data under a new access policy whenever a patient needs to see a different doctor.
-With \acrshort{kp-abe}, the data could instead be associated with the patient's name as an attribute, and the hospital's IT department could extend the new doctor's key's policy to allow decrypting the new patient's data.
-
-\subsection{Definition of an \acrshort{abe} Scheme}\label{sec:definition-es}
+\subsection{Formal definition of an \acrshort{abe} Scheme}\label{sec:definition-es}
 
 % With respect to ABE, we say that a ciphertext is \emph{encrypted under an access structure} (\emph{under a set of attributes}, respectively) if it has been encrypted using the public key derived from the access structure (set of attributes, resp.).
 % Because the public key w.r.t. some access structure (set of attributes, resp.) can be derived by anyone, private keys are usually referred to as just \emph{keys}.
@@ -245,9 +270,13 @@ How exactly these algorithms work in concrete ABE schemes will be discussed in S
     }
     \label{fig:sample-access-tree}
 \end{figure}
-Of course, we need a way to define the policies or access structures associated with the key (KP-ABE) or the ciphertext (CP-ABE), respectively.
-We will be using the definition of \emph{Access Trees} from \cite{goyal_attribute-based_2006}.
+Of course, we need a way to define the access policies associated with the key (KP-ABE) or the ciphertext (CP-ABE), respectively.
+For this, we will use the construction of \emph{Access Trees} from Goyal~et~al. in~\cite{goyal_attribute-based_2006}.
 Each leaf of this tree is labelled with an attribute, and each interior node is labelled with an integer, the threshold for it to be satisfied~\cite{goyal_attribute-based_2006}.
+
+Figure~\ref{fig:sample-access-tree} illustrates an example for an Access Tree. It is satisfied by any set of attributes that contains two of $A, B$ and either $C$ or $D$.
+That is, $\{A,B\}$ would satsify the tree, just as $\{B, D\}$ would, but $\{C, D\}$ would not be sufficient.
+
 \begin{definition}
     Access Tree~\cite{goyal_attribute-based_2006}.\\
     An interal note $x$ of an access tree is defined by its children and a threshold value $d_x$. If $x$ has $num_x$ children, then its threshold value satisfies $0 < d_x \leq num_x$.\\
@@ -363,13 +392,10 @@ To realize an Access Tree that ,,gives away'' a secret if and only if it is sats
     \caption[Shamir's Secret sharing in Access Trees]{
         Access Tree from Figure~\ref{fig:sample-access-tree} showing how Shamir's Secret Sharing is employed recursively.
         $p_1(x)$ is a the polynomial of a $(2,3)$-threshold scheme, $p_2(x)$ of a $(1,2)$-threshold scheme.
-        Shown in small are the secret embedded into each node.
+        Shown in small are the secret shares embedded into each node.
     }
     \label{fig:sample-access-tree-shamir}
 \end{figure}
-
-See Figure~\ref{fig:sample-access-tree-shamir} for a sample of an access tree. It is satisfied by any set of attributes that contains two of $A, B$ and either $C$ or $D$.
-That is, $\{A,B\}$ would satsify the tree, just as $\{B, D\}$ would, but $\{C, D\}$ would not be sufficient.
 
 Quite simplified, we now employ Shamir's Secret Sharing Scheme recursively on each internal node of the Access Tree:
 For a node $x$ with threshold $d_x$ and $\text{num}_x$ children, we define a $(d_x, \text{num}_x)$-threshold scheme and embed one share of the secret in each child.
@@ -384,6 +410,7 @@ That means, a leaf node's secret share can be used if and only if the set of att
 For the internal nodes $x$, the use of a $(d_x, \text{num}_x)$-threshold scheme ensures that the secret embedded in $x$ can be reconstructed if and only if the secret shares of at least $d_x$ child nodes can be used, i.e. at least $d_x$ child nodes are satisfied.
 Following this recursive definition up to the root, we can see that our secret $s$ embedded in the root can be reconstructed exactly if $\omega$ satisfies the Acess Tree.
 
+See Figure~\ref{fig:sample-access-tree-shamir} for an illustration with the tree from Figure~\ref{fig:sample-access-tree}.
 
 
 \section{Elliptic Curves}
