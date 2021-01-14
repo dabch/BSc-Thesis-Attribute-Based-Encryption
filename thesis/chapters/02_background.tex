@@ -1,5 +1,5 @@
 \chapter{Background}\label{chapter:background}
-This chapter shall provide a high-level introduction to the cryptographical and mathematical tools used to implement \acrlong{abe} in this thesis. For further reference, please refer to % TODO
+This chapter introduces the relevant mathematical background for the \acrshortpl{abes} implemented in this thesis. For further reference, please refer to % TODO
 
 \begin{figure} \centering
     \begin{subfigure}{.7\textwidth}
@@ -55,7 +55,7 @@ Then Alice can use $k$ to encrypt a message for Bob, who can decrypt it using th
 In \emph{asymmetric} systems, on the other hand, the keys used for encryption and decryption differ.
 When Alice encrypts a message with key $k_{enc}$, she will not be able to decrypt it again with the same key $k_{enc}$.
 Instead, when Bob receives the encrypted message, he will use a different key $k_{dec}$ to decrypt it. See Figure~\ref{fig:keys-asymmetric}.
-Thus, in symmetric systems, keys always come in \emph{pairs} of an \emph{encryption key} $k_{enc}$ and a \emph{decryption key} $k_{dec}$.
+Thus, in asymmetric systems, keys always come in \emph{pairs} of an \emph{encryption key} $k_{enc}$ and a \emph{decryption key} $k_{dec}$.
 Because $k_{enc}$ can not be used to decrypt messages meant for Bob, there is no harm to making it publicly available.
 For example, he might put it up on his website for anyone wishing to send him an encrypted message to download. This is why $k_{enc}$ is also often called the \emph{public key} and $k_{dec}$ the \emph{private key}.
 
@@ -73,6 +73,69 @@ In this case, our only option using classic public-key cryptography would be to 
 Attribute-Based encryption solves this problem much more nicely. 
 
 \section{Attribute-Based Encryption}
+
+\begin{figure}
+    \centering
+    \begin{subfigure}[t]{0.45\textwidth}
+        \centering
+        \begin{tikzpicture}[actor/.style={draw, minimum width=1.5cm}]
+            \node[actor] (a) at (-1,0) {Alice};
+            \node[actor] (b) at (1,0) {Bob};
+            \node[actor] (kgc) at (0,1.5) {KGC};
+        
+            \node[above, align=center] at (kgc.north) {$\{PK, MK\}:=\text{Setup}()$};
+
+            \node[below, align=center] at (a.south) {$\{m, \omega\}$\\};
+            \node[below, align=center] at (b.south) {$\{\}$};
+
+            \draw[->] (a) edge node[left] {\{$S_A$\}} (kgc);
+            \draw[->] (b) edge node [right] {\{$S_B$\}} (kgc);
+
+        \end{tikzpicture}
+        \caption{The \acrshort{kgc} sets up the system and obtains Alice's and Bob's desired access policies.}
+    \end{subfigure}
+    ~~
+    \begin{subfigure}[t]{0.45\textwidth}
+        \centering
+        \begin{tikzpicture}[actor/.style={draw, minimum width=1.5cm}]
+            \node[actor] (a) at (-1,0) {Alice};
+            \node[actor] (b) at (1,0) {Bob};
+            \node[actor] (kgc) at (0,1.5) {KGC};
+
+            \node[above, align=center] at (kgc.north) {$\{PK, MK\}$\\$k_A := \text{KeyGen}(PK, MK, S_A)$\\$k_B := \text{KeyGen}(PK, MK, S_B)$};
+
+            \node[below, align=center] at (a.south) {$\{PK, k_{A}\}$\\$\{m, \omega\}$};
+            \node[below, align=center] at (b.south) {$\{PK, k_{B}\}$};
+
+            \draw[->] (kgc) edge node [left] {\{$PK$, $k_A$\}} (a);
+            \draw[->] (kgc) edge node [right] {\{$PK$, $k_B$\}} (b);
+
+        \end{tikzpicture}
+        \caption{If $S_A$ and $S_B$ are allowed access policies for Alice and Bob, respectively, the \acrshort{kgc} creates their private keys and transmits them via a secure channel.}
+    \end{subfigure}
+    \par\bigskip
+    \begin{subfigure}[c]{0.6\textwidth}
+        \centering
+        \begin{tikzpicture}[actor/.style={draw, minimum width=1.5cm}]
+            \node[actor] (a) at (-2,0) {Alice};
+            \node[actor] (b) at (2,0) {Bob};
+            \node[actor] (kgc) at (0,2.5) {KGC};
+        
+            \node[above, align=center] at (kgc.north) {$\{PK, MK\}$};
+
+            \node[below, align=center] at (a.south) {$\{PK, k_{A}\}$\\$\{m, \omega\}$\\$c:=\text{Encrypt}(PK, m, \omega)$};
+            \node[below, align=center] at (b.south) {$\{PK, k_{B}\}$\\$m:=\text{Decrypt}(c,k_B)$};
+
+            \draw[->] (a) edge node [above] {$\{c\}$} (b);
+        \end{tikzpicture}
+        \caption{Alice can now use the public parameters $PK$ and $\omega$ to encrypt a message for Bob, which he can decrypt only if his access policy $S_A$ is satisfied by $\omega$. Note that the \acrshort{kgc} plays no role in this step}
+    \end{subfigure}
+    \caption[Interaction of Alice, Bob and KGC in an \acrshort{abes}]{
+        Alice wants to send an \acrshort{kp-abe} encrypted message $m$ to Bob. She wants to encrypt the message under a set of attributes $\omega$.
+        Both Alice and Bob create a desired Access Policy, $S_A$ and $S_B$, respectively.
+        Note that the \acrshort{kgc} will only issue a corresponding key if it deems that they should be allowed to obtain a key under the given Access Policy.
+    }
+\end{figure}
 
 Attribute-Based Encryption Schemes (ABE schemes) are asymmetric in the sense that different keys are used for encryption and decryption.
 However, in constrast to classic asymmetric systems, the 'public key' used for encryption is not attached to an identity, but to certain attributes defined by the system.
