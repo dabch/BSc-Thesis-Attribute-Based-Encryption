@@ -83,6 +83,7 @@
 \newglossaryentry{gls-kgc}
 {
         name={key generation center},
+        text={Key Generation Center},
         description={Trusted central authority that sets up an \acrshort{abes} and generates keys for users of an \acrshort{abes} }
 }
 
@@ -114,6 +115,31 @@
 \newglossaryentry{access-policy}{
   name={access policy},
   description={A policy that defines what combination of \glspl{attribute} shall be required to access data.}
+}
+
+\newglossaryentry{universe}{
+  name={attribute universe},
+  description={set of possible attributes}
+}
+
+\newglossaryentry{small-universe}{
+  name={small universe},
+  description={type of \acrshort{abe} construction where the possible attributes have to be fixed when the system is instantiated}
+}
+
+\newglossaryentry{large-universe}{
+  name={large universe},
+  description={type of \acrshort{abe} construction where any string can be used as an attribute}
+}
+
+\newglossaryentry{pkes}{
+  name={public-key encryption scheme},
+  description={also called asymmetric encryption scheme. Type of encryption scheme where different keys are used for encryption and decryption. The encryption key may be made public, while the decryption key is kept private.}
+}
+
+\newglossaryentry{privkes}{
+  name={private-key encryption scheme},
+  description={also called symmetric encryption scheme. Type of encryption scheme where the same key is used for encryption and decryption. This means that the key has to be shared among all parties via some secure channel (e.g. a personal meeting).}
 }
 
 \newacronym[see={[Glossary:]{gls-kgc}}]{kgc}{KGC}{Key Generation Center\glsadd{gls-kgc}}

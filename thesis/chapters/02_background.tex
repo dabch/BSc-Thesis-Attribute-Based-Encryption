@@ -2,7 +2,7 @@
 This chapter introduces the relevant mathematical background for the \acrshortpl{abes} implemented in this thesis. For further reference, please refer to % TODO
 
 \begin{figure} \centering
-    \begin{subfigure}{.7\textwidth}
+    \begin{subfigure}{.8\textwidth}
         \begin{tikzpicture}
             \draw[->] (0, 0) node [anchor=east] {m} -- ++(1, 0) node (encrypt) [anchor=west, draw] {Encrypt};
             \path (encrypt.north) -- +(0, 0.3) pic [anchor=west, scale=0.1, fill=blue] {key};
@@ -10,11 +10,11 @@ This chapter introduces the relevant mathematical background for the \acrshortpl
             \path (decrypt.north) -- +(0, 0.3) pic [anchor=west, scale=0.1, fill=blue] {key};
             \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m'};
         \end{tikzpicture}
-        \caption{Symmetric Encryption} \label{fig:keys-symmetric}
+        \caption{Symmetric Encryption: Both keys are identical.} \label{fig:keys-symmetric}
     \end{subfigure}
     \\
     \vspace{0.5cm}
-    \begin{subfigure}{.7\textwidth}
+    \begin{subfigure}{.8\textwidth}
         \begin{tikzpicture}
             \draw[->] (0, 0) node [anchor=east] {m} -- ++(1, 0) node (encrypt) [anchor=west, draw] {Encrypt};
             \path (encrypt.north) -- +(0, 0.3) pic [anchor=west, scale=0.1, fill=green] {key};
@@ -22,11 +22,11 @@ This chapter introduces the relevant mathematical background for the \acrshortpl
             \path (decrypt.north) -- +(0, 0.3) pic [anchor=west, scale=0.1, fill=red] {key};
             \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m'};
         \end{tikzpicture}
-        \caption{Asymmetric Encryption} \label{fig:keys-asymmetric}
+        \caption{Asymmetric Encryption: Different keys for encryption and decryption.} \label{fig:keys-asymmetric}
     \end{subfigure}
     \\ 
     \vspace{0.5cm}
-    \begin{subfigure}{.7\textwidth}
+    \begin{subfigure}{.8\textwidth}
         \begin{tikzpicture}[sibling distance=4mm, level distance=3mm]
             \draw[->] (0, 0) node [anchor=east] {m} -- ++(1, 0) node (encrypt) [anchor=west, draw] {Encrypt};
             
@@ -39,30 +39,18 @@ This chapter introduces the relevant mathematical background for the \acrshortpl
             \path (decrypt.north) -- +(0, 0.3) pic [anchor=west, scale=0.1, fill=magenta] {key};
             \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m'};
         \end{tikzpicture}
-        \caption{Attribute-Based encryption} \label{fig:keys-abe}
+        \caption{Attribute-Based encryption: Arbitrary Access Policy for encryption and key for decryption} \label{fig:keys-abe}
     \end{subfigure}
     \caption[Keys in different classes of encryption schemes]{Keys used for encryption and decryption in different classes of encryption schemes}
+    \label{fig:key-use}
 \end{figure}
 
-\section{Confidentiality with Classic Symmetric and Asymmetric Confidentiality}
-Today's conventional cryptography knows two main classes of cryptosystems: \emph{Symmetric} or \emph{Private-Key systems} and \emph{Asymmetric} or \emph{Public-Key systems}.
-The main difference lies in their use of encryption and decryption keys:
+\section{Confidentiality with Classic Symmetric and Asymmetric Cryptography}
+Today's conventional cryptography knows two main classes of cryptosystems: \glspl{privkes} and \glspl{pkes}. See Figure~\ref{fig:key-use} for an illustration of the differences.
 
-In \emph{symmetric} systems, the key used for encryption and decryption is identical.
-That is, if a user \emph{Alice} wants to communicate securely with another user \emph{Bob}, they have to agree on a shared secret key $k$.
-Then Alice can use $k$ to encrypt a message for Bob, who can decrypt it using the same key $k$. See Figure~\ref{fig:keys-symmetric}.
-
-In \emph{asymmetric} systems, on the other hand, the keys used for encryption and decryption differ.
-When Alice encrypts a message with key $k_{enc}$, she will not be able to decrypt it again with the same key $k_{enc}$.
-Instead, when Bob receives the encrypted message, he will use a different key $k_{dec}$ to decrypt it. See Figure~\ref{fig:keys-asymmetric}.
-Thus, in asymmetric systems, keys always come in \emph{pairs} of an \emph{encryption key} $k_{enc}$ and a \emph{decryption key} $k_{dec}$.
-Because $k_{enc}$ can not be used to decrypt messages meant for Bob, there is no harm to making it publicly available.
-For example, he might put it up on his website for anyone wishing to send him an encrypted message to download. This is why $k_{enc}$ is also often called the \emph{public key} and $k_{dec}$ the \emph{private key}.
-
-Asymmetric cryptosystems make secure communication among a large group of participants much easier:
-Consider $n$ participants wanting to communicate securely using a symmetric system.
-Each participant would need to share a unique secret key with each of the other participants, requiring a total of $\frac{n(n-1)}{2}$ keys. In the asymmetric setting, one key per participant is sufficient:
-The same public key may be shared with the whole group, as the private key remains private anyway. This reduces the total number of keys to $n$.
+Consider $n$ participants wanting to communicate securely (i.e. no user can read encrypted messages between two other users).
+Using a \gls{privkes}, each participant would need to agree on a unique key with every other participant, resulting in a total number of $\frac{n(n-1)}{2}$ keys.
+Using a \gls{pkes} reduces the number of keys to only $n$, because each participant could obtain everyone else's public key and then send messages to them securely.
 
 Another problem remains, however: Encrypting a single message to a large number of participants requires encrypting it with everyone's public key separately.
 For a large number of recipients, this is inefficient.
@@ -70,9 +58,11 @@ So, for example, to encrypt a message for all students of a certain university, 
 
 Even worse, what if we want to encrypt data for any student of said university, even if they \emph{haven't joined the university yet}.
 In this case, our only option using classic public-key cryptography would be to have some trusted instance encrypt the data for any new student after they joined the university.
-Attribute-Based encryption solves this problem much more nicely. 
+Attribute-Based encryption solves this problem.
 
 \section{Attribute-Based Encryption}
+
+\subsection{Attributes and the Key Generation Center}
 
 \begin{figure}
     \centering
@@ -136,10 +126,24 @@ Attribute-Based encryption solves this problem much more nicely.
         Note that the \acrshort{kgc} will only issue a corresponding key if it deems that they should be allowed to obtain a key under the given Access Policy.
     }
 \end{figure}
+In essence, attributes are strings describing certain characteristics or features of actors and objects.
+For example, a typical freshman student of informatics at TUM could be described by the attributes \texttt{"semester count 1", "computer science", "tum", "is young", "started degree in 2017"}.
 
-Attribute-Based Encryption Schemes (ABE schemes) are asymmetric in the sense that different keys are used for encryption and decryption.
-However, in constrast to classic asymmetric systems, the 'public key' used for encryption is not attached to an identity, but to certain attributes defined by the system.
-This is represented by a tree of attributes in Figure~\ref{fig:keys-abe}.
+These attributes themselves don't contain any information to which users or object they apply; instead this is a matter of interpretation.
+Some attributes may be very clearly defined, e.g. \texttt{"started degree in 2017"} from above.
+For others, it may be more difficult to decide whether they apply, e.g. the attribute \texttt{"is young"}: Until what age is a student young?
+
+In any instance of \acrshort{abe}, there needs to arbiter who decides whether an attribute applies to a certain user or object.
+This role is assumed by a trusted third party, the \acrfull{kgc}.
+It has two main responsibilities: First, the \acrshort{kgc} decides which attribute applies to which user.
+Second, it issues private keys corresponding to these attributes, and hands these to the users.
+Without this \acrshort{kgc}, there is no \acrshort{abe}.
+This differs from traditional public-key encryption schemes, where any user can independently create their own keypair.
+
+Regarding the \glsdesc{universe} (called the \emph{\gls{universe}}), there are two possibilities:
+In a \gls{large-universe} construction, all possible strings can be used as attributes~\cite{goyal_attribute-based_2006}.
+In a \gls{small-universe} construction, the universe of attributes is explicitly fixed when the system is instantiated, i.e. when the \acrshort{kgc} runs the \emph{Setup} algorithm (see below, section~\ref{sec:definition-es})~\cite{goyal_attribute-based_2006}.
+With a \gls{small-universe} construction, the size of the public parameters usually grows with the size of the \gls{universe}~\cite{goyal_attribute-based_2006}.
 
 
 \subsection{KP-ABE and CP-ABE}
@@ -185,19 +189,16 @@ This is represented by a tree of attributes in Figure~\ref{fig:keys-abe}.
     \caption[\acrshort{cp-abe} vs. \acrshort{kp-abe}]{\acrshort{cp-abe} vs. \acrshort{kp-abe}: Association of key and ciphertext with Access Policy and set of attributes.}
 \end{figure}
 ABE schemes can further be divided into \acrfull{cp-abe} and \acrfull{kp-abe}.
-In \acrshort{kp-abe}, the ciphertext is associated with a set of attributes, and the key is associated with an access structure.
-\acrshort{cp-abe} works the other way around, so the key is associated with a set of attributes and the ciphertext is encrypted under an access structure.
+In \acrshort{cp-abe}, so the key is associated with a set of attributes and the ciphertext is encrypted under an access structure.
+\acrshort{kp-abe} works the other way around, so the ciphertext is associated with a set of attributes, and the key is associated with an access structure.
 
 In both cases, a ciphertext can be decrypted if and only if the set of attributes specified in one part satisfy the access policy associated with the other part.
-
-\acrshort{kp-abe} and \acrshort{cp-abe} allow for different use cases:
-For example, \acrshort{kp-abe} could be used to encrypt
 
 \acrshort{cp-abe} tends to be more intuitive because, when encrypting a plaintext, the encryptor controls rather explicitly who can decrypt their ciphertext:
 They set the access policy that defines which combinations of attributes are required from the users to successfully decrypt the ciphertext~\cite{bethencourt_ciphertext-policy_2007}.
 
 With \acrshort{kp-abe}, on the other hand, the encryptor doesn't have any control over who will be able to access the data, except for the choice of attributes under which they encrypt the plaintext~\cite{bethencourt_ciphertext-policy_2007}.
-Instead, the \acrlong{kgc} must be trusted with intelligently deciding which key to give to whom~\cite{bethencourt_ciphertext-policy_2007}.
+Instead, the \acrlong{kgc} must be trusted with intelligently deciding which key to give to the decrypting party~\cite{bethencourt_ciphertext-policy_2007}.
 For example, imagine a \acrshort{kp-abe} system in which it is common practice to label all ciphertexts with an attribute corresponding to the version number of the encryption software used.
 If the \acrshort{kgc} were to give out a key containing an access structure with just a single attribute corresponding to a commonly-used version of this software, this key could be used to decrypt any ciphertext - completely disregarding any other attributes that might be associated with it.
 
@@ -207,7 +208,7 @@ This could be specified by an access policy as (\texttt{hospital-name} AND (\tex
 In the same hospital setting, \acrshort{kp-abe} could be employed in a different use case: When storing medical data about a patient, \acrshort{cp-abe} would require re-encrypting the data under a new access policy whenever a patient needs to see a different doctor.
 With \acrshort{kp-abe}, the data could instead be associated with the patient's name as an attribute, and the hospital's IT department could extend the new doctor's key's policy to allow decrypting the new patient's data.
 
-\subsection{Definition of an \acrshort{abe} Scheme}
+\subsection{Definition of an \acrshort{abe} Scheme}\label{sec:definition-es}
 
 % With respect to ABE, we say that a ciphertext is \emph{encrypted under an access structure} (\emph{under a set of attributes}, respectively) if it has been encrypted using the public key derived from the access structure (set of attributes, resp.).
 % Because the public key w.r.t. some access structure (set of attributes, resp.) can be derived by anyone, private keys are usually referred to as just \emph{keys}.
@@ -230,6 +231,20 @@ The definition of a \acrshort{cp-abe} scheme is identical, except that \emph{Enc
 How exactly these algorithms work in concrete ABE schemes will be discussed in Section~\ref{sec:concrete-schemes}.
 
 \subsection{Access Trees}
+
+\begin{figure}
+    \centering
+    \begin{tikzpicture}
+        \scoped{
+                \tikzstyle{every node}=[circle, draw];
+                \draw (0,0) node (root) [anchor=south] {2} child {node (a) {A}} child {node (b) {B}} child  {node (subroot) {1} child  {node (c) {C}} child  {node (d) {D}}};
+            };
+    \end{tikzpicture}
+    \caption[Sample Access Tree]{
+        Sample Access Tree over the attributes \texttt{A}, \texttt{B}, \texttt{C}, \texttt{D}.
+    }
+    \label{fig:sample-access-tree}
+\end{figure}
 Of course, we need a way to define the policies or access structures associated with the key (KP-ABE) or the ciphertext (CP-ABE), respectively.
 We will be using the definition of \emph{Access Trees} from \cite{goyal_attribute-based_2006}.
 Each leaf of this tree is labelled with an attribute, and each interior node is labelled with an integer, the threshold for it to be satisfied~\cite{goyal_attribute-based_2006}.
@@ -345,15 +360,15 @@ To realize an Access Tree that ,,gives away'' a secret if and only if it is sats
             \path[blue] (c) -- +(0, -0.5) node {\tiny$p_2(1)$};
             \path[blue] (d) -- +(0, -0.5) node {\tiny$p_2(2)$};
     \end{tikzpicture}
-    \caption[Shamir's Secret sharing in ABE]{
-        Sample Access Tree to show how Shamir's Secret Sharing is used to embed a secret in the tree.
+    \caption[Shamir's Secret sharing in Access Trees]{
+        Access Tree from Figure~\ref{fig:sample-access-tree} showing how Shamir's Secret Sharing is employed recursively.
         $p_1(x)$ is a the polynomial of a $(2,3)$-threshold scheme, $p_2(x)$ of a $(1,2)$-threshold scheme.
         Shown in small are the secret embedded into each node.
     }
-    \label{fig:sample-access-tree}
+    \label{fig:sample-access-tree-shamir}
 \end{figure}
 
-See Figure~\ref{fig:sample-access-tree} for a sample of an access tree. It is satisfied by any set of attributes that contains two of $A, B$ and either $C$ or $D$.
+See Figure~\ref{fig:sample-access-tree-shamir} for a sample of an access tree. It is satisfied by any set of attributes that contains two of $A, B$ and either $C$ or $D$.
 That is, $\{A,B\}$ would satsify the tree, just as $\{B, D\}$ would, but $\{C, D\}$ would not be sufficient.
 
 Quite simplified, we now employ Shamir's Secret Sharing Scheme recursively on each internal node of the Access Tree:
@@ -378,7 +393,7 @@ The mathematics of modern cryptosystems (including, but not limited to ABE) work
 Because \Glspl{ec} allow for shorter key lengths than, e.g. groups modulo a prime, they have become very popular for use in cryptography.
 Exact definitions and notations differ, these are taken from the textbook \emph{Introduction to Modern Cryptogaphy} by Katz and Lindell~\cite{katz_introduction_2015}.
 
-\subsection{Group Axioms}
+\subsection{Group Axioms}\label{sec:group}
 \begin{definition}~\cite{katz_introduction_2015}. A \emph{Group} consists of a set $\mathbb{G}$ together with a binary operation $\circ$ for which these four conditions hold:
     \begin{itemize}
         \item Closure: For all $g, h \in \mathbb{G}$, $g \circ h \in \mathbb{G}$.
@@ -582,8 +597,8 @@ Return the generated key as $D = \{D_u | u \text{ leaf node of } \Gamma\}$.\\
 \emph{Encrypt(m, $\omega$, Params)}~\cite{yao_lightweight_2015}.
 Input: Message $m$, set of attributes $\omega$ and public parameters $Params$.
 
-Randomly choose $k \in \mathbb{Z}_q^*$ and compute $C' = k \cdot PK = (k_x, k_y)$. If $C' = \mathcal{O}$, repeat until $C' \neq \mathcal{O}$.
-$k_x$ is the encryption key and $k_y$ is the integrity key.
+Randomly choose $k \in \mathbb{Z}_q^*$ and compute $C' = k \cdot PK$. If $C' = \mathcal{O}$, repeat until $C' \neq \mathcal{O}$.
+$C' = (k_x, k_y)$ are the coordinates of the point $C'$. $k_x$ is used as the encryption key and $k_y$ as the integrity key.
 
 Then compute $C_i = k \cdot P_i$ for all attributes $i \in \omega$.
 
