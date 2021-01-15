@@ -164,14 +164,12 @@ In a \gls{large-universe} construction, all possible strings can be used as attr
 In a \gls{small-universe} construction, the universe of attributes is explicitly fixed when the system is instantiated, i.e. when the \acrshort{kgc} runs the \emph{Setup} algorithm (see below, section~\ref{sec:definition-es})~\cite{goyal_attribute-based_2006}.
 With a \gls{small-universe} construction, the size of the public parameters usually grows with the size of the \gls{universe}~\cite{goyal_attribute-based_2006}.
 
-
-
-\subsection{Formal definition of an \acrshort{abe} Scheme}\label{sec:definition-es}
+\subsection{Formal definition of an ABE Scheme}\label{sec:definition-es}
 
 We will define a \acrshort{kp-abe} scheme here, for the difference between \acrshort{cp-abe} and \acrshort{kp-abe} and formal definitions of Access Trees, see the next sections.
 
 \begin{definition}
-    An (Key-Policy) \Acrlong{abes} consists of the following four algorithms:~\cite{goyal_attribute-based_2006}
+    A (Key-Policy) \Acrlong{abes} consists of the following four algorithms:~\cite{goyal_attribute-based_2006}
     \begin{itemize}
         \item \emph{Setup}. Run once by the \acrfull{kgc}. Sets up the system by generating public parameters $PK$ and a private master key $MK$. The public parameters are shared with all participants, while the master key remains only known to the \acrshort{kgc}.
         \item \emph{KeyGen(PK, s, S)}. Input: public parameters $PK$, master secret $s$ and Access Structure $S$.\\
