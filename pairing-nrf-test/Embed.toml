@@ -1,0 +1,8 @@
+[default.general]
+chip = "nRF52832_xxAA"
+
+[default.rtt]
+enabled = true
+#channels = [{ up = 0 }]
+timeout = 10000
+speed = 500
