@@ -30,6 +30,7 @@ fn main() -> ! {
     rprintln!("computing pairing...");
     let gt = rabe_bn::pairing(g1, g2);
     rprintln!("done pairing");
+    rprintln!("{:?}", gt);
     loop {
       asm::bkpt();  
     }
