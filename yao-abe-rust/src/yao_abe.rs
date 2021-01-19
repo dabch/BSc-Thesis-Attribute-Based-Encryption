@@ -1,6 +1,6 @@
 // use rabe_bn::{Group, Fr, G};
 use elliptic_curve::{Group, Field, sec1::ToEncodedPoint, generic_array::sequence::Split};
-use k256::{Scalar, ProjectivePoint};
+use k256::{Scalar, ProjectivePoint, AffinePoint};
 use heapless::{IndexMap, FnvIndexMap, Vec, consts};
 use rand::{Rng, RngCore};
 
@@ -12,7 +12,8 @@ pub use ccm::aead::Error;
 
 pub type S = consts::U16;
 
-pub type G = ProjectivePoint;
+pub type G = AffinePoint;
+type GIntermediate = ProjectivePoint;
 pub type F = Scalar;
 
 /// Represents the full parameters of an ABE scheme, known in full only to the KGC
@@ -119,17 +120,17 @@ impl<'attr: 'es, 'es: 'key, 'key> YaoABEPrivate<'attr, 'es> {
   where 'attr: 'es
   {
     let master_secret: F = F::random(&mut rng); // corresponds to "s" in the original paper
-    let g: G = G::random(&mut rng);
+    let g = GIntermediate::random(&mut rng);
     
     // for each attribute, choose a private field element s_i and make G * s_i public
     for attr in att_names {
       let si: F = F::random(&mut rng);
-      let gi = g * si;
+      let gi = (g * si).to_affine();
       private_map.insert(attr, (si, gi)).unwrap();
       public_map.insert(attr, gi).unwrap();
     }
     
-    let pk = g * master_secret; // master public key, corresponds to `PK`
+    let pk = (g * master_secret).to_affine(); // master public key, corresponds to `PK`
 
     (
       YaoABEPrivate {
@@ -217,7 +218,7 @@ impl<'data, 'key, 'es, 'attr> YaoABEPublic<'attr, 'es> {
     // choose a C', which is then used to encrypt the actual plaintext with a symmetric cipher
     let (k, c_prime) = loop {
       let k: F = F::random(&mut rng);
-      let cprime = self.pk * k;
+      let cprime = GIntermediate::from(self.pk) * k;
       if !bool::from(cprime.is_identity()) { break (k, cprime) };
     };
 
@@ -225,9 +226,9 @@ impl<'data, 'key, 'es, 'attr> YaoABEPublic<'attr, 'es> {
     // multiplication is calculated.
     let mut att_cs: FnvIndexMap<&str, G, S> = FnvIndexMap::new();
     for att in atts {
-      let att_pubkey: &G = self.atts.get(att).unwrap();
-      let c_i = *att_pubkey * k;
-      att_cs.insert(att, c_i).unwrap();
+      let att_pubkey = GIntermediate::from(*self.atts.get(att).unwrap());
+      let c_i = att_pubkey * k;
+      att_cs.insert(att, c_i.to_affine()).unwrap();
     }
 
     //println!("---------- ENCRYPT: encrypting with point ------------\n{:?}", c_prime.to_affine());
@@ -260,7 +261,7 @@ impl<'data, 'key, 'es, 'attr> YaoABEPublic<'attr, 'es> {
     tree_ptr: u8,
     secret_shares: &FnvIndexMap<u8, F, consts::U64>,
     att_cs: &FnvIndexMap<& 'attr str, G, S>
-  ) -> Option<G> 
+  ) -> Option<GIntermediate> 
   where 'attr: 'es, 'es: 'key, 'key: 'data
   {
     let own_node = &tree_arr[tree_ptr as usize];
@@ -275,25 +276,25 @@ impl<'data, 'key, 'es, 'attr> YaoABEPublic<'attr, 'es> {
         };
         match att_cs.get(name) {
           None => return None,
-          Some(c_i) => return Some(c_i.clone() * *d_u),
+          Some(c_i) => return Some(GIntermediate::from(*c_i) * *d_u),
         }
       },
       AccessNode::Node(thresh, children) => {
         // continue recursion - call for all children and then, if enough children decrypt successfully, reconstruct the secret share for 
         // this intermediate node.
-        let children_result: Vec<(F, G), consts::U16> = children.into_iter().enumerate()
+        let children_result: Vec<(F, GIntermediate), consts::U16> = children.into_iter().enumerate()
           .map(|(i, child_ptr)| (F::from((i + 1) as u64), Self::decrypt_node(tree_arr, *child_ptr, secret_shares, att_cs))) // node indexes start at one, enumerate() starts at zero! 
           .filter_map(|(i, x)| match x { None => None, Some(y) => Some((i, y))}) // filter out all children that couldn't decrypt because of missing ciphertext secret shares
           .collect();
         // we can only reconstruct our secret share if at least `thresh` children decrypted successfully (interpolation of `thresh-1`-degree polynomial)
         if children_result.len() < *thresh as usize { return None }
         // an arbitrary subset omega with |omega| = thresh is enough to reconstruct the secret. To make it easy, we just take the first `thresh` in our list.
-        let relevant_children: Vec<(F, G), consts::U16> = children_result.into_iter().take(*thresh as usize).collect();
+        let relevant_children: Vec<(F, GIntermediate), consts::U16> = children_result.into_iter().take(*thresh as usize).collect();
         let relevant_indexes: Vec<F, consts::U16> = relevant_children.iter()
           .map(|(i, _)| i.clone()).collect(); // our langrange helper function wants this vector of field elements
-        let result: G = relevant_children.into_iter()
+        let result: GIntermediate = relevant_children.into_iter()
           .map(|(i, dec_res)| { dec_res * Polynomial::lagrange_of_zero(&i, &relevant_indexes) } )
-          .fold(G::identity(), |acc, g| g + acc);
+          .fold(GIntermediate::identity(), |acc, g| g + acc);
         // //println!("node got result: {:?}\n at node {:?}\n", result, key);
         return Some(result);
       }
@@ -534,7 +535,7 @@ mod tests {
     let s = F::random(&mut rng);
     let s_inv = s.invert().unwrap();
 
-    let g: G = G::random(&mut rng);
+    let g: GIntermediate = GIntermediate::random(&mut rng);
 
     let c = g * s;
 
