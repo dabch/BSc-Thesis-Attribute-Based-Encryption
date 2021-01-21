@@ -41,7 +41,24 @@ This chapter introduces \acrlong{abe} and the relevant mathematical background f
         \end{tikzpicture}
         \caption{\glslink{gls-kp-abe}{Key-Policy Attribute-Based Encryption}: Attributes for encryption, access policy for decryption. Note that the access policy of the decryption key may be public; the actual key consists of secret shares that allow the user to decrypt a ciphertext if the correct attributes are present.} \label{fig:keys-abe}
     \end{subfigure}
-    \caption[Keys in different classes of encryption schemes]{Keys used for encryption and decryption in different classes of encryption schemes. Red information has to be kept secret, green information may be made publicly available.}
+    \\ 
+    \vspace{0.5cm}
+    \begin{subfigure}{.8\textwidth}
+        \begin{tikzpicture}[sibling distance=4mm, level distance=3mm]
+            \draw[->] (0, 0) node [anchor=east] {m} -- ++(1, 0) node (encrypt) [anchor=west, draw] {Encrypt};
+            
+            \scoped{
+                \tikzstyle{every node}=[fill, circle, draw, inner sep=0.5mm];
+                \tikzstyle{level 2}=[sibling distance=1.5mm];
+                \fill[olive] (encrypt.north) -- ++(0, 0.7) node [anchor=south] {} child {node {} child {node {}} child {node {}} child {node {}}} child { node {} child {node {}}};
+            };
+            \draw[->] (encrypt.east) -- ++(2, 0) node [anchor=south] {c} -- ++(2,0) node (decrypt) [anchor=west, draw] {Decrypt};
+            \path (decrypt.north) -- +(0, 0.3) node [red] {$\{A, B, C\}$};
+            \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m'};
+        \end{tikzpicture}
+        \caption{\glslink{gls-cp-abe}{Ciphertex-Policy Attribute-Based Encryption}: Access policy for encryption, attributes for decryption. Note that the attributes associated with the decryption key may be public; the actual key consists of corresponding secret shares.} \label{fig:keys-abe}
+    \end{subfigure}
+    \caption[Keys in different classes of encryption schemes]{Keys used for encryption and decryption in different classes of encryption schemes. Red information has to be kept secret, green information may be made publicly available. For the differences between the two types of \acrshort{abe}, see Section~\ref{sec:cp-vs-kp}.}
     \label{fig:key-use}
 \end{figure}
 
@@ -57,7 +74,7 @@ For a large number of recipients, this is inefficient.
 So, for example, to encrypt a message for all students of a certain university, we'd need to obtain each student's public key and encrypt the message with each key separately.
 
 Even worse, what if we want to encrypt data for any student of said university, even if they \emph{haven't joined the university yet}.
-In this case, our only option using classic public-key cryptography would be to have some trusted instance keep a plaintext copy and re-encrypt the data for any new student when they join the university.
+In this case, our only option using classic asymmetric cryptography would be to have some trusted instance keep a plaintext copy and re-encrypt the data for any new student when they join the university.
 Attribute-Based encryption solves this problem.
 
 \section{Attribute-Based Encryption}
@@ -185,7 +202,7 @@ The definition of a \acrshort{cp-abe} scheme is identical, except that \emph{Enc
 
 How exactly these algorithms work in concrete ABE schemes will be discussed in Section~\ref{sec:concrete-schemes}.
 
-\subsection{KP-ABE and CP-ABE}
+\subsection{KP-ABE and CP-ABE}\label{sec:cp-vs-kp}
 
 Two components are necessary to specify a group of keys that shall be able to decrypt a ciphertext: A number of attributes that are present, and a policy that defines a combination of required attributes. 
 Each of these can either be associated with the ciphertext, or with the decryption key:
@@ -399,7 +416,7 @@ Quite simplified, we now employ Shamir's Secret Sharing Scheme recursively on ea
 For a node $x$ with threshold $d_x$ and $\text{num}_x$ children, we define a $(d_x, \text{num}_x)$-threshold scheme and embed one share of the secret in each child.
 Begin in the root, and set $s$ as the secret we want to embed in the tree. For all other nodes, set $s$ as the secret share received from the parent node.
 
-If the child is a leaf, we modify the share such that it can only be used if the relevant attribute is present (we will not discuss how this is done at this point).
+If the child is a leaf, we modify the share such that it can only be used if the relevant attribute is present (how exactly this is done differs between \acrshort{cp-abe} and \acrshort{kp-abe}).
 
 Now, let $\omega$ be a set of attributes.
 We have built our tree in such a way that the share embedded in a leaf node $u$ can be used only if $\text{attr}(u) \in \omega$.
