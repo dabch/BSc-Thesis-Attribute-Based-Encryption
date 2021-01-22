@@ -23,7 +23,7 @@ fn main() -> ! {
     p.TIMER0.timer_start(0 as u32);
     let mut _timer = hal::Timer::new(p.TIMER0);
 
-    let system_atts: Vec<&str, S> = Vec::from_slice(&["student", "tum", "has_bachelor", "over21", "lives_in_munich", "lives_in_garching", "works_at_aisec", "knows_crypto", "wears_glasses", "blabla", "owns_thinkpad"]).unwrap();
+    let system_atts: Vec<&str, S> = Vec::from_slice(&["student", "tum", "has_bachelor", "over21", "lives_in_munich", "lives_in_garching", "works_at_aisec", "knows_crypto", "wears_glasses", "blabla", "owns_thinkpad", "semester>1", "semester>2", "semester>3", "semester>4", "semester>5"]).unwrap();
     // let arr: Vec<(&str, G, Fr), S> = Vec::new();
 
     let access_structure: AccessStructure = &[
@@ -45,11 +45,11 @@ fn main() -> ! {
     rprintln!("Setup took {:?}ms", us / 1000);
 
     let mut data: [u8; 32] = [0xa; 32];
-    let atts = ["student", "tum", "has_bachelor", "over21", "owns_thinkpad"];
+    let atts = ["student", "tum", "has_bachelor", "over21", "owns_thinkpad", "lives_in_munich", "lives_in_garching", "works_at_aisec", "knows_crypto", "wears_glasses"];
 
     rprintln!("starting encrypt");
     let start = _timer.read();
-    let mut ciphertext: YaoABECiphertext = public.encrypt(&atts, &mut data, &mut rng).unwrap();
+    let ciphertext: YaoABECiphertext = public.encrypt(&atts, &mut data, &mut rng).unwrap();
     let us = _timer.read() - start;
     rprintln!("Encryption took {:?}ms", us / 1000);
 

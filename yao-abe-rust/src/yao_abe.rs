@@ -1,6 +1,6 @@
 // use rabe_bn::{Group, Fr, G};
 use elliptic_curve::{Group, Field, sec1::ToEncodedPoint, generic_array::sequence::Split};
-use k256::{Scalar, ProjectivePoint};
+use k256::{Scalar, ProjectivePoint, AffinePoint};
 use heapless::{IndexMap, FnvIndexMap, Vec, consts};
 use rand::{Rng, RngCore};
 
@@ -12,322 +12,323 @@ pub use ccm::aead::Error;
 
 pub type S = consts::U16;
 
-pub type G = ProjectivePoint;
+pub type G = AffinePoint;
+type GIntermediate = ProjectivePoint;
 pub type F = Scalar;
 
 /// Represents the full parameters of an ABE scheme, known in full only to the KGC
 //#[derive(Debug)]
 pub struct YaoABEPrivate<'attr, 'own> {
-    // gen: G,
-    atts: &'own FnvIndexMap<&'attr str, (F, G), S>,
-    // pk: G,
-    master_secret: F,
-  }
+  // gen: G,
+  atts: &'own FnvIndexMap<&'attr str, (F, G), S>,
+  // pk: G,
+  master_secret: F,
+}
   
-  /// represents the public ABE parameters, known to all participants and used for encryption, decryption and the like
-  //#[derive(Debug)]
-  pub struct YaoABEPublic<'attr, 'own> {
-    // gen: G,
-    atts: &'own FnvIndexMap<&'attr str, G, S>,
-    pk: G,
-  }
+/// represents the public ABE parameters, known to all participants and used for encryption, decryption and the like
+//#[derive(Debug)]
+pub struct YaoABEPublic<'attr, 'own> {
+  // gen: G,
+  atts: &'own FnvIndexMap<&'attr str, G, S>,
+  pk: G,
+}
   
-  /// represents an access structure that defines the powers of a key.
-  /// This is passed to keygen() by the KGC, and then embedded in the private key issued to the user.
-  #[derive(Debug)]
-  pub enum AccessNode<'attr> {
-    Node(u64, Vec<u8, consts::U16>), // threshold, children
-    Leaf(&'attr str),
+/// represents an access structure that defines the powers of a key.
+/// This is passed to keygen() by the KGC, and then embedded in the private key issued to the user.
+#[derive(Debug)]
+pub enum AccessNode<'attr> {
+  Node(u64, Vec<u8, consts::U16>), // threshold, children
+  Leaf(&'attr str),
+}
+
+/// Represents an access structure defined as a threshold-tree
+// Implementation: Array of 256 AccessNodes, the first one is the root
+// size of this is 10248 bytes (!)
+// pub type AccessStructure<'a> = Vec<AccessNode<'a>, consts::U256>; 
+pub type AccessStructure<'attr, 'own> = &'own [AccessNode<'attr>];
+
+/// Represents a ciphertext as obtained by encrypt() and consumed by decrypt()
+/// Contains both the actual (symetrically) encrypted data and all data required to reconstruct the 
+/// symmetric keys given a private key created under a matching access structure.
+// #[derive(Debug)]
+pub struct YaoABECiphertext<'attr, 'data> {
+  c: &'data mut [u8], // actual ciphertext (output of AES)
+  mac: Tag<aead::consts::U10>, // mac over the cleartext (TODO better encrypt-then-mac?)
+  nonce: [u8; 13],
+  c_i: FnvIndexMap<&'attr str, G, S>, // attributes and their respective curve elements
+}
+
+/// Represents a private key obtained by keygen() and used to decrypt ABE-encrypted data
+/// This data structure mirrors the recursive nature of access structures to ease implementation
+/// of decryption. The secret shared (D_u in the original paper) allowing decryption are embedded
+/// in the leaves of the tree.
+//#[derive(Debug)]
+pub struct PrivateKey<'attr, 'own>(AccessStructure<'attr, 'own>, FnvIndexMap<u8, F, consts::U64>);
+
+/// Polynomial p(x) = a0 + a1 * x + a2 * x^2 + ... defined by a vector of coefficients [a0, a1, a2, ...]
+//#[derive(Debug)]
+struct Polynomial(Vec<F, consts::U16>);
+
+impl Polynomial {
+  /// Evaluates the polynomial p(x) at a given x
+  fn eval(&self, x: F) -> F {
+    self.0.iter().rev().fold(F::zero(), |acc, c| *c + (x * acc))
   }
 
-  /// Represents an access structure defined as a threshold-tree
-  // Implementation: Array of 256 AccessNodes, the first one is the root
-  // size of this is 10248 bytes (!)
-  // pub type AccessStructure<'a> = Vec<AccessNode<'a>, consts::U256>; 
-  pub type AccessStructure<'attr, 'own> = &'own [AccessNode<'attr>];
-  
-  /// Represents a ciphertext as obtained by encrypt() and consumed by decrypt()
-  /// Contains both the actual (symetrically) encrypted data and all data required to reconstruct the 
-  /// symmetric keys given a private key created under a matching access structure.
-  // #[derive(Debug)]
-  pub struct YaoABECiphertext<'attr, 'data> {
-    c: &'data mut [u8], // actual ciphertext (output of AES)
-    mac: Tag<aead::consts::U10>, // mac over the cleartext (TODO better encrypt-then-mac?)
-    nonce: [u8; 13],
-    c_i: FnvIndexMap<&'attr str, G, S>, // attributes and their respective curve elements
+  /// Generates a random polynomial p(x) of degree `coeffs` coefficients, where p(0) = `a0`
+  fn randgen(a0: F, coeffs: u64, mut rng: &mut dyn RngCore) -> Polynomial {
+    let mut coefficients: Vec<F, consts::U16> = Vec::from_slice(&[a0]).unwrap();
+    coefficients.extend((1..coeffs).map(|_| -> F { F::random(&mut rng) }));
+    assert_eq!(coefficients.len() as u64, coeffs);
+    Polynomial(coefficients)
   }
-  
-  /// Represents a private key obtained by keygen() and used to decrypt ABE-encrypted data
-  /// This data structure mirrors the recursive nature of access structures to ease implementation
-  /// of decryption. The secret shared (D_u in the original paper) allowing decryption are embedded
-  /// in the leaves of the tree.
-  //#[derive(Debug)]
-  pub struct PrivateKey<'attr, 'own>(AccessStructure<'attr, 'own>, FnvIndexMap<u8, F, consts::U64>);
-  
-  /// Polynomial p(x) = a0 + a1 * x + a2 * x^2 + ... defined by a vector of coefficients [a0, a1, a2, ...]
-  //#[derive(Debug)]
-  struct Polynomial(Vec<F, consts::U16>);
-  
-  impl Polynomial {
-    /// Evaluates the polynomial p(x) at a given x
-    fn eval(&self, x: F) -> F {
-      self.0.iter().rev().fold(F::zero(), |acc, c| *c + (x * acc))
-    }
-  
-    /// Generates a random polynomial p(x) of degree `coeffs` coefficients, where p(0) = `a0`
-    fn randgen(a0: F, coeffs: u64, mut rng: &mut dyn RngCore) -> Polynomial {
-      let mut coefficients: Vec<F, consts::U16> = Vec::from_slice(&[a0]).unwrap();
-      coefficients.extend((1..coeffs).map(|_| -> F { F::random(&mut rng) }));
-      assert_eq!(coefficients.len() as u64, coeffs);
-      Polynomial(coefficients)
-    }
-  
-    /// Calculates the langrage base polynomials l_i(x) for given set of indices omega and the index i.
-    /// As we only ever need to interpolate p(0), no value for x may be passed.
-    fn lagrange_of_zero(i: &F, omega: &Vec<F, consts::U16>) -> F {
-      //println!("LAGRANGE: {:?}\n{:?}", i, omega);
-      let r = omega.iter()
-        .filter(|x| *x != i)
-        // .map(|x| { println!("{:?}", x); x} )
-        .map(|j| -*j * (*i-*j).invert().unwrap())
-        .fold(F::one(), |acc, x| acc * x);
-      //println!("\n");
-      r
-    }
+
+  /// Calculates the langrage base polynomials l_i(x) for given set of indices omega and the index i.
+  /// As we only ever need to interpolate p(0), no value for x may be passed.
+  fn lagrange_of_zero(i: &F, omega: &Vec<F, consts::U16>) -> F {
+    //println!("LAGRANGE: {:?}\n{:?}", i, omega);
+    let r = omega.iter()
+      .filter(|x| *x != i)
+      // .map(|x| { println!("{:?}", x); x} )
+      .map(|j| -*j * (*i-*j).invert().unwrap())
+      .fold(F::one(), |acc, x| acc * x);
+    //println!("\n");
+    r
   }
-  
-  impl<'attr: 'es, 'es: 'key, 'key> YaoABEPrivate<'attr, 'es> {
+}
 
-    pub fn setup_do_nothing(
-      att_names: &Vec<&'es str, consts::U256>,
-      mut rng: &mut dyn RngCore
-    ) -> F
-    {
-      let att_map: FnvIndexMap<&str, (F, G), consts::U64> = IndexMap::new();
-      let atts_public: FnvIndexMap<&str, G, consts::U64> = IndexMap::new(); //att_map.iter().map(|(k, (_, p))| (k.clone(), p.clone())).collect();
-      F::random(&mut rng) + F::from(att_names.len() as u64) + F::from(atts_public.len() as u64 + att_map.len() as u64)
-    }
-  
-    /// Corresponds to the `(A) Setup` phase in the original paper. Sets up an encryption scheme with a fixed set of attributes and 
-    /// generates both public and private parameter structs. This is typically run exactly once by the KGC.
-    pub fn setup(
-      att_names: &[&'attr str],
-      public_map: &'es mut FnvIndexMap<&'attr str, G, S>,
-      private_map: &'es mut FnvIndexMap<&'attr str, (F, G), S>,
-      mut rng: &mut dyn RngCore,
-    ) -> (Self, YaoABEPublic<'attr, 'es>) 
-    where 'attr: 'es
-    {
-      let master_secret: F = F::random(&mut rng); // corresponds to "s" in the original paper
-      let g: G = G::random(&mut rng);
-      
-      // for each attribute, choose a private field element s_i and make G * s_i public
-      for attr in att_names {
-        let si: F = F::random(&mut rng);
-        let gi = g * si;
-        private_map.insert(attr, (si, gi)).unwrap();
-        public_map.insert(attr, gi).unwrap();
-      }
-      
-      let pk = g * master_secret; // master public key, corresponds to `PK`
+impl<'attr: 'es, 'es: 'key, 'key> YaoABEPrivate<'attr, 'es> {
 
-      (
-        YaoABEPrivate {
-          // gen: g,
-          atts: private_map,
-          // pk,
-          master_secret,
-        },
-        YaoABEPublic {
-          // gen: g,
-          atts: public_map,
-          pk,
-        })
-    }
-  
-    /// Generate a private key for a given access structure, which allows a user holding the key to decrypt a ciphertext iff its 
-    /// attributes satisfy the given access structure.
-    pub fn keygen(
-      &self,
-      access_structure: AccessStructure<'attr, 'key>,
-      rng: &mut dyn RngCore,
-    ) ->
-      PrivateKey<'attr, 'key>
-    where 'es: 'key
-    { 
-      let tuple_arr = self.keygen_node(
-        &access_structure,
-        0,
-        &Polynomial::randgen(self.master_secret, 1, rng),
-        F::zero(), // this is the only node ever to have index 0, all others have index 1..n
-        rng,
-      );
-      return PrivateKey(access_structure, tuple_arr.into_iter().collect());
-    }
-  
-    /// internal recursive helper to ease key generation
-    fn keygen_node (&self,
-      tree_arr: AccessStructure<'key, 'key>,
-      tree_ptr: u8,
-      parent_poly: &Polynomial,
-      index: F,
-      rng: &mut dyn RngCore,
-    ) ->
-      Vec<(u8, F), consts::U64>
-    {
-      // own polynomial at x = 0. Exactly q_parent(index).
-      let q_of_zero = parent_poly.eval(index);
-      let own_node = &tree_arr[tree_ptr as usize];
-      match own_node {
-        AccessNode::Leaf(attr_name) => {
-          // terminate recursion, embed secret share in the leaf
-          let q_of_zero = parent_poly.eval(index);
-          let (s, _) = self.atts.get(*attr_name).unwrap();
-          let s_inverse = s.invert().unwrap();
-          return Vec::from_slice(&[(tree_ptr, q_of_zero * s_inverse)]).unwrap();
-        },
-        AccessNode::Node(thresh, children) => {
-          // continue recursion, call recursively for all children and return a key node that contains children's key subtrees
-          let own_poly = Polynomial::randgen(q_of_zero, thresh.clone(), rng); // `thres`-degree polynomial determined by q_of_zero and `thresh` random coefficients
-          let children_res: Vec<(u8, F), consts::U64> = children.iter().enumerate().
-            map(|(i, child_ptr)| self.keygen_node(tree_arr, *child_ptr, &own_poly, F::from((i+1) as u64), rng))
-            .flatten()
-            .collect();
-          return children_res;
-        }
-      }
-    }
+  pub fn setup_do_nothing(
+    att_names: &Vec<&'es str, consts::U256>,
+    mut rng: &mut dyn RngCore
+  ) -> F
+  {
+    let att_map: FnvIndexMap<&str, (F, G), consts::U64> = IndexMap::new();
+    let atts_public: FnvIndexMap<&str, G, consts::U64> = IndexMap::new(); //att_map.iter().map(|(k, (_, p))| (k.clone(), p.clone())).collect();
+    F::random(&mut rng) + F::from(att_names.len() as u64) + F::from(atts_public.len() as u64 + att_map.len() as u64)
   }
-  
-  impl<'data, 'key, 'es, 'attr> YaoABEPublic<'attr, 'es> {
-  
-    /// Encrypt a plaintext under a set of attributes so that it can be decrypted only with a matching key
-    /// TODO for now this does not actually encrypt any data. It just generates a random curve element c_prime (whose
-    /// coordinates would be used as encryption and message authentication key), which is then reconstructible under a 
-    /// matching key.
-    /// This is the only part of our cryptosystem that needs to run on the Cortex M4 in the end.
-    pub fn encrypt(
-      &self,
-      atts: &[&'attr str],
-      data: &'data mut [u8],
-      mut rng: &mut dyn RngCore,
-      ) -> Result<YaoABECiphertext<'attr, 'data>, aead::Error>
-    where 'attr: 'es, 'es: 'key, 'key: 'data
-    {
-      // choose a C', which is then used to encrypt the actual plaintext with a symmetric cipher
-      let (k, c_prime) = loop {
-        let k: F = F::random(&mut rng);
-        let cprime = self.pk * k;
-        if !bool::from(cprime.is_identity()) { break (k, cprime) };
-      };
-  
-      // Store the information needed to reconstruct C' under a matching key. For each attribute, only a single point
-      // multiplication is calculated.
-      let mut att_cs: FnvIndexMap<&str, G, S> = FnvIndexMap::new();
-      for att in atts {
-        let att_pubkey: &G = self.atts.get(att).unwrap();
-        let c_i = *att_pubkey * k;
-        att_cs.insert(att, c_i).unwrap();
-      }
 
-      //println!("---------- ENCRYPT: encrypting with point ------------\n{:?}", c_prime.to_affine());
-      let x = c_prime.to_affine().to_encoded_point(false).to_untagged_bytes().unwrap();
-      let (x,_) = Split::split(x);
-      // let x_arr = <[u8; 8 * 4]>::from(x);
-      // let y_arr = <[u8; 8 * 4]>::from(y);
-    //   println!("Encryption with x {:x?}\narray: {:x?}", x, x_arr);
-    //   println!("Encryption with y {:x?}\narray: {:x?}", y, y_arr);
-      
-      type YaoCcm = Ccm<Aes256, ccm::consts::U10, ccm::consts::U13>;
+  /// Corresponds to the `(A) Setup` phase in the original paper. Sets up an encryption scheme with a fixed set of attributes and 
+  /// generates both public and private parameter structs. This is typically run exactly once by the KGC.
+  pub fn setup(
+    att_names: &[&'attr str],
+    public_map: &'es mut FnvIndexMap<&'attr str, G, S>,
+    private_map: &'es mut FnvIndexMap<&'attr str, (F, G), S>,
+    mut rng: &mut dyn RngCore,
+  ) -> (Self, YaoABEPublic<'attr, 'es>) 
+  where 'attr: 'es
+  {
+    let master_secret: F = F::random(&mut rng); // corresponds to "s" in the original paper
+    let g = GIntermediate::random(&mut rng);
+    
+    // for each attribute, choose a private field element s_i and make G * s_i public
+    for attr in att_names {
+      let si: F = F::random(&mut rng);
+      let gi = (g * si).to_affine();
+      private_map.insert(attr, (si, gi)).unwrap();
+      public_map.insert(attr, gi).unwrap();
+    }
+    
+    let pk = (g * master_secret).to_affine(); // master public key, corresponds to `PK`
 
-      let key: Key<YaoCcm> = x;
-      let ccm = YaoCcm::new(&key);
-      
-      let nonce: [u8; 13] = rng.gen();
-      let nonce_ga = GenericArray::from(nonce);
-      let mac = ccm.encrypt_in_place_detached(&nonce_ga, &[], data)?;
-      Ok(YaoABECiphertext {
-        c: data,
-        mac,
-        nonce,
-        c_i: att_cs,
+    (
+      YaoABEPrivate {
+        // gen: g,
+        atts: private_map,
+        // pk,
+        master_secret,
+      },
+      YaoABEPublic {
+        // gen: g,
+        atts: public_map,
+        pk,
       })
-    }
-  
-    /// Recursive helper function for decryption
-    fn decrypt_node(
-      tree_arr: AccessStructure<'attr, 'key>,
-      tree_ptr: u8,
-      secret_shares: &FnvIndexMap<u8, F, consts::U64>,
-      att_cs: &FnvIndexMap<& 'attr str, G, S>
-    ) -> Option<G> 
-    where 'attr: 'es, 'es: 'key, 'key: 'data
-    {
-      let own_node = &tree_arr[tree_ptr as usize];
-      match own_node {
-        AccessNode::Leaf(name) => {
-          // terminate recursion - we have reached a leaf node containing a secret share. Encryption can only be successful if
-          // the matching remaining part of the secret is embedded within the ciphertext (that is the case iff the ciphertext
-          // was encrypted under the attribute that our current Leaf node represents)
-          let d_u = match secret_shares.get(&tree_ptr) {
-            None => return None,
-            Some(d_u) => d_u,
-          };
-          match att_cs.get(name) {
-            None => return None,
-            Some(c_i) => return Some(c_i.clone() * *d_u),
-          }
-        },
-        AccessNode::Node(thresh, children) => {
-          // continue recursion - call for all children and then, if enough children decrypt successfully, reconstruct the secret share for 
-          // this intermediate node.
-          let children_result: Vec<(F, G), consts::U16> = children.into_iter().enumerate()
-            .map(|(i, child_ptr)| (F::from((i + 1) as u64), Self::decrypt_node(tree_arr, *child_ptr, secret_shares, att_cs))) // node indexes start at one, enumerate() starts at zero! 
-            .filter_map(|(i, x)| match x { None => None, Some(y) => Some((i, y))}) // filter out all children that couldn't decrypt because of missing ciphertext secret shares
-            .collect();
-          // we can only reconstruct our secret share if at least `thresh` children decrypted successfully (interpolation of `thresh-1`-degree polynomial)
-          if children_result.len() < *thresh as usize { return None }
-          // an arbitrary subset omega with |omega| = thresh is enough to reconstruct the secret. To make it easy, we just take the first `thresh` in our list.
-          let relevant_children: Vec<(F, G), consts::U16> = children_result.into_iter().take(*thresh as usize).collect();
-          let relevant_indexes: Vec<F, consts::U16> = relevant_children.iter()
-            .map(|(i, _)| i.clone()).collect(); // our langrange helper function wants this vector of field elements
-          let result: G = relevant_children.into_iter()
-            .map(|(i, dec_res)| { dec_res * Polynomial::lagrange_of_zero(&i, &relevant_indexes) } )
-            .fold(G::identity(), |acc, g| g + acc);
-          // //println!("node got result: {:?}\n at node {:?}\n", result, key);
-          return Some(result);
-        }
+  }
+
+  /// Generate a private key for a given access structure, which allows a user holding the key to decrypt a ciphertext iff its 
+  /// attributes satisfy the given access structure.
+  pub fn keygen(
+    &self,
+    access_structure: AccessStructure<'attr, 'key>,
+    rng: &mut dyn RngCore,
+  ) ->
+    PrivateKey<'attr, 'key>
+  where 'es: 'key
+  { 
+    let tuple_arr = self.keygen_node(
+      &access_structure,
+      0,
+      &Polynomial::randgen(self.master_secret, 1, rng),
+      F::zero(), // this is the only node ever to have index 0, all others have index 1..n
+      rng,
+    );
+    return PrivateKey(access_structure, tuple_arr.into_iter().collect());
+  }
+
+  /// internal recursive helper to ease key generation
+  fn keygen_node (&self,
+    tree_arr: AccessStructure<'key, 'key>,
+    tree_ptr: u8,
+    parent_poly: &Polynomial,
+    index: F,
+    rng: &mut dyn RngCore,
+  ) ->
+    Vec<(u8, F), consts::U64>
+  {
+    // own polynomial at x = 0. Exactly q_parent(index).
+    let q_of_zero = parent_poly.eval(index);
+    let own_node = &tree_arr[tree_ptr as usize];
+    match own_node {
+      AccessNode::Leaf(attr_name) => {
+        // terminate recursion, embed secret share in the leaf
+        let q_of_zero = parent_poly.eval(index);
+        let (s, _) = self.atts.get(*attr_name).unwrap();
+        let s_inverse = s.invert().unwrap();
+        return Vec::from_slice(&[(tree_ptr, q_of_zero * s_inverse)]).unwrap();
+      },
+      AccessNode::Node(thresh, children) => {
+        // continue recursion, call recursively for all children and return a key node that contains children's key subtrees
+        let own_poly = Polynomial::randgen(q_of_zero, thresh.clone(), rng); // `thres`-degree polynomial determined by q_of_zero and `thresh` random coefficients
+        let children_res: Vec<(u8, F), consts::U64> = children.iter().enumerate().
+          map(|(i, child_ptr)| self.keygen_node(tree_arr, *child_ptr, &own_poly, F::from((i+1) as u64), rng))
+          .flatten()
+          .collect();
+        return children_res;
       }
     }
-  
-    /// Decrypt a ciphertext using a given private key. At this point, doesn't actually do any decryption, it just reconstructs the point used as encryption/mac key.
-    pub fn decrypt(
-      ciphertext: YaoABECiphertext<'attr, 'data>,
-      key: &PrivateKey<'attr, 'key>,
-    ) -> Result<&'data [u8], aead::Error>
-    where 'attr: 'es, 'es: 'key, 'key: 'data
-    {
-      let PrivateKey(access_structure, secret_shares) = key;
+  }
+}
 
-      let res = Self::decrypt_node(&access_structure, 0, &secret_shares, &ciphertext.c_i);
-      let c_prime = match res {
-        None => return Err(aead::Error),
-        Some(p) => p,
-      };
-      let x = c_prime.to_affine().to_encoded_point(false).to_untagged_bytes().unwrap();
-      let (x,_) = Split::split(x);
-      let nonce = GenericArray::from(ciphertext.nonce);
-      
+impl<'data, 'key, 'es, 'attr> YaoABEPublic<'attr, 'es> {
 
-      type YaoCcm = Ccm<Aes256, ccm::consts::U10, ccm::consts::U13>;
+  /// Encrypt a plaintext under a set of attributes so that it can be decrypted only with a matching key
+  /// TODO for now this does not actually encrypt any data. It just generates a random curve element c_prime (whose
+  /// coordinates would be used as encryption and message authentication key), which is then reconstructible under a 
+  /// matching key.
+  /// This is the only part of our cryptosystem that needs to run on the Cortex M4 in the end.
+  pub fn encrypt(
+    &self,
+    atts: &[&'attr str],
+    data: &'data mut [u8],
+    mut rng: &mut dyn RngCore,
+    ) -> Result<YaoABECiphertext<'attr, 'data>, aead::Error>
+  where 'attr: 'es, 'es: 'key, 'key: 'data
+  {
+    // choose a C', which is then used to encrypt the actual plaintext with a symmetric cipher
+    let (k, c_prime) = loop {
+      let k: F = F::random(&mut rng);
+      let cprime = GIntermediate::from(self.pk) * k;
+      if !bool::from(cprime.is_identity()) { break (k, cprime) };
+    };
 
-      let key: Key<YaoCcm> = x;
-      let ccm = YaoCcm::new(&key);
-      
-      ccm.decrypt_in_place_detached(&nonce, &[], ciphertext.c, &ciphertext.mac)?;
-      Ok(ciphertext.c)
+    // Store the information needed to reconstruct C' under a matching key. For each attribute, only a single point
+    // multiplication is calculated.
+    let mut att_cs: FnvIndexMap<&str, G, S> = FnvIndexMap::new();
+    for att in atts {
+      let att_pubkey = GIntermediate::from(*self.atts.get(att).unwrap());
+      let c_i = att_pubkey * k;
+      att_cs.insert(att, c_i.to_affine()).unwrap();
+    }
+
+    //println!("---------- ENCRYPT: encrypting with point ------------\n{:?}", c_prime.to_affine());
+    let x = c_prime.to_affine().to_encoded_point(false).to_untagged_bytes().unwrap();
+    let (x,_) = Split::split(x);
+    // let x_arr = <[u8; 8 * 4]>::from(x);
+    // let y_arr = <[u8; 8 * 4]>::from(y);
+  //   println!("Encryption with x {:x?}\narray: {:x?}", x, x_arr);
+  //   println!("Encryption with y {:x?}\narray: {:x?}", y, y_arr);
+    
+    type YaoCcm = Ccm<Aes256, ccm::consts::U10, ccm::consts::U13>;
+
+    let key: Key<YaoCcm> = x;
+    let ccm = YaoCcm::new(&key);
+    
+    let nonce: [u8; 13] = rng.gen();
+    let nonce_ga = GenericArray::from(nonce);
+    let mac = ccm.encrypt_in_place_detached(&nonce_ga, &[], data)?;
+    Ok(YaoABECiphertext {
+      c: data,
+      mac,
+      nonce,
+      c_i: att_cs,
+    })
+  }
+
+  /// Recursive helper function for decryption
+  fn decrypt_node(
+    tree_arr: AccessStructure<'attr, 'key>,
+    tree_ptr: u8,
+    secret_shares: &FnvIndexMap<u8, F, consts::U64>,
+    att_cs: &FnvIndexMap<& 'attr str, G, S>
+  ) -> Option<GIntermediate> 
+  where 'attr: 'es, 'es: 'key, 'key: 'data
+  {
+    let own_node = &tree_arr[tree_ptr as usize];
+    match own_node {
+      AccessNode::Leaf(name) => {
+        // terminate recursion - we have reached a leaf node containing a secret share. Encryption can only be successful if
+        // the matching remaining part of the secret is embedded within the ciphertext (that is the case iff the ciphertext
+        // was encrypted under the attribute that our current Leaf node represents)
+        let d_u = match secret_shares.get(&tree_ptr) {
+          None => return None,
+          Some(d_u) => d_u,
+        };
+        match att_cs.get(name) {
+          None => return None,
+          Some(c_i) => return Some(GIntermediate::from(*c_i) * *d_u),
+        }
+      },
+      AccessNode::Node(thresh, children) => {
+        // continue recursion - call for all children and then, if enough children decrypt successfully, reconstruct the secret share for 
+        // this intermediate node.
+        let children_result: Vec<(F, GIntermediate), consts::U16> = children.into_iter().enumerate()
+          .map(|(i, child_ptr)| (F::from((i + 1) as u64), Self::decrypt_node(tree_arr, *child_ptr, secret_shares, att_cs))) // node indexes start at one, enumerate() starts at zero! 
+          .filter_map(|(i, x)| match x { None => None, Some(y) => Some((i, y))}) // filter out all children that couldn't decrypt because of missing ciphertext secret shares
+          .collect();
+        // we can only reconstruct our secret share if at least `thresh` children decrypted successfully (interpolation of `thresh-1`-degree polynomial)
+        if children_result.len() < *thresh as usize { return None }
+        // an arbitrary subset omega with |omega| = thresh is enough to reconstruct the secret. To make it easy, we just take the first `thresh` in our list.
+        let relevant_children: Vec<(F, GIntermediate), consts::U16> = children_result.into_iter().take(*thresh as usize).collect();
+        let relevant_indexes: Vec<F, consts::U16> = relevant_children.iter()
+          .map(|(i, _)| i.clone()).collect(); // our langrange helper function wants this vector of field elements
+        let result: GIntermediate = relevant_children.into_iter()
+          .map(|(i, dec_res)| { dec_res * Polynomial::lagrange_of_zero(&i, &relevant_indexes) } )
+          .fold(GIntermediate::identity(), |acc, g| g + acc);
+        // //println!("node got result: {:?}\n at node {:?}\n", result, key);
+        return Some(result);
+      }
     }
   }
+
+  /// Decrypt a ciphertext using a given private key. At this point, doesn't actually do any decryption, it just reconstructs the point used as encryption/mac key.
+  pub fn decrypt(
+    ciphertext: YaoABECiphertext<'attr, 'data>,
+    key: &PrivateKey<'attr, 'key>,
+  ) -> Result<&'data [u8], aead::Error>
+  where 'attr: 'es, 'es: 'key, 'key: 'data
+  {
+    let PrivateKey(access_structure, secret_shares) = key;
+
+    let res = Self::decrypt_node(&access_structure, 0, &secret_shares, &ciphertext.c_i);
+    let c_prime = match res {
+      None => return Err(aead::Error),
+      Some(p) => p,
+    };
+    let x = c_prime.to_affine().to_encoded_point(false).to_untagged_bytes().unwrap();
+    let (x,_) = Split::split(x);
+    let nonce = GenericArray::from(ciphertext.nonce);
+    
+
+    type YaoCcm = Ccm<Aes256, ccm::consts::U10, ccm::consts::U13>;
+
+    let key: Key<YaoCcm> = x;
+    let ccm = YaoCcm::new(&key);
+    
+    ccm.decrypt_in_place_detached(&nonce, &[], ciphertext.c, &ciphertext.mac)?;
+    Ok(ciphertext.c)
+  }
+}
 
 
 
@@ -534,7 +535,7 @@ mod tests {
     let s = F::random(&mut rng);
     let s_inv = s.invert().unwrap();
 
-    let g: G = G::random(&mut rng);
+    let g: GIntermediate = GIntermediate::random(&mut rng);
 
     let c = g * s;
 
