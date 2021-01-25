@@ -6,11 +6,12 @@ use cortex_m_rt::entry;
 use rtt_target::{rtt_init_print, rprintln};
 use core::panic::PanicInfo;
 use nrf52832_hal as hal;
-use hal::{timer::Instance, };
+use hal::{timer::Instance};
 use heapless::{Vec, FnvIndexMap};
 use heapless;
+use rand::Rng;
 
-use rabe_bn::{G1, G2, Gt, pairing, Group};
+use rabe_bn::{G1, G2, Gt, Fr, pairing, Group};
 // use aes;
 // use ccm;
 
@@ -29,14 +30,31 @@ fn main() -> ! {
   let mut _timer = hal::Timer::new(p.TIMER0);
 
   rprintln!("getting random elements");
-  let g1 = G1::random(&mut rng);
-  let g2 = G2::random(&mut rng);
+  let g1 = G1::one();
+  let g2 = G2::one();
+  let alice = rng.gen();
+  let bob = rng.gen();
+  let charlie = rng.gen();
+  rprintln!("computing public keys");
+  let a_pub1 = g1 * alice;
+  let a_pub2 = g2 * alice;
+  let b_pub1 = g1 * bob;
+  let b_pub2 = g2 * bob;
+  let c_pub1 = g1 * charlie;
+  let c_pub2 = g2 * charlie;
   
-  // rprintln!("computing pairing...");
-  // let gt = rabe_bn::pairing(g1, g2);
-  // rprintln!("done pairing");
-  // rprintln!("{:?}", gt);
-  // rprintln!("done printing gt");
+  rprintln!("computing pairing...");
+  let alice = rabe_bn::pairing(b_pub1, c_pub2).pow(alice);
+  let bob = rabe_bn::pairing(a_pub1, c_pub2).pow(bob);
+  let charlie = rabe_bn::pairing(a_pub1, b_pub2).pow(charlie);
+  rprintln!("done pairing");
+  assert_eq!(alice, bob);
+  assert_eq!(bob, charlie);
+  assert_eq!(alice, charlie);
+  rprintln!("alice got {:?}", alice);
+  rprintln!("done printing gt");
+
+  rprintln!("going into breakpoint loop {}", 1);
   loop {
     asm::bkpt();  
   }
