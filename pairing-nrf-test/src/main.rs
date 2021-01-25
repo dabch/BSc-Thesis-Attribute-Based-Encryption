@@ -44,13 +44,27 @@ fn main() -> ! {
   let c_pub2 = g2 * charlie;
   
   rprintln!("computing pairing...");
-  let alice = rabe_bn::pairing(b_pub1, c_pub2).pow(alice);
-  let bob = rabe_bn::pairing(a_pub1, c_pub2).pow(bob);
-  let charlie = rabe_bn::pairing(a_pub1, b_pub2).pow(charlie);
-  rprintln!("done pairing");
-  assert_eq!(alice, bob);
-  assert_eq!(bob, charlie);
-  assert_eq!(alice, charlie);
+  let mut acc = 0;
+  const COUNT: u32 = 100;
+  for _ in 0..COUNT {
+    let a = rng.gen();
+    let b = rng.gen();
+    let start = _timer.read();
+    rabe_bn::pairing(a, b);
+    acc += _timer.read() - start;
+  }
+  // let a = rabe_bn::pairing(b_pub1, c_pub2);
+  // let b = rabe_bn::pairing(a_pub1, c_pub2);
+  // let c = rabe_bn::pairing(a_pub1, b_pub2);
+  rprintln!("done pairing, took {}ms", (acc) / (COUNT * 1000));
+  // let start = _timer.read();
+  // let alice = a.pow(alice);
+  // let bob = b.pow(bob);
+  // let charlie = c.pow(charlie);
+  // rprintln!("done exponentiating, took {}ms", (_timer.read() - start) / 3000);
+  // assert_eq!(alice, bob);
+  // assert_eq!(bob, charlie);
+  // assert_eq!(alice, charlie);
   rprintln!("alice got {:?}", alice);
   rprintln!("done printing gt");
 
