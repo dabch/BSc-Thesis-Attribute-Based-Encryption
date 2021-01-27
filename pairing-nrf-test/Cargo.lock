@@ -330,6 +330,7 @@ dependencies = [
  "byteorder",
  "heapless",
  "rand",
+ "rtt-target",
  "serde",
  "serde_derive",
 ]
