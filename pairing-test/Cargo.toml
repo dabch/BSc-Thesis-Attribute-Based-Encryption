@@ -1,0 +1,15 @@
+[package]
+name = "pairing-test"
+version = "0.1.0"
+authors = ["Daniel Bücheler <daniel.buecheler@tum.de>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+
+[dependencies]
+pairing = "0.18.0"
+bls12_381 = "0.3.0"
+group = "0.8.0"
+rand = "0.7.0"
+ff = "0.8.0"
