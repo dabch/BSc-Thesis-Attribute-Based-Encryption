@@ -10,10 +10,31 @@ pub use ccm::aead::Error;
 
 pub type S = consts::U16;
 
-pub type G1 = rabe_bn::G1;
-pub type G2 = rabe_bn::G2;
+pub type G1 = rabe_bn::G2;
+pub type G2 = rabe_bn::G1;
 pub type Gt = rabe_bn::Gt;
 pub type F = rabe_bn::Fr;
+
+///
+/// Differences to the original paper by Goyal, Pandey, Sahai and Waters:
+/// - use of asymmetric pairing (G1 x G2 -> Gt instead of G1 x G1 -> G2)
+///   - when decrypting, the leaf node secret shares are combined with that of the attribute 
+///   - for less computational cost when encrypting, swap the pairing arguments in decryptNode
+///   - i.e. the ciphertext's attributes are elements of G1, and the secret shares are elements of G2
+///   - G1 has 96 Bytes, G2 has 192 Bytes and Gt 384 Bytes -> makes a big difference for runtimes and ciphertext size.
+/// 
+/// with G1 and G2 swapped (S = 16):
+/// sizeof(GpswAbeCiphertext) = 2376
+/// sizeof(GpswAbePrivate) = 40
+/// sizeof(GpswAbePublic) = 680
+/// sizeof(PrivateKey) = 3288
+/// 
+/// without swapping (S = 16):
+/// sizeof(GpswAbeCiphertext) = 3912
+/// sizeof(GpswAbePrivate) = 40
+/// sizeof(GpswAbePublic) = 680
+/// sizeof(PrivateKey) = 1752
+
 
 
 /// Represents the full parameters of an ABE scheme, known in full only to the KGC
@@ -125,7 +146,7 @@ impl<'attr: 'es, 'es: 'key, 'key> GpswAbePrivate<'attr, 'es> {
             public_map.insert(attr, gi).unwrap();
       }
       
-      let pk = rabe_bn::pairing(g1, g2).pow(master_secret); // master public key, corresponds to `PK`
+      let pk = rabe_bn::pairing(g2, g1).pow(master_secret); // master public key, corresponds to `PK`
   
       (
         GpswAbePrivate {
@@ -254,7 +275,7 @@ impl<'data, 'key, 'es, 'attr> GpswAbePublic<'attr, 'es> {
         };
         match att_es.get(name) {
           None => return None,
-          Some(e_i) => return Some(rabe_bn::pairing(*d_u, *e_i)),
+          Some(e_i) => return Some(rabe_bn::pairing(*e_i, *d_u)),
         }
       },
       AccessNode::Node(thresh, children) => {

@@ -1,0 +1,8 @@
+11:12:36.260 starting setup
+11:12:43.264 Setup took 6848ms
+11:12:45.514 starting encrypt
+11:12:49.019 Encryption took 3468ms
+11:12:49.019 Starting keygen
+11:12:49.769 keygen took 672ms
+11:12:49.769 Starting decrypt
+11:12:56.522 decrypt took 6794ms
