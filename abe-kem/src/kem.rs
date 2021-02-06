@@ -8,7 +8,6 @@ use ccm::{self, aead::{NewAead, AeadInPlace, Error as AeadError}};
 use core::fmt::{Write, self};
 use rand::{RngCore, Rng};
 
-#[allow(dead_code)]
 
 type Ccm = ccm::Ccm<Aes256, ccm::consts::U10, ccm::consts::U13>;
 
@@ -63,7 +62,7 @@ pub fn decrypt<'a, G: Display>(key: G, mut ciphertext: Ciphertext<'a>) -> Result
 
 pub fn kdf<G: Display>(inp: &G) -> GenericArray<u8, ccm::consts::U32> {
     let mut hasher = Wrapper(Sha3_256::new());
-    write!(&mut hasher, "{}", inp);
+    write!(&mut hasher, "{}", inp).unwrap(); // this LITERALLY can't fail, see the impl of core::fmt::Write for our Wrapper above ;D
     hasher.0.finalize()
 }
 

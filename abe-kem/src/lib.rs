@@ -1,9 +1,9 @@
 #![no_std]
-mod traits;
+mod kem;
 
-pub use traits::{encrypt, decrypt};
+pub use kem::{encrypt, decrypt};
 
-pub use traits::kdf;
+// pub use kem::kdf;
 
 #[cfg(test)]
 mod tests {
