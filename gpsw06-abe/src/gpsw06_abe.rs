@@ -249,6 +249,20 @@ impl<'data, 'key, 'es, 'attr> GpswAbePublic<'attr, 'es> {
       Ok(GpswAbeCiphertext(key_encapsulation, payload_ciphertext))
     }
 
+    pub fn setup_kem(
+      &self,
+      atts: &[&'attr str],
+      rng: &mut dyn RngCore,
+    ) -> Result<(GpswAbeGroupCiphertext<'attr>, Gt), ()>
+    where 'attr: 'es, 'es: 'key, 'key: 'data
+    {
+      let gt: Gt = rng.gen();
+      match self.encrypt_group_element(atts, gt, rng) {
+        Ok(ct) => return Ok((ct, gt)),
+        Err(_) => return Err(()),
+      }
+    }
+
     fn encrypt_group_element(
         &self,
         atts: &[&'attr str],
