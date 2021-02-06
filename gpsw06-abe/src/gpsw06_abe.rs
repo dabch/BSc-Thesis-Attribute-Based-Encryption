@@ -249,7 +249,7 @@ impl<'data, 'key, 'es, 'attr> GpswAbePublic<'attr, 'es> {
       Ok(GpswAbeCiphertext(key_encapsulation, payload_ciphertext))
     }
 
-    pub fn setup_kem(
+    fn setup_kem(
       &self,
       atts: &[&'attr str],
       rng: &mut dyn RngCore,
