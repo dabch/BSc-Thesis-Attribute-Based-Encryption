@@ -1,5 +1,5 @@
 [package]
-name = "abe-kem"
+name = "abe-utils"
 version = "0.1.0"
 authors = ["Daniel Buecheler <daniel.buecheler@tum.de>"]
 edition = "2018"
