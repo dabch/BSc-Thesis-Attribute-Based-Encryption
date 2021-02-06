@@ -1,9 +1,9 @@
 use rabe_bn::{self, Group};
-use ccm::{Ccm};
-use aes::Aes256;
-use ccm::aead::{self, Tag, AeadInPlace, Key, NewAead, generic_array::GenericArray};
+// use ccm::{Ccm};
+// use aes::Aes256;
+// use ccm::aead::{self, Tag, AeadInPlace, Key, NewAead, generic_array::GenericArray};
 
-use heapless::{IndexMap, FnvIndexMap, Vec, consts};
+use heapless::{FnvIndexMap, Vec, consts};
 use rand::{Rng, RngCore};
 
 pub use ccm::aead::Error;
@@ -19,9 +19,7 @@ pub type F = rabe_bn::Fr;
 /// Represents the full parameters of an ABE scheme, known in full only to the KGC
 #[derive(Debug)]
 pub struct GpswAbePrivate<'attr, 'own> {
-    g1: G1, 
-    g2: G2,
-    atts: &'own FnvIndexMap<&'attr str, (F, G2), S>,
+    atts: &'own FnvIndexMap<&'attr str, F, S>,
     // pk: G,
     master_secret: F,
   }
@@ -67,7 +65,7 @@ pub struct GpswAbeGroupCiphertext<'attr> {
 /// of decryption. The secret shared (D_u in the original paper) allowing decryption are embedded
 /// in the leaves of the tree.
 //#[derive(Debug)]
-pub struct PrivateKey<'attr, 'own>(AccessStructure<'attr, 'own>, FnvIndexMap<u8, G1, consts::U64>);
+pub struct PrivateKey<'attr, 'own>(AccessStructure<'attr, 'own>, FnvIndexMap<u8, G1, S>);
 
 /// Polynomial p(x) = a0 + a1 * x + a2 * x^2 + ... defined by a vector of coefficients [a0, a1, a2, ...]
 //#[derive(Debug)]
@@ -80,7 +78,7 @@ impl Polynomial {
   }
 
   /// Generates a random polynomial p(x) of degree `coeffs` coefficients, where p(0) = `a0`
-  fn randgen(a0: F, coeffs: u64, mut rng: &mut dyn RngCore) -> Polynomial {
+  fn randgen(a0: F, coeffs: u64, rng: &mut dyn RngCore) -> Polynomial {
     let mut coefficients: Vec<F, consts::U16> = Vec::from_slice(&[a0]).unwrap();
     coefficients.extend((1..coeffs).map(|_| -> F { rng.gen() }));
     assert_eq!(coefficients.len() as u64, coeffs);
@@ -109,7 +107,7 @@ impl<'attr: 'es, 'es: 'key, 'key> GpswAbePrivate<'attr, 'es> {
     pub fn setup(
       att_names: &[&'attr str],
       public_map: &'es mut FnvIndexMap<&'attr str, G2, S>,
-      private_map: &'es mut FnvIndexMap<&'attr str, (F, G2), S>,
+      private_map: &'es mut FnvIndexMap<&'attr str, F, S>,
       rng: &mut dyn RngCore,
     ) -> (Self, GpswAbePublic<'attr, 'es>) 
     where 'attr: 'es
@@ -123,7 +121,7 @@ impl<'attr: 'es, 'es: 'key, 'key> GpswAbePrivate<'attr, 'es> {
             let si: F = rng.gen();
             let mut gi = g2 * si;
             gi.normalize();
-            private_map.insert(attr, (si, gi)).unwrap();
+            private_map.insert(attr, si).unwrap();
             public_map.insert(attr, gi).unwrap();
       }
       
@@ -131,8 +129,6 @@ impl<'attr: 'es, 'es: 'key, 'key> GpswAbePrivate<'attr, 'es> {
   
       (
         GpswAbePrivate {
-            g1,
-            g2,
             atts: private_map,
             // pk,
             master_secret,
@@ -150,14 +146,15 @@ impl<'attr: 'es, 'es: 'key, 'key> GpswAbePrivate<'attr, 'es> {
   /// attributes satisfy the given access structure.
   pub fn keygen(
     &self,
+    pubkey: &GpswAbePublic,
     access_structure: AccessStructure<'attr, 'key>,
     rng: &mut dyn RngCore,
   ) ->
     PrivateKey<'attr, 'key>
   where 'es: 'key
   { 
-    println!("master secret: {:?}", self.master_secret);
     let tuple_arr = self.keygen_node(
+      pubkey,
       &access_structure,
       0,
       &Polynomial::randgen(self.master_secret, 1, rng),
@@ -169,6 +166,7 @@ impl<'attr: 'es, 'es: 'key, 'key> GpswAbePrivate<'attr, 'es> {
 
   /// internal recursive helper to ease key generation
   fn keygen_node (&self,
+    pubkey: &GpswAbePublic,
     tree_arr: AccessStructure<'key, 'key>,
     tree_ptr: u8,
     parent_poly: &Polynomial,
@@ -179,23 +177,20 @@ impl<'attr: 'es, 'es: 'key, 'key> GpswAbePrivate<'attr, 'es> {
   {
     // own polynomial at x = 0. Exactly q_parent(index).
     let q_of_zero = parent_poly.eval(index);
-    println!("q_of_zero: {:?}", q_of_zero);
     let own_node = &tree_arr[tree_ptr as usize];
     match own_node {
       AccessNode::Leaf(attr_name) => {
         // terminate recursion, embed secret share in the leaf
         let q_of_zero = parent_poly.eval(index);
-        println!("q_of_zero: {:?}", q_of_zero);
-        let (t, _) = self.atts.get(*attr_name).unwrap();
-        println!("t: {:?}", t);
+        let t = self.atts.get(*attr_name).unwrap();
         let t_inv = t.inverse().unwrap();
-        return Vec::from_slice(&[(tree_ptr, self.g1 * (q_of_zero * t_inv))]).unwrap();
+        return Vec::from_slice(&[(tree_ptr, pubkey.g1 * (q_of_zero * t_inv))]).unwrap();
       },
       AccessNode::Node(thresh, children) => {
         // continue recursion, call recursively for all children and return a key node that contains children's key subtrees
         let own_poly = Polynomial::randgen(q_of_zero, thresh.clone(), rng); // `thres`-degree polynomial determined by q_of_zero and `thresh` random coefficients
         let children_res: Vec<(u8, G1), consts::U64> = children.iter().enumerate().
-          map(|(i, child_ptr)| self.keygen_node(tree_arr, *child_ptr, &own_poly, F::from((i+1) as u64), rng))
+          map(|(i, child_ptr)| self.keygen_node(pubkey, tree_arr, *child_ptr, &own_poly, F::from((i+1) as u64), rng))
           .flatten()
           .collect();
         return children_res;
@@ -242,7 +237,7 @@ impl<'data, 'key, 'es, 'attr> GpswAbePublic<'attr, 'es> {
   fn decrypt_node(
     tree_arr: AccessStructure<'attr, 'key>,
     tree_ptr: u8,
-    secret_shares: &FnvIndexMap<u8, G1, consts::U64>,
+    secret_shares: &FnvIndexMap<u8, G1, S>,
     att_es: &FnvIndexMap<& 'attr str, G2, S>
   ) -> Option<Gt> 
   where 'attr: 'es, 'es: 'key, 'key: 'data
@@ -315,7 +310,7 @@ mod tests {
     let access_structure = &access_structure_vec[..];
 
     let mut public_map: FnvIndexMap<&str, G2, S> = FnvIndexMap::new();
-    let mut private_map: FnvIndexMap<&str, (F, G2), S> = FnvIndexMap::new();
+    let mut private_map: FnvIndexMap<&str, F, S> = FnvIndexMap::new();
 
     let mut rng = rand::thread_rng();
     let plaintext: Gt = rng.gen();
@@ -325,8 +320,8 @@ mod tests {
 
     let system_atts: Vec<&str, consts::U256> = Vec::from_slice(&["student", "tum", "has_bachelor", "over21"]).unwrap();
     let (private, public) = GpswAbePrivate::setup(&system_atts, &mut public_map, &mut private_map, &mut rng);
-    println!("private map: {:?}", private);
-    let priv_key = private.keygen(&access_structure, &mut rng);
+    // println!("private map: {:?}", private);
+    let priv_key = private.keygen(&public, &access_structure, &mut rng);
 
 
     let ciphertext =  public.encrypt(&attributes_1, plaintext, &mut rng).unwrap();
@@ -357,7 +352,7 @@ mod tests {
     let attributes_2 = &["tum"][..];
 
     let mut public_map: FnvIndexMap<&str, G2, S> = FnvIndexMap::new();
-    let mut private_map: FnvIndexMap<&str, (F, G2), S> = FnvIndexMap::new();
+    let mut private_map: FnvIndexMap<&str, F, S> = FnvIndexMap::new();
 
     let mut rng = rand::thread_rng();
     let gt: Gt = rng.gen();
@@ -371,7 +366,7 @@ mod tests {
   
       
   
-    let priv_key = es.keygen(&access_structure, &mut rng);
+    let priv_key = es.keygen(&public, &access_structure, &mut rng);
     //println!("private key:\n{:?}", priv_key)
 
   
@@ -393,17 +388,16 @@ mod tests {
   #[test]
   fn deep_access_tree() {
     let mut public_map: FnvIndexMap<&str, G2, S> = FnvIndexMap::new();
-    let mut private_map: FnvIndexMap<&str, (F, G2), S> = FnvIndexMap::new();
+    let mut private_map: FnvIndexMap<&str, F, S> = FnvIndexMap::new();
     
     let mut rng = rand::thread_rng();
-    let data_orig: Vec<u8, consts::U2048> = (0..500).map(|_| rng.gen()).collect();
 
     let system_atts = ["student", "tum", "over21", "over25", "has_bachelor", "cs"];
     let (es, public) = GpswAbePrivate::setup(&system_atts, &mut public_map, &mut private_map, &mut rng);
     
     let attributes = &["student", "tum"][..];
     let gt: Gt = rng.gen();
-    let mut ciphertext = public.encrypt(&attributes, gt, &mut rng).unwrap();
+    let ciphertext = public.encrypt(&attributes, gt, &mut rng).unwrap();
 
     // this represents the following logical access structure:
     // (tum AND student) OR (cs AND has_bachelor AND (over21 OR over25))
@@ -421,7 +415,7 @@ mod tests {
     ];
 
 
-    let priv_key = es.keygen(&access_structure, &mut rng);
+    let priv_key = es.keygen(&public, &access_structure, &mut rng);
     //println!("private key:\n{:?}", priv_key);
   
 
@@ -431,8 +425,7 @@ mod tests {
 
     // example 2 - shall decrypt 
     let attributes = &["student", "has_bachelor", "cs", "over21"][..];
-    let mut data = data_orig.clone();
-    let mut ciphertext = public.encrypt(&attributes, gt, &mut rng).unwrap();
+    let ciphertext = public.encrypt(&attributes, gt, &mut rng).unwrap();
     let res = GpswAbePublic::decrypt(ciphertext, &priv_key);
     assert_eq!(Ok(gt), res);
     // let ciphertext = public.encrypt(&attributes, &data);
@@ -441,8 +434,7 @@ mod tests {
 
     // example 2 - shall not decrypt 
     let attributes = &["student", "cs", "over21"][..];
-    let mut data = data_orig.clone();
-    let mut ciphertext = public.encrypt(&attributes, gt, &mut rng).unwrap();
+    let ciphertext = public.encrypt(&attributes, gt, &mut rng).unwrap();
     let res = GpswAbePublic::decrypt(ciphertext, &priv_key);
     assert_eq!(Err(()), res);
     // let ciphertext = public.encrypt(&attributes, &data);

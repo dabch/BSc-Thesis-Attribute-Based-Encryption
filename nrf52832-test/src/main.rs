@@ -5,11 +5,13 @@ use cortex_m::asm;
 use cortex_m_rt::entry;
 use rtt_target::{rtt_init_print, rprintln};
 use core::panic::PanicInfo;
-use nrf52832_hal as hal;
+use nrf52840_hal as hal;
 use hal::{timer::Instance, };
-use yao_abe_rust::{AccessNode, AccessStructure, YaoABECiphertext, YaoABEPrivate, YaoABEPublic, S, F, G};
+// use yao_abe_rust::{AccessNode, AccessStructure, YaoABECiphertext, YaoABEPrivate, YaoABEPublic, S, F, G};
+use gpsw06_abe::{self, S, F, G1, G2, Gt, GpswAbePrivate, GpswAbePublic, AccessNode, AccessStructure, GpswAbeGroupCiphertext};
 use heapless::{Vec, FnvIndexMap};
 use heapless;
+use rand::Rng;
 // use rabe_bn::{G1, Fr};
 // use aes;
 // use ccm;
@@ -23,8 +25,8 @@ fn main() -> ! {
     p.TIMER0.timer_start(0 as u32);
     let mut _timer = hal::Timer::new(p.TIMER0);
 
-    let system_atts: Vec<&str, S> = Vec::from_slice(&["student", "tum", "has_bachelor", "over21", "lives_in_munich", "lives_in_garching", "works_at_aisec", "knows_crypto", "wears_glasses", "blabla", "owns_thinkpad", "semester>1", "semester>2", "semester>3", "semester>4", "semester>5"]).unwrap();
-    // let arr: Vec<(&str, G, Fr), S> = Vec::new();
+    let system_atts: Vec<&str, S> = Vec::from_slice(&["student", "tum", "has_bachelor", "over21"]).unwrap();//, "lives_in_munich", "lives_in_garching", "works_at_aisec", "knows_crypto", "wears_glasses", "blabla", "owns_thinkpad", "semester>1", "semester>2", "semester>3", "semester>4", "semester>5"]).unwrap();
+
 
     let access_structure: AccessStructure = &[
       AccessNode::Node(2, Vec::from_slice(&[1,2,3,4]).unwrap()),
@@ -34,39 +36,40 @@ fn main() -> ! {
       AccessNode::Leaf("over21"),
     ];
 
-    let mut public_map: FnvIndexMap<&str, G, S> = FnvIndexMap::new();
-    let mut private_map: FnvIndexMap<&str, (F, G), S> = FnvIndexMap::new();
+    let mut public_map: FnvIndexMap<&str, G2, S> = FnvIndexMap::new();
+    let mut private_map: FnvIndexMap<&str, F, S> = FnvIndexMap::new();
 
     rprintln!("starting setup");
 
     let start = _timer.read();
-    let (private, public) = YaoABEPrivate::setup(&system_atts, &mut public_map, &mut private_map, &mut rng);
+    let (private, public) = GpswAbePrivate::setup(&system_atts, &mut public_map, &mut private_map, &mut rng);
     let us = _timer.read() - start;
     rprintln!("Setup took {:?}ms", us / 1000);
 
-    let mut data: [u8; 32] = [0xa; 32];
-    let atts = ["student", "tum", "has_bachelor", "over21", "owns_thinkpad", "lives_in_munich", "lives_in_garching", "works_at_aisec", "knows_crypto", "wears_glasses"];
+    let atts = ["student", "tum", "has_bachelor"];//, "over21", "owns_thinkpad", "lives_in_munich", "lives_in_garching", "works_at_aisec", "knows_crypto", "wears_glasses"];
 
+    let gt: Gt = rng.gen();
     rprintln!("starting encrypt");
     let start = _timer.read();
-    let ciphertext: YaoABECiphertext = public.encrypt(&atts, &mut data, &mut rng).unwrap();
+    let ciphertext: GpswAbeGroupCiphertext = public.encrypt(&atts, gt, &mut rng).unwrap();
     let us = _timer.read() - start;
     rprintln!("Encryption took {:?}ms", us / 1000);
 
 
     rprintln!("Starting keygen");
     let start = _timer.read();
-    let private_key = private.keygen(&access_structure, &mut rng);
+    let private_key = private.keygen(&public, &access_structure, &mut rng);
     let us = _timer.read() - start;
     rprintln!("keygen took {}ms", us / 1000);
 
     rprintln!("Starting decrypt");
     let start = _timer.read();
-    let res = YaoABEPublic::decrypt(ciphertext, &private_key);
+    let res = GpswAbePublic::decrypt(ciphertext, &private_key);
     let us = _timer.read() - start;
+    assert_eq!(res, Ok(gt));
     rprintln!("decrypt took {}ms", us / 1000);
 
-    rprintln!("decrypted data: {:?}", res.unwrap());
+    // rprintln!("decrypted data: {:?}", res.unwrap());
     loop {
       asm::bkpt();  
     }

@@ -78,21 +78,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "46afbd2983a5d5a7bd740ccb198caf5b82f45c40c09c0eed36052d91cb92e719"
 
 [[package]]
-name = "bitvec"
-version = "0.18.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1d2838fdd79e8776dbe07a106c784b0f8dda571a21b2750a092cc4cbaa653c8e"
-dependencies = [
- "funty",
- "radium",
- "wyz",
-]
-
-[[package]]
 name = "byteorder"
-version = "1.3.4"
+version = "1.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "08c48aae112d48ed9f069b33538ea9e3e90aa263cfa3d1c24309612b1f7472de"
+checksum = "ae44d1a3d5a19df61dd0c8beb138458ac2a53a7ac09eba97d55592540004306b"
 
 [[package]]
 name = "cast"
@@ -113,12 +102,6 @@ dependencies = [
  "cipher",
  "subtle",
 ]
-
-[[package]]
-name = "cfg-if"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "cipher"
@@ -163,20 +146,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "elliptic-curve"
-version = "0.8.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "592b1c857559479c056b73a3053c717108a70e4dce320ad28c79c63f5c2e62ba"
-dependencies = [
- "bitvec",
- "ff",
- "generic-array 0.14.4",
- "group",
- "rand_core",
- "subtle",
-]
-
-[[package]]
 name = "embedded-hal"
 version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -184,17 +153,6 @@ checksum = "fa998ce59ec9765d15216393af37a58961ddcefb14c753b4816ba2191d865fcb"
 dependencies = [
  "nb 0.1.3",
  "void",
-]
-
-[[package]]
-name = "ff"
-version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "01646e077d4ebda82b73f1bca002ea1e91561a77df2431a9e79729bcc31950ef"
-dependencies = [
- "bitvec",
- "rand_core",
- "subtle",
 ]
 
 [[package]]
@@ -206,12 +164,6 @@ dependencies = [
  "cast",
  "typenum",
 ]
-
-[[package]]
-name = "funty"
-version = "1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fed34cd105917e91daa4da6b3728c47b068749d6a62c59811f06ed2ac71d9da7"
 
 [[package]]
 name = "generic-array"
@@ -242,14 +194,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "group"
-version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cc11f9f5fbf1943b48ae7c2bf6846e7d827a512d1be4f23af708f5ca5d01dde1"
+name = "gpsw06_abe"
+version = "0.1.0"
 dependencies = [
- "ff",
- "rand_core",
- "subtle",
+ "aes",
+ "ccm",
+ "heapless",
+ "rabe-bn",
+ "rand",
 ]
 
 [[package]]
@@ -271,16 +223,6 @@ dependencies = [
  "generic-array 0.13.2",
  "hash32",
  "stable_deref_trait",
-]
-
-[[package]]
-name = "k256"
-version = "0.7.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e443f962f64bcd3753b09e9d6c3733986a81e49b2a36c3c2faaedbe2c3a8e7dd"
-dependencies = [
- "cfg-if",
- "elliptic-curve",
 ]
 
 [[package]]
@@ -309,36 +251,9 @@ dependencies = [
  "embedded-hal",
  "fpa",
  "nb 0.1.3",
- "nrf52832-pac",
+ "nrf52840-pac",
  "rand_core",
  "void",
-]
-
-[[package]]
-name = "nrf52832-hal"
-version = "0.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e9656eab0c535fb4429876525fb5db1604bceeed80cc91a7b91d7b683db4a3a0"
-dependencies = [
- "cast",
- "cortex-m",
- "embedded-hal",
- "nb 0.1.3",
- "nrf-hal-common",
- "nrf52832-pac",
- "void",
-]
-
-[[package]]
-name = "nrf52832-pac"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "72920484274fae0792a40345049da2723612465c7202561b6a17ad3c127259db"
-dependencies = [
- "bare-metal",
- "cortex-m",
- "cortex-m-rt",
- "vcell",
 ]
 
 [[package]]
@@ -349,11 +264,38 @@ dependencies = [
  "ccm",
  "cortex-m",
  "cortex-m-rt",
+ "gpsw06_abe",
  "heapless",
- "nrf52832-hal",
+ "nrf52840-hal",
  "rand",
  "rtt-target",
- "yao-abe-rust",
+]
+
+[[package]]
+name = "nrf52840-hal"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6aab4c41abc02fcefbdbedfa773d213302bc00c57a0b2237c6b5bf0456da10d3"
+dependencies = [
+ "cast",
+ "cortex-m",
+ "embedded-hal",
+ "nb 0.1.3",
+ "nrf-hal-common",
+ "nrf52840-pac",
+ "void",
+]
+
+[[package]]
+name = "nrf52840-pac"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e1b780a5afd2621774652f28c82837f6aa6d19cf0ad71c734fc1fe53298a2d73"
+dependencies = [
+ "bare-metal",
+ "cortex-m",
+ "cortex-m-rt",
+ "vcell",
 ]
 
 [[package]]
@@ -393,10 +335,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e2a38df5b15c8d5c7e8654189744d8e396bddc18ad48041a500ce52d6948941f"
 
 [[package]]
-name = "radium"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "64de9a0c5361e034f1aefc9f71a86871ec870e766fe31a009734a989b329286a"
+name = "rabe-bn"
+version = "0.4.12"
+dependencies = [
+ "byteorder",
+ "heapless",
+ "rand",
+ "serde",
+ "serde_derive",
+]
 
 [[package]]
 name = "rand"
@@ -469,6 +416,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "388a1df253eca08550bef6c72392cfe7c30914bf41df5269b68cbd6ff8f570a3"
 
 [[package]]
+name = "serde"
+version = "1.0.123"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "92d5161132722baa40d802cc70b15262b98258453e85e5d1d365c757c73869ae"
+
+[[package]]
+name = "serde_derive"
+version = "1.0.123"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9391c295d64fc0abb2c556bad848f33cb8296276b1ad2677d1ae1ace4f258f31"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "stable_deref_trait"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -482,9 +446,9 @@ checksum = "1e81da0851ada1f3e9d4312c704aa4f8806f0f9d69faaf8df2f3464b4a9437c2"
 
 [[package]]
 name = "syn"
-version = "1.0.57"
+version = "1.0.60"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4211ce9909eb971f111059df92c45640aad50a619cf55cd76476be803c4c68e6"
+checksum = "c700597eca8a5a762beb35753ef6b94df201c81cca676604f547495a0d7f0081"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -534,22 +498,4 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0d67cb4616d99b940db1d6bd28844ff97108b498a6ca850e5b6191a532063286"
 dependencies = [
  "vcell",
-]
-
-[[package]]
-name = "wyz"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "85e60b0d1b5f99db2556934e21937020776a5d31520bf169e851ac44e6420214"
-
-[[package]]
-name = "yao-abe-rust"
-version = "0.1.0"
-dependencies = [
- "aes",
- "ccm",
- "elliptic-curve",
- "heapless",
- "k256",
- "rand",
 ]
