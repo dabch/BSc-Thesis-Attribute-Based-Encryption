@@ -36,7 +36,7 @@ impl<W: Digest> core::fmt::Write for Wrapper<W> {
     }
 }
 
-pub fn encrypt<'a, G: Display>(key: G, plaintext: &'a mut [u8], rng: &mut dyn RngCore) -> Result<Ciphertext<'a>, AeadError> {
+pub fn encrypt<'a, G: Display>(key: &G, plaintext: &'a mut [u8], rng: &mut dyn RngCore) -> Result<Ciphertext<'a>, AeadError> {
     let aes_key = kdf(&key);
     let nonce: [u8; 13] = rng.gen();
 
@@ -51,7 +51,7 @@ pub fn encrypt<'a, G: Display>(key: G, plaintext: &'a mut [u8], rng: &mut dyn Rn
     )
 }
 
-pub fn decrypt<'a, G: Display>(key: G, mut ciphertext: Ciphertext<'a>) -> Result<&'a mut [u8], Ciphertext<'a>> {
+pub fn decrypt<'a, G: Display>(key: &G, mut ciphertext: Ciphertext<'a>) -> Result<&'a mut [u8], Ciphertext<'a>> {
     let aes_key = kdf(&key);
     let ccm = Ccm::new(&aes_key);
     match ccm.decrypt_in_place_detached(&GenericArray::from(ciphertext.nonce), &[], &mut ciphertext.data, &ciphertext.mac) {

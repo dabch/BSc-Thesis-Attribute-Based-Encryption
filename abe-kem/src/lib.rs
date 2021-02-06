@@ -1,7 +1,7 @@
 #![no_std]
 mod kem;
 
-pub use kem::{encrypt, decrypt};
+pub use kem::{encrypt, decrypt, Ciphertext};
 
 // pub use kem::kdf;
 

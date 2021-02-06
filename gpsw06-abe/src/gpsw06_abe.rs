@@ -5,6 +5,7 @@ use rabe_bn::{self, Group};
 
 use heapless::{FnvIndexMap, Vec, consts};
 use rand::{Rng, RngCore};
+use abe_kem;
 
 pub use ccm::aead::Error;
 
@@ -72,14 +73,16 @@ pub type AccessStructure<'attr, 'own> = &'own [AccessNode<'attr>];
 /// Represents a ciphertext as obtained by encrypt() and consumed by decrypt()
 /// Contains both the actual (symetrically) encrypted data and all data required to reconstruct the 
 /// symmetric keys given a private key created under a matching access structure.
-// #[derive(Debug)]
-pub struct GpswAbeGroupCiphertext<'attr> {
+#[derive(Debug, PartialEq, Eq)]
+struct GpswAbeGroupCiphertext<'attr> {
   e: Gt, // actual encrypted group element
 //   mac: Tag<aead::consts::U10>, // mac over the cleartext (TODO better encrypt-then-mac?)
 //   nonce: [u8; 13],
   e_i: FnvIndexMap<&'attr str, G2, S>, // attributes and their respective curve elements
 }
 
+#[derive(Debug, PartialEq, Eq)]
+pub struct GpswAbeCiphertext<'attr, 'data>(GpswAbeGroupCiphertext<'attr>, abe_kem::Ciphertext<'data>);
 
 /// Represents a private key obtained by keygen() and used to decrypt ABE-encrypted data
 /// This data structure mirrors the recursive nature of access structures to ease implementation
@@ -228,12 +231,30 @@ impl<'data, 'key, 'es, 'attr> GpswAbePublic<'attr, 'es> {
     /// coordinates would be used as encryption and message authentication key), which is then reconstructible under a 
     /// matching key.
     /// This is the only part of our cryptosystem that needs to run on the Cortex M4 in the end.
+    
     pub fn encrypt(
+      &self,
+      atts: &[&'attr str],
+      data: &'data mut [u8],
+      rng: &mut dyn RngCore,
+    ) -> Result<GpswAbeCiphertext<'attr, 'data>, ()>
+    where 'attr: 'es, 'es: 'key, 'key: 'data
+    {
+      let gt: Gt = rng.gen();
+      let payload_ciphertext = match abe_kem::encrypt(&gt, data, rng) {
+        Ok(c) => c,
+        Err(_) => return Err(())
+      };
+      let key_encapsulation = self.encrypt_group_element(atts, gt, rng)?;
+      Ok(GpswAbeCiphertext(key_encapsulation, payload_ciphertext))
+    }
+
+    fn encrypt_group_element(
         &self,
         atts: &[&'attr str],
         data: Gt,
         rng: &mut dyn RngCore,
-        ) -> Result<GpswAbeGroupCiphertext<'attr>, ()>
+    ) -> Result<GpswAbeGroupCiphertext<'attr>, ()>
     where 'attr: 'es, 'es: 'key, 'key: 'data
     {
       // choose a C', which is then used to encrypt the actual plaintext with a symmetric cipher
@@ -301,8 +322,8 @@ impl<'data, 'key, 'es, 'attr> GpswAbePublic<'attr, 'es> {
   }
 
   /// Decrypt a ciphertext using a given private key. At this point, doesn't actually do any decryption, it just reconstructs the point used as encryption/mac key.
-  pub fn decrypt(
-    ciphertext: GpswAbeGroupCiphertext<'attr>,
+  fn decrypt_group_element(
+    ciphertext: &GpswAbeGroupCiphertext<'attr>,
     key: &PrivateKey<'attr, 'key>,
   ) -> Result<Gt, ()>
   where 'attr: 'es, 'es: 'key, 'key: 'data
@@ -315,6 +336,21 @@ impl<'data, 'key, 'es, 'attr> GpswAbePublic<'attr, 'es> {
       Some(p) => p,
     };
     Ok(ciphertext.e * y_to_s.inverse())
+  }
+
+  pub fn decrypt(
+    ciphertext: GpswAbeCiphertext<'attr, 'data>, key: &PrivateKey<'attr, 'key>
+  ) -> Result<&'data [u8], GpswAbeCiphertext<'attr, 'data>>
+  where 'attr: 'es, 'es: 'key, 'key: 'data
+  {
+    let gt = match Self::decrypt_group_element(&ciphertext.0, key) {
+      Ok(gt) => gt,
+      Err(_) => return Err(ciphertext),
+    };
+    let data = match abe_kem::decrypt(&gt, ciphertext.1) {
+      Ok(data) => return Ok(data),
+      Err(ct) => return Err(GpswAbeCiphertext(ciphertext.0, ct)), // reconstruct the same ciphertext again
+    };
   }
 }
 
@@ -334,7 +370,9 @@ mod tests {
     let mut private_map: FnvIndexMap<&str, F, S> = FnvIndexMap::new();
 
     let mut rng = rand::thread_rng();
-    let plaintext: Gt = rng.gen();
+    let mut plaintext_original = [0; 8192];
+    rng.fill_bytes(&mut plaintext_original);
+    let mut plaintext = plaintext_original.clone();
 
     let attributes_1: Vec<&str, consts::U64> = Vec::from_slice(&["student", "tum", "has_bachelor", "over21"]).unwrap();
     let attributes_2: Vec<&str, consts::U64> = Vec::from_slice(&["tum", "over21"]).unwrap();
@@ -345,15 +383,17 @@ mod tests {
     let priv_key = private.keygen(&public, &access_structure, &mut rng);
 
 
-    let ciphertext =  public.encrypt(&attributes_1, plaintext, &mut rng).unwrap();
+    let ciphertext =  public.encrypt(&attributes_1, &mut plaintext, &mut rng).unwrap();
     
-    let res = GpswAbePublic::decrypt(ciphertext, &priv_key);  
+    let res = GpswAbePublic::decrypt(ciphertext, &priv_key).unwrap();  
 
-    assert_eq!(Ok(plaintext), res);
+    assert_eq!(plaintext_original, res);
 
-    let ciphertext = public.encrypt(&attributes_2, plaintext, &mut rng).unwrap();
-    let res = GpswAbePublic::decrypt(ciphertext, &priv_key);
-    assert_eq!(Err(()), res);
+    let mut plaintext = plaintext_original.clone();
+
+    let ciphertext = public.encrypt(&attributes_2, &mut plaintext, &mut rng).unwrap();
+    let res = GpswAbePublic::decrypt(ciphertext, &priv_key).unwrap_err();
+    // assert_ne!(res.1.data, plaintext_original);
   }
 
 
@@ -376,7 +416,8 @@ mod tests {
     let mut private_map: FnvIndexMap<&str, F, S> = FnvIndexMap::new();
 
     let mut rng = rand::thread_rng();
-    let gt: Gt = rng.gen();
+    let mut plaintext_original = [0; 8192];
+    rng.fill_bytes(&mut plaintext_original);
     
     let system_atts: Vec<&str, consts::U256> = Vec::from_slice(&["student", "tum", "has_bachelor", "over21"]).unwrap();
 
@@ -390,19 +431,21 @@ mod tests {
     let priv_key = es.keygen(&public, &access_structure, &mut rng);
     //println!("private key:\n{:?}", priv_key)
 
+    let mut plaintext = plaintext_original.clone();
   
-    let ciphertext = public.encrypt(&attributes_1, gt, &mut rng).unwrap();
+    let ciphertext = public.encrypt(&attributes_1, &mut plaintext, &mut rng).unwrap();
   
     // println!("ciphertext:\n{:?}", ciphertext);
     
-    let res = GpswAbePublic::decrypt(ciphertext, &priv_key);
+    let res = GpswAbePublic::decrypt(ciphertext, &priv_key).unwrap();
     
-    assert_eq!(Ok(gt), res);
+    assert_eq!(plaintext_original, res);
     
     // failing decryption
-    let ciphertext = public.encrypt(&attributes_2, gt, &mut rng).unwrap();
-    let res = GpswAbePublic::decrypt(ciphertext, &priv_key);
-    assert_eq!(Err(()), res);
+    let mut plaintext = plaintext_original.clone();
+    let ciphertext = public.encrypt(&attributes_2, &mut plaintext, &mut rng).unwrap();
+    let res = GpswAbePublic::decrypt(ciphertext, &priv_key).unwrap_err();
+    // assert_eq!(Err(()), res);
   }
 
 
@@ -413,12 +456,16 @@ mod tests {
     
     let mut rng = rand::thread_rng();
 
+    let mut plaintext_original = [0; 8192];
+    rng.fill_bytes(&mut plaintext_original);
+
     let system_atts = ["student", "tum", "over21", "over25", "has_bachelor", "cs"];
     let (es, public) = GpswAbePrivate::setup(&system_atts, &mut public_map, &mut private_map, &mut rng);
     
     let attributes = &["student", "tum"][..];
     let gt: Gt = rng.gen();
-    let ciphertext = public.encrypt(&attributes, gt, &mut rng).unwrap();
+    let mut plaintext = plaintext_original.clone();
+    let ciphertext = public.encrypt(&attributes, &mut plaintext, &mut rng).unwrap();
 
     // this represents the following logical access structure:
     // (tum AND student) OR (cs AND has_bachelor AND (over21 OR over25))
@@ -441,23 +488,25 @@ mod tests {
   
 
     // example 1 - shall decrypt (defined above)
-    let res = GpswAbePublic::decrypt(ciphertext, &priv_key);
-    assert_eq!(Ok(gt), res);
+    let res = GpswAbePublic::decrypt(ciphertext, &priv_key).unwrap();
+    assert_eq!(plaintext_original, res);
 
     // example 2 - shall decrypt 
+    let mut plaintext = plaintext_original.clone();
     let attributes = &["student", "has_bachelor", "cs", "over21"][..];
-    let ciphertext = public.encrypt(&attributes, gt, &mut rng).unwrap();
-    let res = GpswAbePublic::decrypt(ciphertext, &priv_key);
-    assert_eq!(Ok(gt), res);
+    let ciphertext = public.encrypt(&attributes, &mut plaintext, &mut rng).unwrap();
+    let res = GpswAbePublic::decrypt(ciphertext, &priv_key).unwrap();
+    assert_eq!(plaintext_original, res);
     // let ciphertext = public.encrypt(&attributes, &data);
     // let decrypted = public.decrypt(&ciphertext, &priv_key).unwrap();
     // assert_eq!(decrypted, data);
 
     // example 2 - shall not decrypt 
+    let mut plaintext = plaintext_original.clone();
     let attributes = &["student", "cs", "over21"][..];
-    let ciphertext = public.encrypt(&attributes, gt, &mut rng).unwrap();
-    let res = GpswAbePublic::decrypt(ciphertext, &priv_key);
-    assert_eq!(Err(()), res);
+    let ciphertext = public.encrypt(&attributes, &mut plaintext, &mut rng).unwrap();
+    let res = GpswAbePublic::decrypt(ciphertext, &priv_key).unwrap_err();
+    // assert_eq!(Err(()), res);
     // let ciphertext = public.encrypt(&attributes, &data);
     // let decrypted = public.decrypt(&ciphertext, &priv_key);
     // assert_eq!(None, decrypted);
