@@ -21,7 +21,7 @@ rabe-bn = { path = "../../rabe-bn-own", default-features = false }
 #aes = "0.6.0"
 #ccm =  { version = "0.3.0", default-features = false }
 
-abe-kem = { path = "../abe-kem/" }
+abe-utils = { path = "../abe-utils/" }
 
 [profile.dev]
 opt-level = 3

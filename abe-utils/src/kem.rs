@@ -69,9 +69,12 @@ pub fn kdf<G: Display>(inp: &G) -> GenericArray<u8, ccm::consts::U32> {
 
 #[cfg(test)]
 mod tests {
+    extern crate std;
+    extern crate alloc;
     use rabe_bn::Gt;
     use rand::Rng;
     use super::*;
+    use alloc::string::ToString;
     #[test]
     fn successful_decryption() {
         let mut rng = rand::thread_rng();
@@ -100,5 +103,26 @@ mod tests {
         assert_ne!([0;128], ciphertext.data);
     }
 
+    #[test]
+    fn non_malleability() {
+        let mut rng = rand::thread_rng();
+        let g1: Gt = rng.gen();
+        let mut data = [0; 4096];
+        rng.fill_bytes(&mut data);
+        let mut ciphertext = encrypt(g1, &mut data, &mut rng).unwrap();
+        // println!("{:?}", ciphertext.data);
+        ciphertext.data[1] ^= 0x15;
+        // println!("{:?}", ciphertext.data);
+        let ciphertext = decrypt(g1, ciphertext).unwrap_err();
+        assert_ne!([0;128], ciphertext.data);
+    }
 
+    #[test]
+    fn check_hashing() {
+        let mut rng = rand::thread_rng();
+        let g1: Gt = rng.gen();
+        let h1 = kdf(&g1);
+        let h2 = Sha3_256::digest(&g1.to_string().into_bytes());
+        assert_eq!(h1, h2);
+    }
 }

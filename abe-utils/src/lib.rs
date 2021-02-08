@@ -1,10 +1,10 @@
 #![no_std]
 mod kem;
-mod hash_to_curve;
+pub mod hash_to_curve;
 
 pub use kem::{encrypt, decrypt};
 
-pub use hash_to_curve;
+
 
 // pub use kem::kdf;
 
