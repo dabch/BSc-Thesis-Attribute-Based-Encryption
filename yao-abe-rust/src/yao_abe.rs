@@ -1,12 +1,11 @@
 // use rabe_bn::{Group, Fr, G};
-use elliptic_curve::{Group, Field, sec1::ToEncodedPoint, generic_array::sequence::Split};
+use elliptic_curve::{Group, Field, sec1::ToEncodedPoint};
 use k256::{Scalar, ProjectivePoint, AffinePoint};
 use heapless::{IndexMap, FnvIndexMap, Vec, consts};
-use rand::{Rng, RngCore};
+use rand::{ RngCore};
 
-use ccm::{Ccm};
-use aes::Aes256;
-use ccm::aead::{self, Tag, AeadInPlace, Key, NewAead, generic_array::GenericArray};
+use abe_utils::kem;
+
 
 pub use ccm::aead::Error;
 
@@ -50,13 +49,11 @@ pub type AccessStructure<'attr, 'own> = &'own [AccessNode<'attr>];
 /// Represents a ciphertext as obtained by encrypt() and consumed by decrypt()
 /// Contains both the actual (symetrically) encrypted data and all data required to reconstruct the 
 /// symmetric keys given a private key created under a matching access structure.
-// #[derive(Debug)]
-pub struct YaoABECiphertext<'attr, 'data> {
-  c: &'data mut [u8], // actual ciphertext (output of AES)
-  mac: Tag<aead::consts::U10>, // mac over the cleartext (TODO better encrypt-then-mac?)
-  nonce: [u8; 13],
-  c_i: FnvIndexMap<&'attr str, G, S>, // attributes and their respective curve elements
-}
+#[derive(Debug, PartialEq, Eq)]
+struct YaoABEGroupCiphertext<'attr>(FnvIndexMap<&'attr str, G, S>); // attributes and their respective curve elements
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct YaoAbeCiphertext<'attr, 'data>(YaoABEGroupCiphertext<'attr>, kem::Ciphertext<'data>);
 
 /// Represents a private key obtained by keygen() and used to decrypt ABE-encrypted data
 /// This data structure mirrors the recursive nature of access structures to ease implementation
@@ -212,7 +209,7 @@ impl<'data, 'key, 'es, 'attr> YaoABEPublic<'attr, 'es> {
     atts: &[&'attr str],
     data: &'data mut [u8],
     mut rng: &mut dyn RngCore,
-    ) -> Result<YaoABECiphertext<'attr, 'data>, aead::Error>
+    ) -> Result<YaoAbeCiphertext<'attr, 'data>, ()>
   where 'attr: 'es, 'es: 'key, 'key: 'data
   {
     // choose a C', which is then used to encrypt the actual plaintext with a symmetric cipher
@@ -231,28 +228,14 @@ impl<'data, 'key, 'es, 'attr> YaoABEPublic<'attr, 'es> {
       att_cs.insert(att, c_i.to_affine()).unwrap();
     }
 
-    //println!("---------- ENCRYPT: encrypting with point ------------\n{:?}", c_prime.to_affine());
-    let x = c_prime.to_affine().to_encoded_point(false).to_untagged_bytes().unwrap();
-    let (x,_) = Split::split(x);
-    // let x_arr = <[u8; 8 * 4]>::from(x);
-    // let y_arr = <[u8; 8 * 4]>::from(y);
-  //   println!("Encryption with x {:x?}\narray: {:x?}", x, x_arr);
-  //   println!("Encryption with y {:x?}\narray: {:x?}", y, y_arr);
-    
-    type YaoCcm = Ccm<Aes256, ccm::consts::U10, ccm::consts::U13>;
+    let key = c_prime.to_affine().to_encoded_point(false).to_untagged_bytes().unwrap();
 
-    let key: Key<YaoCcm> = x;
-    let ccm = YaoCcm::new(&key);
-    
-    let nonce: [u8; 13] = rng.gen();
-    let nonce_ga = GenericArray::from(nonce);
-    let mac = ccm.encrypt_in_place_detached(&nonce_ga, &[], data)?;
-    Ok(YaoABECiphertext {
-      c: data,
-      mac,
-      nonce,
-      c_i: att_cs,
-    })
+    //println!("---------- ENCRYPT: encrypting with point ------------\n{:?}", c_prime.to_affine());
+    let kem_ciphertext = match kem::encrypt_bytes(&key, data, rng) {
+      Ok(c) => c,
+      Err(_) => return Err(()),
+    };
+    Ok(YaoAbeCiphertext(YaoABEGroupCiphertext(att_cs), kem_ciphertext))
   }
 
   /// Recursive helper function for decryption
@@ -303,30 +286,25 @@ impl<'data, 'key, 'es, 'attr> YaoABEPublic<'attr, 'es> {
 
   /// Decrypt a ciphertext using a given private key. At this point, doesn't actually do any decryption, it just reconstructs the point used as encryption/mac key.
   pub fn decrypt(
-    ciphertext: YaoABECiphertext<'attr, 'data>,
+    ciphertext: YaoAbeCiphertext<'attr, 'data>,
     key: &PrivateKey<'attr, 'key>,
-  ) -> Result<&'data [u8], aead::Error>
+  ) -> Result<&'data [u8], YaoAbeCiphertext<'attr, 'data>>
   where 'attr: 'es, 'es: 'key, 'key: 'data
   {
+    let YaoAbeCiphertext(kem_cipher, data_cipher) = ciphertext;
     let PrivateKey(access_structure, secret_shares) = key;
-
-    let res = Self::decrypt_node(&access_structure, 0, &secret_shares, &ciphertext.c_i);
+    
+    let res = Self::decrypt_node(&access_structure, 0, &secret_shares, &kem_cipher.0);
     let c_prime = match res {
-      None => return Err(aead::Error),
+      None => return Err(YaoAbeCiphertext(kem_cipher, data_cipher)),
       Some(p) => p,
     };
-    let x = c_prime.to_affine().to_encoded_point(false).to_untagged_bytes().unwrap();
-    let (x,_) = Split::split(x);
-    let nonce = GenericArray::from(ciphertext.nonce);
-    
 
-    type YaoCcm = Ccm<Aes256, ccm::consts::U10, ccm::consts::U13>;
-
-    let key: Key<YaoCcm> = x;
-    let ccm = YaoCcm::new(&key);
-    
-    ccm.decrypt_in_place_detached(&nonce, &[], ciphertext.c, &ciphertext.mac)?;
-    Ok(ciphertext.c)
+    let key = c_prime.to_affine().to_encoded_point(false).to_untagged_bytes().unwrap();
+    match kem::decrypt_bytes(&key, data_cipher) {
+      Ok(data) => Ok(data),
+      Err(ct) => Err(YaoAbeCiphertext(kem_cipher, ct)),
+    }
   }
 }
 
@@ -336,6 +314,8 @@ impl<'data, 'key, 'es, 'attr> YaoABEPublic<'attr, 'es> {
 mod tests {
   extern crate std;
   use super::*;
+
+  use rand::Rng;
 
   #[test]
   fn leaf_only_access_tree() {
@@ -367,8 +347,8 @@ mod tests {
     let mut data = data_orig.clone();
 
     let ciphertext = public.encrypt(&attributes_2, &mut data, &mut rng).unwrap();
-    let res = YaoABEPublic::decrypt(ciphertext, &priv_key);
-    assert_eq!(Err(Error), res);
+    let res = YaoABEPublic::decrypt(ciphertext, &priv_key).unwrap_err();
+    // assert_eq!(Err(()), res);
   }
 
 
@@ -418,50 +398,8 @@ mod tests {
     // failing decryption
     let mut data = data_orig.clone();
     let ciphertext = public.encrypt(&attributes_2, &mut data, &mut rng).unwrap();
-    let res = YaoABEPublic::decrypt(ciphertext, &priv_key);
-    assert_eq!(Err(Error), res);
-  }
-
-
-  #[test]
-  fn malleability() {
-
-
-    let access_structure: AccessStructure = &[
-      AccessNode::Node(2, Vec::from_slice(&[1,2,3,4]).unwrap()),
-      AccessNode::Leaf("tum"),
-      AccessNode::Leaf("student"),
-      AccessNode::Leaf("has_bachelor"),
-      AccessNode::Leaf("over21"),
-    ];
-
-    let mut public_map: FnvIndexMap<&str, G, S> = FnvIndexMap::new();
-    let mut private_map: FnvIndexMap<&str, (F, G), S> = FnvIndexMap::new();
-
-    let attributes = &["student", "tum", "has_bachelor", "over21"][..];
-
-    let mut rng = rand::thread_rng();
-    let data_orig: Vec<u8, consts::U2048> = (0..500).map(|_| rng.gen()).collect();
-    let mut data = data_orig.clone();
-
-    let atts: Vec<&str, consts::U256> = Vec::from_slice(&["student", "tum", "has_bachelor", "over21"]).unwrap();
-    let (es, public) = crate::YaoABEPrivate::setup(&atts, &mut public_map, &mut private_map, &mut rng);
-    //println!("{:#?}", es);
-    //println!("\n public params:\n{:#?}", public);
-  
-  
-    let priv_key = es.keygen(&access_structure, &mut rng);
-  
-    let mut ciphertext = public.encrypt(&attributes, &mut data, &mut rng).unwrap();
-
-    ciphertext.c[16] ^= 0xaf; // skip IV
-  
-    // println!("ciphertext:\n{:?}", ciphertext);
-    
-    let res = YaoABEPublic::decrypt(ciphertext, &priv_key);
-    
-    // decryption should fail because MAC is wrong
-    assert_eq!(res, Err(Error));
+    let res = YaoABEPublic::decrypt(ciphertext, &priv_key).unwrap_err();
+    // assert_eq!(Err(Error), res);
   }
 
   #[test]
@@ -520,8 +458,8 @@ mod tests {
     let attributes = &["student", "cs", "over21"][..];
     let mut data = data_orig.clone();
     let mut ciphertext = public.encrypt(&attributes, &mut data, &mut rng).unwrap();
-    let res = YaoABEPublic::decrypt(ciphertext, &priv_key);
-    assert_eq!(Err(Error), res);
+    let res = YaoABEPublic::decrypt(ciphertext, &priv_key).unwrap_err();
+    // assert_eq!(Err(Error), res);
     // let ciphertext = public.encrypt(&attributes, &data);
     // let decrypted = public.decrypt(&ciphertext, &priv_key);
     // assert_eq!(None, decrypted);
