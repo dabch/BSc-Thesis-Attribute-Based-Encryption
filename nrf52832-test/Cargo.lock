@@ -18,6 +18,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7fc95d1bdb8e6666b2b217308eeeb09f2d6728d104be3e31916cc74d15420331"
 dependencies = [
  "generic-array 0.14.4",
+ "heapless",
 ]
 
 [[package]]
@@ -229,6 +230,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "gpsw06_abe"
+version = "0.1.0"
+dependencies = [
+ "abe-kem",
+ "aes",
+ "ccm",
+ "heapless",
+ "rabe-bn",
+ "rand",
+]
+
+[[package]]
 name = "hash32"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -293,6 +306,8 @@ dependencies = [
  "abe-utils",
  "cortex-m",
  "cortex-m-rt",
+ "gpsw06_abe",
+ "heapless",
  "nrf52840-hal",
  "rabe-bn",
  "rand",

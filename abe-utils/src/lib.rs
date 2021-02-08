@@ -2,7 +2,7 @@
 mod kem;
 pub mod hash_to_curve;
 
-pub use kem::{encrypt, decrypt};
+pub use kem::{encrypt, decrypt, Ciphertext};
 
 
 

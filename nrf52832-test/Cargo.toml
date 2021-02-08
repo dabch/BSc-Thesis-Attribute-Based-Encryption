@@ -12,12 +12,12 @@ nrf52840-hal = "0.10.0"
 
 rand = { version = "0.7.3", default-features = false }
 #yao-abe-rust = { path = "../yao-abe-rust/" }
-#gpsw06_abe = { path = "../gpsw06-abe/" }
+gpsw06_abe = { path = "../gpsw06-abe/" }
 #heapless = { version = "0.5.6", default-features = true }
-#heapless = "0.5.6"
+heapless = "0.5.6"
 
 rabe-bn = { path = "../../rabe-bn-own", default-features = false }
-# rand = { version = "0.7.3", default-features = false }
+#rand = { version = "0.7.3", default-features = false }
 #aes = "0.6.0"
 #ccm =  { version = "0.3.0", default-features = false }
 
