@@ -1,4 +1,4 @@
-use generic_array::GenericArray;
+use generic_array::{GenericArray, typenum::consts};
 use core::fmt::Display;
 
 use sha3::{Sha3_256, Digest};
@@ -36,8 +36,17 @@ impl<W: Digest> core::fmt::Write for Wrapper<W> {
     }
 }
 
+pub fn encrypt_bytes<'a>(key: &[u8], plaintext: &'a mut [u8], rng: &mut dyn RngCore) -> Result<Ciphertext<'a>, AeadError> {
+    let aes_key = kdf_bytes(key);
+    encrypt_with_aes_key(&aes_key, plaintext, rng)
+}
+
 pub fn encrypt<'a, G: Display>(key: &G, plaintext: &'a mut [u8], rng: &mut dyn RngCore) -> Result<Ciphertext<'a>, AeadError> {
-    let aes_key = kdf(&key);
+    let aes_key = kdf(key);
+    encrypt_with_aes_key(&aes_key, plaintext, rng)
+}
+
+fn encrypt_with_aes_key<'a>(aes_key: &GenericArray<u8, consts::U32>, plaintext: &'a mut [u8], rng: &mut dyn RngCore) -> Result<Ciphertext<'a>, AeadError> {
     let nonce: [u8; 13] = rng.gen();
 
     let ccm = Ccm::new(&aes_key);
@@ -51,8 +60,17 @@ pub fn encrypt<'a, G: Display>(key: &G, plaintext: &'a mut [u8], rng: &mut dyn R
     )
 }
 
-pub fn decrypt<'a, G: Display>(key: &G, mut ciphertext: Ciphertext<'a>) -> Result<&'a mut [u8], Ciphertext<'a>> {
-    let aes_key = kdf(&key);
+pub fn decrypt<'a, G: Display>(key: &G, ciphertext: Ciphertext<'a>) -> Result<&'a mut [u8], Ciphertext<'a>> {
+    let aes_key = kdf(key);
+    decrypt_with_aes_key(&aes_key, ciphertext)
+}
+
+pub fn decrypt_bytes<'a>(key: &[u8], ciphertext: Ciphertext<'a>) -> Result<&'a mut [u8], Ciphertext<'a>> {
+    let aes_key = kdf_bytes(key);
+    decrypt_with_aes_key(&aes_key, ciphertext)
+}
+
+fn decrypt_with_aes_key<'a>(aes_key: &GenericArray<u8, consts::U32>, mut ciphertext: Ciphertext<'a>) -> Result<&'a mut [u8], Ciphertext<'a>> {
     let ccm = Ccm::new(&aes_key);
     match ccm.decrypt_in_place_detached(&GenericArray::from(ciphertext.nonce), &[], &mut ciphertext.data, &ciphertext.mac) {
         Ok(_) => Ok(ciphertext.data),
@@ -60,10 +78,16 @@ pub fn decrypt<'a, G: Display>(key: &G, mut ciphertext: Ciphertext<'a>) -> Resul
     }
 }
 
-pub fn kdf<G: Display>(inp: &G) -> GenericArray<u8, ccm::consts::U32> {
+fn kdf<G: Display>(inp: &G) -> GenericArray<u8, ccm::consts::U32> {
     let mut hasher = Wrapper(Sha3_256::new());
     write!(&mut hasher, "{}", inp).unwrap(); // this LITERALLY can't fail, see the impl of core::fmt::Write for our Wrapper above ;D
     hasher.0.finalize()
+}
+
+fn kdf_bytes(inp: &[u8]) -> GenericArray<u8, ccm::consts::U32> {
+    let mut hasher = Sha3_256::new();
+    hasher.update(inp); // this LITERALLY can't fail, see the impl of core::fmt::Write for our Wrapper above ;D
+    hasher.finalize()
 }
 
 
@@ -80,9 +104,9 @@ mod tests {
         let mut rng = rand::thread_rng();
         let g1: Gt = rng.gen();
         let mut data = [0; 128];
-        let mut ciphertext = encrypt(g1, &mut data, &mut rng).unwrap();
+        let ciphertext = encrypt(&g1, &mut data, &mut rng).unwrap();
         // println!("{:?}", ciphertext);
-        let data = decrypt(g1, ciphertext).unwrap();
+        let data = decrypt(&g1, ciphertext).unwrap();
         assert_eq!(data, [0; 128]);
     }
     
@@ -95,11 +119,11 @@ mod tests {
         // println!("{}", g2);
         assert_ne!(kdf(&g1), kdf(&g2));
         let mut data: [u8; 4096] = [0; 4096];
-        let mut ciphertext = encrypt(g1, &mut data, &mut rng).unwrap();
+        let ciphertext = encrypt(&g1, &mut data, &mut rng).unwrap();
         // println!("{:?}", ciphertext.data);
         // ciphertext.data[1] ^= 0x15;
         // println!("{:?}", ciphertext.data);
-        let ciphertext = decrypt(g2, ciphertext).unwrap_err();
+        let ciphertext = decrypt(&g2, ciphertext).unwrap_err();
         assert_ne!([0;128], ciphertext.data);
     }
 
@@ -109,11 +133,11 @@ mod tests {
         let g1: Gt = rng.gen();
         let mut data = [0; 4096];
         rng.fill_bytes(&mut data);
-        let mut ciphertext = encrypt(g1, &mut data, &mut rng).unwrap();
+        let ciphertext = encrypt(&g1, &mut data, &mut rng).unwrap();
         // println!("{:?}", ciphertext.data);
         ciphertext.data[1] ^= 0x15;
         // println!("{:?}", ciphertext.data);
-        let ciphertext = decrypt(g1, ciphertext).unwrap_err();
+        let ciphertext = decrypt(&g1, ciphertext).unwrap_err();
         assert_ne!([0;128], ciphertext.data);
     }
 

@@ -1,5 +1,5 @@
 #![no_std]
-mod kem;
+pub mod kem;
 pub mod hash_to_curve;
 
 pub use kem::{encrypt, decrypt, Ciphertext};
