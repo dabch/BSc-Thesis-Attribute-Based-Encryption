@@ -5,7 +5,7 @@ use rabe_bn::{self, Group};
 
 use heapless::{FnvIndexMap, Vec, consts};
 use rand::{Rng, RngCore};
-use abe_kem;
+use abe_utils::kem;
 
 pub use ccm::aead::Error;
 
@@ -82,7 +82,7 @@ struct GpswAbeGroupCiphertext<'attr> {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct GpswAbeCiphertext<'attr, 'data>(GpswAbeGroupCiphertext<'attr>, abe_kem::Ciphertext<'data>);
+pub struct GpswAbeCiphertext<'attr, 'data>(GpswAbeGroupCiphertext<'attr>, kem::Ciphertext<'data>);
 
 /// Represents a private key obtained by keygen() and used to decrypt ABE-encrypted data
 /// This data structure mirrors the recursive nature of access structures to ease implementation
@@ -241,7 +241,7 @@ impl<'data, 'key, 'es, 'attr> GpswAbePublic<'attr, 'es> {
     where 'attr: 'es, 'es: 'key, 'key: 'data
     {
       let gt: Gt = rng.gen();
-      let payload_ciphertext = match abe_kem::encrypt(&gt, data, rng) {
+      let payload_ciphertext = match kem::encrypt(&gt, data, rng) {
         Ok(c) => c,
         Err(_) => return Err(())
       };
@@ -361,7 +361,7 @@ impl<'data, 'key, 'es, 'attr> GpswAbePublic<'attr, 'es> {
       Ok(gt) => gt,
       Err(_) => return Err(ciphertext),
     };
-    let data = match abe_kem::decrypt(&gt, ciphertext.1) {
+    let data = match kem::decrypt(&gt, ciphertext.1) {
       Ok(data) => return Ok(data),
       Err(ct) => return Err(GpswAbeCiphertext(ciphertext.0, ct)), // reconstruct the same ciphertext again
     };
