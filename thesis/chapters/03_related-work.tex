@@ -7,3 +7,28 @@
     \item expressiveness / expression of access policies
     \item Revocation
 \end{itemize}
+
+The notion of \acrlong{abe} was introduced by Sahai and Waters in 2005~\cite{sahai_fuzzy_2005}.
+They proposed a type of \gls{ibe} where identities are a set of certain attributes.
+Their \emph{fuzzy} \gls{ibe} scheme allows a user to decrypt a ciphertext even if their identity doesn't exactly match the identity specified at the time of encryption~\cite{sahai_fuzzy_2005}.
+Instead, an overlap larger than some threshold value between the attributes in the ciphertext's identity with the attributes of the key's identity is sufficient.~\cite{sahai_fuzzy_2005}.
+This property is realized by means of a $(k, n)$-threshold secret sharing scheme.
+
+Sahai and Water's construction can already be seen as an \acrshort{abes} with very limited expressiveness, i.e. it only works with ''k-out-of-n'' access structures~\cite{goyal_attribute-based_2006}.
+
+In 2006, Goyal, Pandey, Sahai and Waters~\cite{goyal_attribute-based_2006} extended this into the first expressive \acrshort{kp-abe} scheme using the \gls{access-tree} construction described in Chapter~\ref{chapter:background}.
+Their main construction uses \glspl{access-tree} and a small attribute universe, but they also give constructions with a large attribute universe and for \gls{lsss} access structures, respectively.
+
+The first expressive \acrshort{cp-abe} scheme was proposed by Bethencourt, Sahai and Waters in~\cite{bethencourt_ciphertext-policy_2007}.
+It is also a large-universe construction and uses \glspl{access-tree}.
+
+Bothe the schemes in~\cite{goyal_attribute-based_2006} and in~\cite{bethencourt_ciphertext-policy_2007} only support monotonic \glspl{access-structure}.
+This is natural, as any set satisfying an \gls{access-tree} will still satisfy the same tree if another attribute is added.
+In fact, our construction of \glspl{access-tree} does not have an expression for the \emph{not} of an attribute.
+
+In \cite{goyal_attribute-based_2006}, an inefficient realization of general (non-monotonic) \glspl{access-structure} is proposed, which is to simply represent the absence of an attribute as a separate attribute.
+This is inefficient because it doubles the number of attributes in the system~\cite{goyal_attribute-based_2006}.
+
+A more efficient construction for non-monotonic \glspl{access-structure} was given by Ostrovsky, Sahai and Waters in~\cite{ostrovsky_attribute-based_2007}. 
+However, this construction leads to large-size private keys, which is mitigated by 
+
