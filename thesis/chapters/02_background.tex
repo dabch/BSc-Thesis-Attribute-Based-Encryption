@@ -1,4 +1,4 @@
-\chapter{Background}\label{chapter:background}
+\chapter{Preliminaries}\label{chapter:background}
 This chapter introduces \acrlong{abe} and the relevant mathematical background for implementing it.
 
 \begin{figure} \centering
@@ -270,6 +270,18 @@ With \acrshort{kp-abe}, the data could instead be associated with the patient's 
     \label{fig:cp-kp-abe}
 \end{figure}
 
+\subsection{Access Structures}\label{sec:access-structures}
+Access structures determine which sets of attributes are required to reconstruct the ciphertext under \acrshort{abe}.
+This definition is adapted from \cite{beimel_secure_1996} for our setting of allowed attribute sets, instead of allowed parties.
+\begin{definition}Access Structure~\cite{beimel_secure_1996}.\\
+    Let $U = \{A_1, \dots, A_n\}$ be the universe of attributes.
+    A set $\mathcal{A} \subseteq 2^{U}$ is monotone if for all $B \in \mathcal{A}$ and $C \supseteq B$,  $C \in \mathcal{A}$.
+    An access structure $\mathcal{A}$ is a non-empty subset of $2^U$, i.e. $\mathcal{A} \in 2^U \backslash \{\emptyset\}$. A monotone access structure is an access structure that is monotone.
+    The sets in $\mathcal{A}$ are called the \emph{authorized sets}, those not in $\mathcal{A}$ are called the \emph{unauthorized sets}.
+\end{definition}
+
+Intuitively, the monotonicity of an access structure means that adding an attribute to an authorized set cannot result in an unauthorized set. 
+
 \subsection{Access Trees}
 
 \begin{figure}
@@ -285,16 +297,17 @@ With \acrshort{kp-abe}, the data could instead be associated with the patient's 
     }
     \label{fig:sample-access-tree}
 \end{figure}
-Of course, we need a way to define the access policies associated with the key (KP-ABE) or the ciphertext (CP-ABE), respectively.
-For this, we will use the construction of \emph{Access Trees} from Goyal~et~al. in~\cite{goyal_attribute-based_2006}.
+Explicitly specifying an access structure is not feasible, as its size may be exponential in the size of the attribute universe.
+Therefore, we will use the construction of \emph{Access Trees} from Goyal~et~al. in~\cite{goyal_attribute-based_2006}.
 Each leaf of this tree is labelled with an attribute, and each interior node is labelled with an integer, the threshold for it to be satisfied~\cite{goyal_attribute-based_2006}.
 
 Figure~\ref{fig:sample-access-tree} illustrates an example for an Access Tree. It is satisfied by any set of attributes that contains two of $A, B$ and either $C$ or $D$.
 That is, $\{A,B\}$ would satsify the tree, just as $\{B, D\}$ would, but $\{C, D\}$ would not be sufficient.
+For an attribute universe of $U = \{A, B, C, D\}$ this would realize the access structure $\mathcal{A} = \{\{A, B, C, D\}, \{A, B, C\}, \{A, B, D\},\{A, C, D\}, \{B, C, D\}, \{A, B\},\{A, C\},\{A,D\}, \{B, C\},\{B, D\}\}$
 
 \begin{definition}
     Access Tree~\cite{goyal_attribute-based_2006}.\\
-    An interal note $x$ of an access tree is defined by its children and a threshold value $d_x$. If $x$ has $num_x$ children, then its threshold value satisfies $0 < d_x \leq num_x$.\\
+    An interal node $x$ of an access tree is defined by its children and a threshold value $d_x$. If $x$ has $num_x$ children, then its threshold value satisfies $0 < d_x \leq num_x$.\\
     A leaf node $x$ is defined by an attribute and a threshold value $k_x = 1$.
 
     \cite{goyal_attribute-based_2006} also defines the following functions for working with access trees:
