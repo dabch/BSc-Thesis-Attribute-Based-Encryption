@@ -39,7 +39,7 @@ This chapter introduces \acrlong{abe} and the relevant mathematical background f
             \path (encrypt.north) -- +(0, 0.3) node [olive] {$\{A, B, C\}$};
             \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m'};
         \end{tikzpicture}
-        \caption{\glslink{gls-kp-abe}{Key-Policy Attribute-Based Encryption}: Attributes for encryption, access policy for decryption. Note that the access policy of the decryption key may be public; the actual key consists of secret shares that allow the user to decrypt a ciphertext if the correct attributes are present.} \label{fig:keys-abe}
+        \caption{\glslink{gls-kp-abe}{Key-Policy Attribute-Based Encryption}: Attributes for encryption, access structure for decryption. Note that the access structure of the decryption key may be public; the actual key consists of secret shares that allow the user to decrypt a ciphertext if the correct attributes are present.} \label{fig:keys-abe}
     \end{subfigure}
     \\ 
     \vspace{0.5cm}
@@ -56,7 +56,7 @@ This chapter introduces \acrlong{abe} and the relevant mathematical background f
             \path (decrypt.north) -- +(0, 0.3) node [red] {$\{A, B, C\}$};
             \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m'};
         \end{tikzpicture}
-        \caption{\glslink{gls-cp-abe}{Ciphertex-Policy Attribute-Based Encryption}: Access policy for encryption, attributes for decryption. Note that the attributes associated with the decryption key may be public; the actual key consists of corresponding secret shares.} \label{fig:keys-abe}
+        \caption{\glslink{gls-cp-abe}{Ciphertex-Policy Attribute-Based Encryption}: \Gls{access-policy} for encryption, attributes for decryption. Note that the attributes associated with the decryption key may be public; the actual key consists of corresponding secret shares.} \label{fig:keys-abe}
     \end{subfigure}
     \caption[Keys in different classes of encryption schemes]{Keys used for encryption and decryption in different classes of encryption schemes. Red information has to be kept secret, green information may be made publicly available. For the differences between the two types of \acrshort{abe}, see Section~\ref{sec:cp-vs-kp}.}
     \label{fig:key-use}
@@ -156,8 +156,8 @@ Figure~\ref{fig:abe-system} shows a small \acrshort{abe} system with the \acrsho
     \end{subfigure}
     \caption[Interaction of Alice, Bob and KGC in an \acrshort{abes}]{
         Alice wants to send an \acrshort{kp-abe} encrypted message $m$ to Bob. She wants to encrypt the message under a set of attributes $\omega$.
-        Both Alice and Bob create a desired Access Policy, $\textcolor{olive}{S_A}$ and $\textcolor{blue}{S_B}$, respectively.
-        Note that the \acrshort{kgc} will only issue a corresponding key if it deems that they should be allowed to obtain a key under the given Access Policy.
+        Both Alice and Bob create a desired \gls{access-policy}, $\textcolor{olive}{S_A}$ and $\textcolor{blue}{S_B}$, respectively.
+        Note that the \acrshort{kgc} will only issue a corresponding key if it deems that they should be allowed to obtain a key under the given access policy.
     }
     \label{fig:abe-system}
 \end{figure}
@@ -189,7 +189,7 @@ We will define a \acrshort{kp-abe} scheme here, for the difference between \acrs
     A (Key-Policy) \Acrlong{abes} consists of the following four algorithms:~\cite{goyal_attribute-based_2006}
     \begin{itemize}
         \item \emph{Setup}. Run once by the \acrfull{kgc}. Sets up the system by generating public parameters $PK$ and a private master key $MK$. The public parameters are shared with all participants, while the master key remains only known to the \acrshort{kgc}.
-        \item \emph{KeyGen(PK, s, S)}. Input: public parameters $PK$, master secret $s$ and Access Structure $S$.\\
+        \item \emph{KeyGen(PK, s, S)}. Input: public parameters $PK$, master secret $s$ and \gls{access-structure} $S$.\\
         Run by the trusted authority once for each user to generate their private key. Returns a private key $k$ corresponding to $S$.
         \item \emph{Encrypt(PK, m, $\omega$)}. Input: public parameters $PK$, plaintext message $m$ and set of attributes $\omega$.\\
         Run by any participant of the system. Encrypts $m$ under $\omega$ and returns the ciphertext $c$.
@@ -198,7 +198,7 @@ We will define a \acrshort{kp-abe} scheme here, for the difference between \acrs
     \end{itemize}
 \end{definition}
 
-The definition of a \acrshort{cp-abe} scheme is identical, except that \emph{Encrypt(PK, m, S)} takes an Access Structure $S$ and \emph{KeyGen(PK, s, $\omega$)} takes a set of attributes.
+The definition of a \acrshort{cp-abe} scheme is identical, except that \emph{Encrypt(PK, m, S)} takes an \gls{access-structure} $S$ and \emph{KeyGen(PK, s, $\omega$)} takes a set of attributes.
 
 How exactly these algorithms work in concrete ABE schemes will be discussed in Section~\ref{sec:concrete-schemes}.
 
@@ -207,24 +207,24 @@ How exactly these algorithms work in concrete ABE schemes will be discussed in S
 Two components are necessary to specify a group of keys that shall be able to decrypt a ciphertext: A number of attributes that are present, and a policy that defines a combination of required attributes. 
 Each of these can either be associated with the ciphertext, or with the decryption key:
 
-In \acrfull{cp-abe}, so the key is associated with a set of attributes and the ciphertext is encrypted under an access policy.
-\acrfull{kp-abe} works the other way around, so the ciphertext is associated with a set of attributes, and the key is associated with an access policy.
+In \acrfull{cp-abe}, so the key is associated with a set of attributes and the ciphertext is encrypted under an \gls{access-policy}.
+\acrfull{kp-abe} works the other way around, so the ciphertext is associated with a set of attributes, and the key is associated with an \gls{access-policy}.
 See Figure~\ref{fig:cp-kp-abe} for illustration.
 
-In both cases, a ciphertext can be decrypted if and only if the set of attributes specified in one part satisfy the access policy associated with the other part.
+In both cases, a ciphertext can be decrypted if and only if the set of attributes specified in one part satisfy the \gls{access-policy} associated with the other part.
 
 \acrshort{cp-abe} tends to be more intuitive because, when encrypting a plaintext, the encryptor controls rather explicitly who can decrypt their ciphertext:
-They set the access policy that defines which combinations of attributes are required from the users to successfully decrypt the ciphertext~\cite{bethencourt_ciphertext-policy_2007}.
+They set the \gls{access-policy} that defines which combinations of attributes are required from the users to successfully decrypt the ciphertext~\cite{bethencourt_ciphertext-policy_2007}.
 
 With \acrshort{kp-abe}, on the other hand, the encryptor doesn't have any control over who will be able to access the data, except for the choice of attributes under which they encrypt the plaintext~\cite{bethencourt_ciphertext-policy_2007}.
 Instead, the \acrlong{kgc} must be trusted with intelligently deciding which key to give to the decrypting party~\cite{bethencourt_ciphertext-policy_2007}.
 For example, imagine a \acrshort{kp-abe} system in which it is common practice to label all ciphertexts with an attribute corresponding to the version number of the encryption software used.
-If the \acrshort{kgc} were to give out a key containing an access structure with just a single attribute corresponding to a commonly-used version of this software, this key could be used to decrypt any ciphertext - completely disregarding any other attributes that might be associated with it.
+If the \acrshort{kgc} were to give out a key containing a monotone \gls{access-structure} satisfied by just a single attribute corresponding to a commonly-used version of this software, this key could be used to decrypt any ciphertext - completely disregarding any other attributes that might be associated with it.
 
 An example use case for \acrshort{cp-abe} in a hospital setting would be sending an encrypted note about problems with a specific treatment to all doctors, patients that received that treatment and nurses of the department that administered the treatment.
-This could be specified by an access policy as (\texttt{hospital-name} AND (\texttt{doctor} OR (\texttt{patient} AND \texttt{received-treatment-x}) OR (\texttt{nurse} AND \texttt{department-y})). % TODO maybe add a picture here
+This could be specified by an \gls{access-policy} as (\texttt{hospital-name} AND (\texttt{doctor} OR (\texttt{patient} AND \texttt{received-treatment-x}) OR (\texttt{nurse} AND \texttt{department-y})). % TODO maybe add a picture here
 
-In the same hospital setting, \acrshort{kp-abe} could be employed in a different use case: When storing medical data about a patient, \acrshort{cp-abe} would require re-encrypting the data under a new access policy whenever a patient needs to see a different doctor.
+In the same hospital setting, \acrshort{kp-abe} could be employed in a different use case: When storing medical data about a patient, \acrshort{cp-abe} would require re-encrypting the data under a new \gls{access-policy} whenever a patient needs to see a different doctor.
 With \acrshort{kp-abe}, the data could instead be associated with the patient's name as an attribute, and the hospital's IT department could extend the new doctor's key's policy to allow decrypting the new patient's data.
 
 \begin{figure}
@@ -271,7 +271,7 @@ With \acrshort{kp-abe}, the data could instead be associated with the patient's 
 \end{figure}
 
 \subsection{Access Structures}\label{sec:access-structures}
-Access structures determine which sets of attributes are required to reconstruct the ciphertext under \acrshort{abe}.
+Access structures formally determine which sets of attributes are required to reconstruct the ciphertext under \acrshort{abe}.
 This definition is adapted from \cite{beimel_secure_1996} for our setting of allowed attribute sets, instead of allowed parties.
 \begin{definition}Access Structure~\cite{beimel_secure_1996}.\\
     Let $U = \{A_1, \dots, A_n\}$ be the universe of attributes.
@@ -282,7 +282,7 @@ This definition is adapted from \cite{beimel_secure_1996} for our setting of all
 
 Intuitively, the monotonicity of an access structure means that adding an attribute to an authorized set cannot result in an unauthorized set. 
 
-\subsection{Access Trees}
+\subsection{Access Trees}\label{sec:access-trees}
 
 \begin{figure}
     \centering
@@ -297,13 +297,13 @@ Intuitively, the monotonicity of an access structure means that adding an attrib
     }
     \label{fig:sample-access-tree}
 \end{figure}
-Explicitly specifying an access structure is not feasible, as its size may be exponential in the size of the attribute universe.
+Explicitly specifying an \gls{access-structure} is not feasible, as its size may be exponential in the size of the attribute universe.
 Therefore, we will use the construction of \emph{Access Trees} from Goyal~et~al. in~\cite{goyal_attribute-based_2006}.
 Each leaf of this tree is labelled with an attribute, and each interior node is labelled with an integer, the threshold for it to be satisfied~\cite{goyal_attribute-based_2006}.
 
 Figure~\ref{fig:sample-access-tree} illustrates an example for an Access Tree. It is satisfied by any set of attributes that contains two of $A, B$ and either $C$ or $D$.
 That is, $\{A,B\}$ would satsify the tree, just as $\{B, D\}$ would, but $\{C, D\}$ would not be sufficient.
-For an attribute universe of $U = \{A, B, C, D\}$ this would realize the access structure $\mathcal{A} = \{\{A, B, C, D\}, \{A, B, C\}, \{A, B, D\},\{A, C, D\}, \{B, C, D\}, \{A, B\},\{A, C\},\{A,D\}, \{B, C\},\{B, D\}\}$
+For an attribute universe of $U = \{A, B, C, D\}$ this would realize the \gls{access-structure} $\mathcal{A} = \{\{A, B, C, D\}, \{A, B, C\}, \{A, B, D\},\{A, C, D\}, \{B, C, D\}, \{A, B\},\{A, C\},\{A,D\}, \{B, C\},\{B, D\}\}$
 
 \begin{definition}
     Access Tree~\cite{goyal_attribute-based_2006}.\\
@@ -343,11 +343,11 @@ To interpolate a polynomial of degree $d$ from $d+1$ given points $(x_1, y_1), \
 
     Then the polynomial 
     \begin{equation}
-        L(x) = \sum_{k=0}^d l_{\omega, x_k}(x) \cdot y_k
+        L(x) = \sum_{k=0}^d \Delta_{\omega, x_k}(x) \cdot y_k
     \end{equation}
-    is the lagrange interpolation polynomial for that set of points, where $\omega = \{x_1, \dots, x_{d+1}\}$ and $l_{\omega,k}(x)$ are the Lagrange basis polynomials:
+    is the lagrange interpolation polynomial for that set of points, where $\omega = \{x_1, \dots, x_{d+1}\}$ and $\Delta_{\omega,k}(x)$ are the Lagrange basis polynomials:
     \begin{equation}
-        l_{\omega,k}(x) = \prod_{\substack{i\in\omega\\ i \neq k}}^d \frac{x-i}{k-i}
+        \Delta_{\omega,k}(x) = \prod_{\substack{i\in\omega\\ i \neq k}}^d \frac{x-i}{k-i}
     \end{equation}
 \end{definition}
 
@@ -361,7 +361,7 @@ On the other hand, if there are less than $d+1$ points of a $d$-degree polynomia
 
 \subsection{Secret sharing with polynomials}
 To share our secret, we now hide it in a polynomial and give out points on this polynomial as secret shares.
-Using the lagrange basis polynomials, we can then reconstruct $p(x)$ and thus the secret if we know enough shares.~\cite{shamir_how_1979}
+Using the lagrange basis polynomials, we can then reconstruct $p(x)$ and thus the secret if we know enough shares~\cite{shamir_how_1979}.
 
 \begin{figure}
     \centering
@@ -398,7 +398,7 @@ Using the lagrange basis polynomials, we can then reconstruct $p(x)$ and thus th
 See also Figure~\ref{fig:sss} for illustration.
 In practice, the numbers would be far bigger and calculations wouldn't be performed over the real numbers, but rather a finite field modulo a prime.~\cite{shamir_how_1979}
 
-\subsection{Secret Sharing in Attribute Based Encryption}
+\subsection{Secret Sharing in Attribute Based Encryption}\label{sec:lss-in-access-trees}
 To realize an Access Tree that ,,gives away'' a secret if and only if it is satsified by a set of attributes, we can recursively use Shamir's Secret Sharing scheme:
 
 \begin{figure}
@@ -566,27 +566,27 @@ A prime has exactly two divisors: One (the order of $\mathcal{O}$) and itself (t
 Again, translated to Elliptic Curves this means that if the number of points $\#E(\mathbb{Z}_p)$ on a curve is prime, all points except $\mathcal{O}$ are generators.
 These cyclic elliptic curve groups (or, cyclic subgroups of non-cyclic elliptic curves) are exactly the groups we are interested in for doing actual cryptography. For a detailed description why, see \cite[p.~321]{katz_introduction_2015}.
 
-\subsection{Hardness Assumptions}
+% \subsection{Hardness Assumptions}
 
-Most ECC schemes are build upon three hardness assumptions: The Discrete Logarithm Problem (DLP), the Decisional Diffie-Hellman Problem (DDHP) and the Computational Diffie-Hellman Problem (CDHP).
-Given an additive, cyclic group $\mathbb{G}$ with $P \in \mathbb{G}$ a generator, they are stated as follows:
-\\
+% Most ECC schemes are build upon three hardness assumptions: The Discrete Logarithm Problem (DLP), the Decisional Diffie-Hellman Problem (DDHP) and the Computational Diffie-Hellman Problem (CDHP).
+% Given an additive, cyclic group $\mathbb{G}$ with $P \in \mathbb{G}$ a generator, they are stated as follows:
+% \\
 
-\emph{Discrete Logarithm Problem.} Given an arbitrary point $Q \in \mathbb{G}$, compute an $n \in \mathbb{N}$ such that $n P = Q$. % n from Zq?
+% \emph{Discrete Logarithm Problem.} Given an arbitrary point $Q \in \mathbb{G}$, compute an $n \in \mathbb{N}$ such that $n P = Q$. % n from Zq?
 
-\emph{Computational Diffie-Hellman Problem.} Given the triple $(P, aP, bP)$ where $a, b \in \mathbb{N}$ chosen uniformly at random, compute $abP$.
+% \emph{Computational Diffie-Hellman Problem.} Given the triple $(P, aP, bP)$ where $a, b \in \mathbb{N}$ chosen uniformly at random, compute $abP$.
 
-\emph{Decisional Diffie-Hellman Problem.} Given two triples $(aP, bP, abP)$ and $(aP, bP, Q)$ where $a, b \in \mathbb{N}$ and $Q \in \mathbb{G}$ chosen uniformly at random, distinguish between the two.
-\\
+% \emph{Decisional Diffie-Hellman Problem.} Given two triples $(aP, bP, abP)$ and $(aP, bP, Q)$ where $a, b \in \mathbb{N}$ and $Q \in \mathbb{G}$ chosen uniformly at random, distinguish between the two.
+% \\
 
-Now, the hardness \emph{assumption} is that, for some groups, these problems are hard to solve, i.e. solving them requires so much time and computational power that it is infeasible.
-From this, we can build secure asymmetric encryption schemes.
+% Now, the hardness \emph{assumption} is that, for some groups, these problems are hard to solve, i.e. solving them requires so much time and computational power that it is infeasible.
+% From this, we can build secure asymmetric encryption schemes.
 
-These three problems might all be assumed to be \emph{hard}, but that doesn't mean they are equally so:
-If, in a certain group $\mathbb{G}$, the DLP problem is easy, so is CDHP: Just compute $a$ and $b$, and then use them to calculate $abP$.
-And if CDHP is easy w.r.t some $\mathbb{G}$, so is DDHP: Just compute $abP$, and compare the third element of each tuple.
-The inverse is not generally true, i.e. there are groups in which DLP and CDHP are hard to solve, even though DDHP is easy to solve.
-In that sense, DLP is the hardest and DDHP the easiest of the three. \cite{katz_introduction_2015} (TODO find out if this is true. \cite{menezes_introduction_2009})
+% These three problems might all be assumed to be \emph{hard}, but that doesn't mean they are equally so:
+% If, in a certain group $\mathbb{G}$, the DLP problem is easy, so is CDHP: Just compute $a$ and $b$, and then use them to calculate $abP$.
+% And if CDHP is easy w.r.t some $\mathbb{G}$, so is DDHP: Just compute $abP$, and compare the third element of each tuple.
+% The inverse is not generally true, i.e. there are groups in which DLP and CDHP are hard to solve, even though DDHP is easy to solve.
+% In that sense, DLP is the hardest and DDHP the easiest of the three. \cite{katz_introduction_2015} (TODO find out if this is true. \cite{menezes_introduction_2009})
 
 \subsection{Bilinear Pairings}
 \subsubsection{Introduction}
@@ -604,15 +604,98 @@ Using a bilinear pairing with a group $\mathbb{G}_T$ where the DLP is easy to so
 To find $n$ such that $Q = nP$, compute $e(P,Q) = e(P, nP) = e(P, \underbrace{P+\cdots+P}_{n \text{ times}}) = \underbrace{e(P,P) \cdots e(P,P)}_{n \text{ times}} = e(P,P)^n$.
 Thus, the discrete logarithm of $Q$ with respect to $P$ is the discrete logarithm of $e(P,Q)$ with respect to $g = e(P,P) \in \mathbb{G}_T$.~\cite{menezes_introduction_2009}
 
-\subsubsection{Bilinear Hardness Assumption}
+% \subsubsection{Bilinear Hardness Assumption}
 
-Since the DLP can be easy to solve using pairings, we need to adapt our hardness assumption. Therefore, we define
+% Since the DLP can be easy to solve using pairings, we need to adapt our hardness assumption. Therefore, we define
 
-The \emph{Bilinear Diffie-Hellman Problem} (BDHP): Given $P, aP, bP, cP$ with $a,b,c \in \{1,\dots,n-1\}$ chosen randomly, compute $e(P, P)^{abc}$.~\cite{menezes_introduction_2009}
+% The \emph{Bilinear Diffie-Hellman Problem} (BDHP): Given $P, aP, bP, cP$ with $a,b,c \in \{1,\dots,n-1\}$ chosen randomly, compute $e(P, P)^{abc}$.~\cite{menezes_introduction_2009}
 
-If the BDHP is hard for a pairing $e$ on groups $\mathbb{G}_1 \text{ and } \mathbb{G}_T$, this implies that the DLP is hard in both $\mathbb{G}_1 \text{ and } \mathbb{G}_T$.~\cite{menezes_introduction_2009}
+% If the BDHP is hard for a pairing $e$ on groups $\mathbb{G}_1 \text{ and } \mathbb{G}_T$, this implies that the DLP is hard in both $\mathbb{G}_1 \text{ and } \mathbb{G}_T$.~\cite{menezes_introduction_2009}
 
-\section{Different ABE schemes for use in Embedded Devices}\label{sec:concrete-schemes} 
+
+\section{Constructions of ABE schemes}\label{sec:concrete-schemes} 
+
+\subsection{Goyal, Pandey, Sahai and Waters, 2006}
+This scheme was the first \acrshort{abes} with expressive \glspl{access-policy}.
+It was described by Goyal, Pandey, Sahai and Waters \cite{goyal_attribute-based_2006} in 2006. This scheme will be referred to as GPSW.
+
+Goyal~\emph{et.~al.} extend the earlier work from Sahai and Waters~\cite{sahai_fuzzy_2005} to allow arbitrary access structures expressed by \glspl{access-tree}, not just an ''k-out-of-n'' attributes.
+They are the first to use Shamir's Secret Sharing hierarchically in the \gls{access-tree} as described in Section~\ref{sec:lss-in-access-trees}. 
+
+The GPSW scheme encrypts a message represented by a point of the bilinear pairing's target group $\mathbb{G}_T$.
+The main construction follows the \emph{small universe} approach, but a construction allowing arbitrary attributes is also given.
+The construction described here ist the \emph{small universe} construction.\\
+
+Let $\mathbb{G}_1$ be a bilinear group of prime order $q$, and let $G$ be a generator of $\mathbb{G}_1$. Let $e: \mathbb{G}_1 \times \mathbb{G}_1 \rightarrow \mathbb{G}_T$ be a bilinear map.
+
+\emph{Setup}~\cite{goyal_attribute-based_2006}.
+The attribute universe is defined as $\text{U} = \{1, 2, \dots, n\}$ and is fixed.
+For every attribute $i \in U$, choose uniformly at random a secret number $t_i \in \mathbb{Z}_q$.
+Then the public key of attribute $i$ is $T_i = t_1 \cdot G$.
+Also, choose uniformly at random the master private key $y \in \mathbb{Z}_p$, from which the master public key $Y = e(G, G)^y$ is derived.
+
+Publish $Params=(Y, T_1, \dots, T_n)$ as the public parameters, privately save $MK = (y, t_1, \dots, t_n)$ as the master key.
+\\
+
+\emph{KeyGen($\Gamma$, MK)}~\cite{goyal_attribute-based_2006}.
+Input \gls{access-tree} $\Gamma$ and master key $MK$.
+
+For each node $u$ in the \gls{access-tree} $\Gamma$, recursively define polynomials $q_u(x)$ with degree $(d_u - 1)$, starting from the root.
+
+For the root $r$, set $q_r(0) = s$ and randomly choose $d_r -1$ other points to determine the polynomial $q_r(x)$.
+Then, for any other node $u$, including leaf nodes, set $q_u(0) = q_{\text{parent}(x)}(\text{index}(x))$ and choose $d_u -1$ other points at random to define the polynomial. 
+For all leaf nodes $u$, create a secret share $D_u = \frac{q_x(0)}{t_i} \cdot G$ where $i = \text{att}(x)$.
+
+The set of these secret shares is the decryption key $D = \{D_u | u \text{ leaf node of } \Gamma\}$.\\
+
+\emph{Encrypt(M, $\omega$, Params)}~\cite{goyal_attribute-based_2006}.
+Input: Message $M \in \mathbb{G}_T$, set of \glspl{attribute} and public parameters $Params$. 
+
+Choose $s \in \mathbb{Z}_q$ at random and compute $E' = M + s \cdot Y$.
+For each attribute $i \in \omega$ compute $E_i = s \cdot T_i$.
+
+Return the ciphertext as $E = (\omega, E', \{E_i | i \in \omega\})$
+\\
+
+\emph{Decrypt(E, D)}~\cite{goyal_attribute-based_2006}.
+Input: Ciphertext $E$ and decryption key $D$.
+
+First, define a recursive procedure $\text{DecryptNode}(E, D, u)$ which takes as inputs a ciphertext $E = (\omega, E', \{E_i | i \in \omega\})$, the decryption key $D$ and a node $x$ of the \gls{access-tree} associated with the decryption key.
+It outputs either en element of $\mathbb{G}_T$ or $\perp$.
+
+If $u$ is a leaf node, then $i = \text{att}(x)$ and 
+\begin{equation}
+    \text{DecryptNode}(E, D, u) = \begin{cases}
+        e(D_u, E_i) = e(\frac{q_x(0)}{t_i} \cdot G, s \cdot t_i \cdot G) = e(G, G)^{s\cdot q_x(0)} & i \in \omega\\
+        \perp & i \notin \omega
+    \end{cases}\\
+\end{equation}
+
+If $u$ is not a leaf node, instead call $\text{DecryptNode}(E, D, v)$ for all child nodes $v$ of $u$ and store the result in $F_v$.
+Let $S_u$ be an arbitrary $d_u$-sized subset of child nodes $v$ with $F_v \neq \perp$. If no such set exists, the node was not satisfied. In this case return $\perp$.
+Then compute with $i = \text{index}(z)$ and $S'_u = \{\text{index}(z) | z \in S_u\}$.
+\begin{equation}
+    \begin{split}
+        F_u &= \prod_{z \in S_u} F_z^{\Delta_{i,S'_u}(0)}\\
+        &= \prod_{z \in S_u} (e(G,G)^{s\cdot q_z(0)})^{\Delta_{i,S'_u}(0)}\\
+        &= \prod_{z \in S_u} (e(G,G)^{s\cdot q_{\text{parent}(z)}(\text{index}(z))})^{\Delta_{i,S'_u}(0)}\\
+        &= \prod_{z \in S_u} e(G,G)^{s\cdot q_u(i) \cdot \Delta_{i,S'_u}(0)}\\
+        &\stackrel{(*)}{=} e(G,G)^{s \cdot q_u(0)}
+    \end{split}
+\end{equation}
+
+The equality $(*)$ holds because, in the exponent, the product becomes a sum: $\sum_{i\in S'_u} s \cdot q_u(i) \cdot \Delta_{i,S'_u}(0)$ is exactly the lagrange interpolation of $s \cdot q_u(0)$.
+
+Let the root of the access tree be $r$, then the decryption algorithm simply calls $\text{DecryptNode}(E, D, r) = e(G,G)^{s \cdot y} = Y^s$, if the ciphertexts's attributes satisfy the \gls{access-tree}.
+If they don't, then $\text{DecryptNode}(E, D, r) = \perp$.
+
+To retrieve the message from $E' = M \cdot Y^s$, simply calculate and return $M' = E' \cdot (Y^s)^{-1}$.\\
+
+Of course, it is rather difficult (and slow) to encode the full plaintext as a group element of $\mathbb{G}_T$.
+Therefore, it is advisable to simply generate a random $K \in \mathbb{G}_T$ and encrypt the plaintext using a secure symmetric cipher with key $k = \text{KDF}(K)$, where $\text{KDF}$ is a \gls{kdf}.
+Then encrypt the point $K$ using the GPSW scheme and attach its ciphertext to the symmetric ciphertext.
+Correct decryption of $K \in \mathbb{G}_T$ then allows a receiver to decrypt the actual payload.
+
 \subsection{Yao, Chen and Tian 2015}
 
 This scheme was described by Yao, Chen and Tian \cite{yao_lightweight_2015} in 2015.
@@ -624,7 +707,7 @@ This makes it especially useful for our resource-constrained context, as bilinea
 
 As opposed to other ABE schemes based on pairings, YCT uses a hybrid approach similar to Elliptic Curve Integrated Encryption Standard (ECIES):
 The actual encryption of the plaintext is done by a symmetric cipher, for which the key is derived from a curve point determined by the YCT scheme~\cite{yao_lightweight_2015}.
-If a key's access policy is satisfied by a certain plaintext, this curve point and thus the symmetric encryption key can be reconstructed, allowing for decryption.~\cite{yao_lightweight_2015}
+If a key's \gls{access-structure} is satisfied by a certain ciphertext, this curve point and thus the symmetric encryption key can be reconstructed, allowing for decryption.~\cite{yao_lightweight_2015}
 
 The four algorithms of an ABE scheme are defined as follows: \\
 
@@ -640,7 +723,7 @@ Publish $Params=(PK, P_1, \dots, P_n)$ as the public parameters, privately save 
 \\
 
 \emph{KeyGen($\Gamma$, MK)}~\cite{yao_lightweight_2015}.
-Input: Access Tree $\Gamma$ and master key $MK$.
+Input: \glspl{access-tree} $\Gamma$ and master key $MK$.
 
 For each node $u$ in the Access Tree $\Gamma$, recursively define polynomials $q_u(x)$ with degree $(d_u - 1)$, starting from the root.
 
@@ -682,20 +765,20 @@ Where the equality $(*)$ holds because $s_i$ and $s_i^{-1}$ cancel out:
 \end{equation*}
 
 For an internal node $u$, call $\text{DecryptNode}(CM, D, v)$ for each of its childen $v$. If for less than $d_u$ of the child nodes $\text{DecryptNode}(CM, D, v) \neq \perp$, return $\text{DecryptNode}(CM, D, )=\perp$.
-Then let $\omega_u$ be an arbitrary subset of child nodes of $u$, where for all $v \in \omega_u$, $\text{DecryptNode}(CM, D, v) \neq \perp$.
+Then let $\omega_u$ be an arbitrary subset of $d_u$ child nodes of $u$, where for all $v \in \omega_u$, $\text{DecryptNode}(CM, D, v) \neq \perp$.
 Then $\text{DecryptNode}(CM, D, u)$ is defined as follows, where $i = \text{index}(v)$, $\omega'_u = \{\text{index}(v) | v \in \omega_u\}$.
 \begin{equation*}
     \begin{split}
         &~\text{DecryptNode}(CM, D, u)\\
-        =& \sum_{v \in \omega_u} l_{\omega'_u, i}(0) \cdot \text{DecryptNode}(CM, D, v)\\
-        =& \sum_{v \in \omega_u} l_{\omega'_u, i}(0) \cdot q_v(0) \cdot k \cdot G\\
-        =& \sum_{v \in \omega_u} l_{\omega'_u, i}(0) \cdot q_{\text{parent}(v)}(\text{index}(v)) \cdot k \cdot G\\
-        =& \sum_{v \in \omega_u} l_{\omega'_u, i}(0) \cdot q_u(i) \cdot k \cdot G\\
+        =& \sum_{v \in \omega_u} \Delta_{\omega'_u, i}(0) \cdot \text{DecryptNode}(CM, D, v)\\
+        =& \sum_{v \in \omega_u} \Delta_{\omega'_u, i}(0) \cdot q_v(0) \cdot k \cdot G\\
+        =& \sum_{v \in \omega_u} \Delta_{\omega'_u, i}(0) \cdot q_{\text{parent}(v)}(\text{index}(v)) \cdot k \cdot G\\
+        =& \sum_{v \in \omega_u} \Delta_{\omega'_u, i}(0) \cdot q_u(i) \cdot k \cdot G\\
         \stackrel{(*)}{=}&~q_u(0) \cdot k \cdot G
     \end{split}
 \end{equation*}
 
-The equality $(*)$ holds because $\sum_{v \in \omega_u} l_{\omega'_u, i}(0) \cdot q_u(i) = q_u(0)$ is exactly the lagrange interpolation polynomial $q_u(x)$ at $x = 0$ with respect to the points $\{(index(v), q_v(0)) | v \in \omega_u\}$. 
+The equality $(*)$ holds because $\sum_{v \in \omega'_u} \Delta_{\omega'_u, i}(0) \cdot q_u(i) = q_u(0)$ is exactly the lagrange interpolation polynomial $q_u(x)$ at $x = 0$ with respect to the points $\{(index(v), q_v(0)) | v \in \omega_u\}$. 
 
 This means for the root $r$ of the access tree $\Gamma$, we have
 \begin{equation*}

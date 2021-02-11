@@ -21,12 +21,12 @@
 
 \newglossaryentry{gls-kp-abe}{
   name={key-policy \acrshort{abe}},
-  description={Variant of \gls{abe} where the ciphertext is associated with an \gls{access-policy} and the key is associated with a set of \glspl{attribute}.}
+  description={Variant of \gls{abe} where the ciphertext is associated with an \gls{access-policy} and the key is associated with a set of \glspl{attribute}}
 }
 \newacronym[see={[Glossary:]{gls-kp-abe}}]{kp-abe}{KP-ABE}{Key-Policy \acrshort{abe}\glsadd{gls-cp-abe}}
 \newglossaryentry{gls-cp-abe}{
   name={ciphertext-policy \acrshort{abe}},
-  description={Variant of \acrshort{abe} where the key is associated with an \gls{access-policy} and the ciphertext is associated with a set of \glspl{attribute}.}
+  description={Variant of \acrshort{abe} where the key is associated with an \gls{access-policy} and the ciphertext is associated with a set of \glspl{attribute}}
 }
 \newacronym[see={[Glossary:]{gls-cp-abe}}]{cp-abe}{CP-ABE}{Ciphertext-Policy \acrshort{abe}\glsadd{gls-cp-abe}}
 
@@ -35,8 +35,21 @@
 
 \newglossaryentry{access-policy}{
   name={access policy},
-  description={A policy that defines what combination of \glspl{attribute} shall be required to access data.}
+  description={A policy that defines what combination of \glspl{attribute} shall be required to access data. Formalized by an access structure and usually realized by an access tree, see Section~\ref{sec:access-structures}}
+  plural={access policies},
 }
+
+\newglossaryentry{access-structure}{
+  name={access structure},
+  description={defines the attribute combinations that are required and sufficient to decrypt a ciphertext. See Section~\ref{sec:access-structures} and Section~\ref{sec:access-trees}}
+}
+
+\newglossaryentry{access-tree}{
+  name={access tree},
+  description={construction to realize (monotone) access structures. See Section~\ref{sec:access-trees}}
+}
+
+\newglossaryentry{kdf}{name={key derivation function},description={function that derives a suitable cryptographic key from some other data, that may be too long or not in the right format to serve as a key. Usually, hash functions are used as KDF}}
 
 \newglossaryentry{universe}{
   name={attribute universe},
