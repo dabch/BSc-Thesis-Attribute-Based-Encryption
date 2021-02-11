@@ -4,6 +4,9 @@ use k256::{Scalar, ProjectivePoint, AffinePoint};
 use heapless::{IndexMap, FnvIndexMap, Vec, consts};
 use rand::{ RngCore};
 
+use sha3::Sha3_256;
+use hmac::{Hmac, Mac, NewMac};
+
 use abe_utils::kem;
 
 
@@ -60,7 +63,8 @@ pub struct YaoAbeCiphertext<'attr, 'data>(YaoABEGroupCiphertext<'attr>, kem::Cip
 /// of decryption. The secret shared (D_u in the original paper) allowing decryption are embedded
 /// in the leaves of the tree.
 //#[derive(Debug)]
-pub struct PrivateKey<'attr, 'own>(AccessStructure<'attr, 'own>, FnvIndexMap<u8, F, consts::U64>);
+pub struct PrivateKey<'attr, 'own>(AccessStructure<'attr, 'own>, FnvIndexMap<u8, F, consts::U64>, [[u8; 8]; 4]);
+// pub struct PrivateKey<'attr, 'own>(AccessStructure<'attr, 'own>, FnvIndexMap<u8, F, consts::U64>);
 
 /// Polynomial p(x) = a0 + a1 * x + a2 * x^2 + ... defined by a vector of coefficients [a0, a1, a2, ...]
 //#[derive(Debug)]
@@ -95,16 +99,6 @@ impl Polynomial {
 }
 
 impl<'attr: 'es, 'es: 'key, 'key> YaoABEPrivate<'attr, 'es> {
-
-  pub fn setup_do_nothing(
-    att_names: &Vec<&'es str, consts::U256>,
-    mut rng: &mut dyn RngCore
-  ) -> F
-  {
-    let att_map: FnvIndexMap<&str, (F, G), consts::U64> = IndexMap::new();
-    let atts_public: FnvIndexMap<&str, G, consts::U64> = IndexMap::new(); //att_map.iter().map(|(k, (_, p))| (k.clone(), p.clone())).collect();
-    F::random(&mut rng) + F::from(att_names.len() as u64) + F::from(atts_public.len() as u64 + att_map.len() as u64)
-  }
 
   /// Corresponds to the `(A) Setup` phase in the original paper. Sets up an encryption scheme with a fixed set of attributes and 
   /// generates both public and private parameter structs. This is typically run exactly once by the KGC.
@@ -150,17 +144,23 @@ impl<'attr: 'es, 'es: 'key, 'key> YaoABEPrivate<'attr, 'es> {
     access_structure: AccessStructure<'attr, 'key>,
     rng: &mut dyn RngCore,
   ) ->
-    PrivateKey<'attr, 'key>
+    Result<PrivateKey<'attr, 'key>, ()>
   where 'es: 'key
   { 
-    let tuple_arr = self.keygen_node(
+    let mut r_per_level = [[0; 8]; 4];
+    for i in 0..4 {
+      rng.fill_bytes(&mut r_per_level[i]);
+    }
+    let tuple_arr: Vec<(u8, F), S> = self.keygen_node(
       &access_structure,
       0,
       &Polynomial::randgen(self.master_secret, 1, rng),
-      F::zero(), // this is the only node ever to have index 0, all others have index 1..n
+      F::zero(), // this is the only node ever to have index 0, all others have index 1..n,
+      0,
+      &r_per_level,
       rng,
-    );
-    return PrivateKey(access_structure, tuple_arr.into_iter().collect());
+    )?;
+    return Ok(PrivateKey(access_structure, tuple_arr.into_iter().collect(), r_per_level))
   }
 
   /// internal recursive helper to ease key generation
@@ -169,9 +169,11 @@ impl<'attr: 'es, 'es: 'key, 'key> YaoABEPrivate<'attr, 'es> {
     tree_ptr: u8,
     parent_poly: &Polynomial,
     index: F,
+    level: u8,
+    r_per_level: &[[u8; 8]; 4],
     rng: &mut dyn RngCore,
   ) ->
-    Vec<(u8, F), consts::U64>
+    Result<Vec<(u8, F), S>, ()>
   {
     // own polynomial at x = 0. Exactly q_parent(index).
     let q_of_zero = parent_poly.eval(index);
@@ -182,19 +184,27 @@ impl<'attr: 'es, 'es: 'key, 'key> YaoABEPrivate<'attr, 'es> {
         let q_of_zero = parent_poly.eval(index);
         let (s, _) = self.atts.get(*attr_name).unwrap();
         let s_inverse = s.invert().unwrap();
-        return Vec::from_slice(&[(tree_ptr, q_of_zero * s_inverse)]).unwrap();
+        return Ok(Vec::from_slice(&[(tree_ptr, q_of_zero * s_inverse)]).unwrap());
       },
       AccessNode::Node(thresh, children) => {
         // continue recursion, call recursively for all children and return a key node that contains children's key subtrees
         let own_poly = Polynomial::randgen(q_of_zero, thresh.clone(), rng); // `thres`-degree polynomial determined by q_of_zero and `thresh` random coefficients
-        let children_res: Vec<(u8, F), consts::U64> = children.iter().enumerate().
-          map(|(i, child_ptr)| self.keygen_node(tree_arr, *child_ptr, &own_poly, F::from((i+1) as u64), rng))
-          .flatten()
-          .collect();
-        return children_res;
+        let mut children_res: Vec<(u8, F), S> = Vec::new();
+        for (i, c) in children.iter().enumerate() {
+          let res = self.keygen_node(tree_arr, *c, &own_poly, index_prf(r_per_level[level as usize], F::from((i+1) as u64)), level + 1, r_per_level, rng)?;
+          children_res.extend_from_slice(&res)?;
+        }
+        return Ok(children_res);
       }
     }
   }
+}
+
+fn index_prf(r: [u8; 8], i: F) -> F {
+  let mut maccer: Hmac<Sha3_256> = Hmac::new_varkey(&r).unwrap();
+  maccer.update(&i.to_bytes());
+  let mac_res = maccer.finalize().into_bytes();
+  F::from_bytes_reduced(&mac_res)
 }
 
 impl<'data, 'key, 'es, 'attr> YaoABEPublic<'attr, 'es> {
@@ -243,7 +253,9 @@ impl<'data, 'key, 'es, 'attr> YaoABEPublic<'attr, 'es> {
     tree_arr: AccessStructure<'attr, 'key>,
     tree_ptr: u8,
     secret_shares: &FnvIndexMap<u8, F, consts::U64>,
-    att_cs: &FnvIndexMap<& 'attr str, G, S>
+    att_cs: &FnvIndexMap<& 'attr str, G, S>,
+    level: u8,
+    r_per_level: &[[u8; 8]; 4],
   ) -> Option<GIntermediate> 
   where 'attr: 'es, 'es: 'key, 'key: 'data
   {
@@ -266,7 +278,7 @@ impl<'data, 'key, 'es, 'attr> YaoABEPublic<'attr, 'es> {
         // continue recursion - call for all children and then, if enough children decrypt successfully, reconstruct the secret share for 
         // this intermediate node.
         let children_result: Vec<(F, GIntermediate), consts::U16> = children.into_iter().enumerate()
-          .map(|(i, child_ptr)| (F::from((i + 1) as u64), Self::decrypt_node(tree_arr, *child_ptr, secret_shares, att_cs))) // node indexes start at one, enumerate() starts at zero! 
+          .map(|(i, child_ptr)| (index_prf(r_per_level[level as usize], F::from((i + 1) as u64)), Self::decrypt_node(tree_arr, *child_ptr, secret_shares, att_cs, level+1, r_per_level))) // node indexes start at one, enumerate() starts at zero! 
           .filter_map(|(i, x)| match x { None => None, Some(y) => Some((i, y))}) // filter out all children that couldn't decrypt because of missing ciphertext secret shares
           .collect();
         // we can only reconstruct our secret share if at least `thresh` children decrypted successfully (interpolation of `thresh-1`-degree polynomial)
@@ -292,9 +304,9 @@ impl<'data, 'key, 'es, 'attr> YaoABEPublic<'attr, 'es> {
   where 'attr: 'es, 'es: 'key, 'key: 'data
   {
     let YaoAbeCiphertext(kem_cipher, data_cipher) = ciphertext;
-    let PrivateKey(access_structure, secret_shares) = key;
+    let PrivateKey(access_structure, secret_shares, r_per_level) = key;
     
-    let res = Self::decrypt_node(&access_structure, 0, &secret_shares, &kem_cipher.0);
+    let res = Self::decrypt_node(&access_structure, 0, &secret_shares, &kem_cipher.0, 0, r_per_level);
     let c_prime = match res {
       None => return Err(YaoAbeCiphertext(kem_cipher, data_cipher)),
       Some(p) => p,
@@ -335,7 +347,7 @@ mod tests {
 
     let system_atts: Vec<&str, consts::U256> = Vec::from_slice(&["student", "tum", "has_bachelor", "over21"]).unwrap();
     let (private, public) = crate::YaoABEPrivate::setup(&system_atts, &mut public_map, &mut private_map, &mut rng);
-    let priv_key = private.keygen(&access_structure, &mut rng);
+    let priv_key = private.keygen(&access_structure, &mut rng).unwrap();
 
 
     let ciphertext =  public.encrypt(&attributes_1, &mut data, &mut rng).unwrap();
@@ -383,7 +395,7 @@ mod tests {
   
       
   
-    let priv_key = es.keygen(&access_structure, &mut rng);
+    let priv_key = es.keygen(&access_structure, &mut rng).unwrap();
     //println!("private key:\n{:?}", priv_key)
 
   
@@ -436,7 +448,7 @@ mod tests {
     ];
 
 
-    let priv_key = es.keygen(&access_structure, &mut rng);
+    let priv_key = es.keygen(&access_structure, &mut rng).unwrap();
     //println!("private key:\n{:?}", priv_key);
   
 
