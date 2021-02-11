@@ -7,8 +7,8 @@ use rtt_target::{rtt_init_print, rprintln};
 use core::panic::PanicInfo;
 use nrf52840_hal as hal;
 use hal::{timer::Instance, };
-// use yao_abe_rust::{AccessNode, AccessStructure, YaoABECiphertext, YaoABEPrivate, YaoABEPublic, S, F, G};
-use gpsw06_abe::{self, S, F, G1, G2, Gt, GpswAbePrivate, GpswAbePublic, AccessNode, AccessStructure, GpswAbeCiphertext};
+use yao_abe_rust::{AccessNode, AccessStructure, YaoAbeCiphertext, YaoABEPrivate, YaoABEPublic, S, F, G};
+// use gpsw06_abe::{self, S, F, G1, G2, Gt, GpswAbePrivate, GpswAbePublic, AccessNode, AccessStructure, GpswAbeCiphertext};
 // use rabe_bn::{Gt};
 use heapless::{Vec, FnvIndexMap};
 // use heapless;
@@ -42,14 +42,14 @@ fn main() -> ! {
       AccessNode::Leaf("over21"),
     ];
 
-    let mut public_map: FnvIndexMap<&str, G2, S> = FnvIndexMap::new();
-    let mut private_map: FnvIndexMap<&str, F, S> = FnvIndexMap::new();
+    let mut public_map: FnvIndexMap<&str, G, S> = FnvIndexMap::new();
+    let mut private_map: FnvIndexMap<&str, (F, G), S> = FnvIndexMap::new();
 
 
     rprintln!("starting setup");
 
     let start = _timer.read();
-    let (private, public) = GpswAbePrivate::setup(&system_atts, &mut public_map, &mut private_map, &mut rng);
+    let (private, public) = YaoABEPrivate::setup(&system_atts, &mut public_map, &mut private_map, &mut rng);
     let us = _timer.read() - start;
     rprintln!("Setup took {:?}ms", us / 1000);
 
@@ -57,20 +57,20 @@ fn main() -> ! {
 
     rprintln!("starting encrypt");
     let start = _timer.read();
-    let ciphertext: GpswAbeCiphertext = public.encrypt(&atts, &mut data, &mut rng).unwrap();
+    let ciphertext = public.encrypt(&atts, &mut data, &mut rng).unwrap();
     let us = _timer.read() - start;
     rprintln!("Encryption took {:?}ms", us / 1000);
 
 
     rprintln!("Starting keygen");
     let start = _timer.read();
-    let private_key = private.keygen(&public, &access_structure, &mut rng);
+    let private_key = private.keygen(&access_structure, &mut rng).unwrap();
     let us = _timer.read() - start;
     rprintln!("keygen took {}ms", us / 1000);
 
     rprintln!("Starting decrypt");
     let start = _timer.read();
-    let res = GpswAbePublic::decrypt(ciphertext, &private_key);
+    let res = YaoABEPublic::decrypt(ciphertext, &private_key);
     let us = _timer.read() - start;
     // assert_eq!(res, data);
     rprintln!("decrypt took {}ms", us / 1000);

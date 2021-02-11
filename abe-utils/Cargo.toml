@@ -9,9 +9,13 @@ edition = "2018"
 [dependencies]
 aes = "0.6.0"
 ccm = { version = "0.3.0", default-features = false }
-rand = { version = "0.7.3", default-features = true }
+rand = { version = "0.7.3", default-features = false }
 sha3 = { version = "0.9.1", default-features = false }
 generic-array = "0.14.4"
 
 [dev-dependencies]
 rabe-bn = { path = "../../rabe-bn-own" }
+
+[dev-dependencies.rand]
+version = ""
+features = ["std"]
