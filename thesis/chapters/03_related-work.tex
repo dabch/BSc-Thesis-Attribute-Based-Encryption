@@ -1,12 +1,21 @@
 \chapter{Related Work}
 
-\begin{itemize}
-    \item Small / Large attribute universe
-    \item efficiency: pairings, exponentiations
-    \item size of: ciphertext, keys, key updates (revocation stuff)
-    \item expressiveness / expression of access policies
-    \item Revocation
-\end{itemize}
+% \begin{itemize}
+%     \item Small / Large attribute universe
+%     \item efficiency: pairings, exponentiations
+%     \item size of: ciphertext, keys, key updates (revocation stuff)
+%     \item expressiveness / expression of access policies
+%     \item Revocation
+% \end{itemize}
+
+% TODO
+% a) intro attribute-based stuff (Sahai & Waters etc.)
+%    - basics (fuzzy IBE, Goyal, Bethencourt) 
+%    - multi-authority
+%    - revocation, non-monotonic access structures
+%    - hierachical capabilities
+% b) schemes for IoT (using conventional crypto, pairing-free, server-aided etc.)
+% c) implementation works (IoT, BAN, pairings on microcontrollers)
 
 The notion of \acrlong{abe} was introduced by Sahai and Waters in 2005~\cite{sahai_fuzzy_2005}.
 They proposed a type of \gls{ibe} where identities are a set of certain attributes.
@@ -17,18 +26,40 @@ This property is realized by means of a $(k, n)$-threshold secret sharing scheme
 Sahai and Water's construction can already be seen as an \acrshort{abes} with very limited expressiveness, i.e. it only works with ''k-out-of-n'' access structures~\cite{goyal_attribute-based_2006}.
 
 In 2006, Goyal, Pandey, Sahai and Waters~\cite{goyal_attribute-based_2006} extended this into the first expressive \acrshort{kp-abe} scheme using the \gls{access-tree} construction described in Chapter~\ref{chapter:background}.
-Their main construction uses \glspl{access-tree} and a small attribute universe, but they also give constructions with a large attribute universe and for \gls{lsss} access structures, respectively.
+Their main construction uses \glspl{access-tree} and a small attribute universe, but they also give constructions with a large attribute universe and for \gls{lsss} / \gls{msp} access structures, respectively.
 
 The first expressive \acrshort{cp-abe} scheme was proposed by Bethencourt, Sahai and Waters in~\cite{bethencourt_ciphertext-policy_2007}.
 It is also a large-universe construction and uses \glspl{access-tree}.
+Waters \cite{waters_ciphertext-policy_2011} also gives the first \acrshort{cp-abe} schemes with a security proof in the \gls{standard-model}, not only in the \gls{ggm} (the distinction is not relevant for this thesis).
 
-Bothe the schemes in~\cite{goyal_attribute-based_2006} and in~\cite{bethencourt_ciphertext-policy_2007} only support monotonic \glspl{access-structure}.
-This is natural, as any set satisfying an \gls{access-tree} will still satisfy the same tree if another attribute is added.
-In fact, our construction of \glspl{access-tree} does not have an expression for the \emph{not} of an attribute.
+Both the schemes in~\cite{goyal_attribute-based_2006} and in~\cite{bethencourt_ciphertext-policy_2007} only support monotonic \glspl{access-structure}.
 
 In \cite{goyal_attribute-based_2006}, an inefficient realization of general (non-monotonic) \glspl{access-structure} is proposed, which is to simply represent the absence of an attribute as a separate attribute.
 This is inefficient because it doubles the number of attributes in the system~\cite{goyal_attribute-based_2006}.
 
-A more efficient construction for non-monotonic \glspl{access-structure} was given by Ostrovsky, Sahai and Waters in~\cite{ostrovsky_attribute-based_2007}. 
-However, this construction leads to large-size private keys, which is mitigated by 
+The first efficient construction for non-monotonic \glspl{access-structure} was given in~\cite{ostrovsky_attribute-based_2007}. 
+However, this construction leads to private keys of relatively large size.
+More specifically, the size is $\mathcal{O}(t \log(n))$, where $t$ is the number of leaf nodes in the key's \gls{access-tree} and $n$ a system-wide bound on the number of attributes a ciphertext may have~\cite{lewko_revocation_2008}. % TODO be more explicit about the size
 
+The scheme in \cite{lewko_revocation_2008} provides efficient direct revocation. It also relates direct revocation to non-monotone \glspl{access-structure}.
+The construction for non-monotone access structures from \cite{lewko_revocation_2008} has keys of size $\mathcal{O}(t)$~\cite{lewko_revocation_2008}, where $t$ is as above.
+
+The difference between direct and indirect revocation is introduced in \cite{attrapadung_attribute-based_2009}, and a \emph{Hybrid Revocable} \acrshort{abes} is given.
+It allows the encryptor to choose the revocation mode~\cite{attrapadung_attribute-based_2009}.
+
+All of these schemes are built using a bilinear pairing as introduced in Section~\ref{sec:bilinear-pairings}.
+% TODO add some stuff on server-aided IoT ABE and conventional constructions for ABE
+A pairing-free \acrshort{kp-abe} scheme was proposed by Yao, Chen and Tian \cite{yao_lightweight_2015} in 2015.
+Their scheme only uses a single group and no bilinear pairing.
+Instead of encrypting a group element that encodes a message, their scheme yields a random group element which is then used as a key for a symmetric encryption algorithm~\cite{yao_lightweight_2015}.
+
+In \cite{tan_enhancement_2019} a cryptanalysis of the scheme in \cite{yao_lightweight_2015} is performed.
+It is shown that the scheme is not secure, but the authors propose an effective fix and prove its security.
+They also extend the scheme to allow for key delegation (i.e. a hierarchical \acrshort{kp-abe} scheme)~\cite{tan_enhancement_2019}.
+
+\cite{sowjanya_efficient_2020} presents a pairing-free \acrshort{abes} with indirect revocation.
+It is an adaptation of the schemes in \cite{yao_lightweight_2015,tan_enhancement_2019}, see also \cite{herranz_attacking_2020}.
+
+All three of these schemes were attacked by Herranz in \cite{herranz_attacking_2020} (one attack for all three schemes is given, as they are very similar).
+\cite{herranz_attacking_2020} argues that it is not possible to build secure \acrshortpl{abes} in the (non-bilinear) discrete-logarithm setting (i.e. on elliptic curves without bilinear pairings).
+This remains to be assessed.

@@ -62,7 +62,7 @@ This chapter introduces \acrlong{abe} and the relevant mathematical background f
     \label{fig:key-use}
 \end{figure}
 
-\section{Confidentiality with Classic Symmetric and Asymmetric Cryptography}
+\section{Confidentiality with Classic Symmetric and Asymmetric Cryptography} % TODO maybe this better goes into the introduction
 Today's conventional cryptography knows two main classes of cryptosystems: \glspl{privkes} and \glspl{pkes}. See Figure~\ref{fig:key-use} for an illustration of the differences.
 
 Consider $n$ participants wanting to communicate securely (i.e. no user can read encrypted messages between two other users).
@@ -613,7 +613,7 @@ These cyclic elliptic curve groups (or, cyclic subgroups of non-cyclic elliptic 
 % The inverse is not generally true, i.e. there are groups in which DLP and CDHP are hard to solve, even though DDHP is easy to solve.
 % In that sense, DLP is the hardest and DDHP the easiest of the three. \cite{katz_introduction_2015} (TODO find out if this is true. \cite{menezes_introduction_2009})
 
-\subsection{Bilinear Pairings}
+\subsection{Bilinear Pairings}\label{sec:bilinear-pairings}
 \subsubsection{Introduction}
 The final primitive needed for pairing-based encryption schemes are bilinear pairings. These are functions mapping two points on (possibly different) elliptic curves to elements of a finite field (\emph{not} another point on a curve).\cite{blake_advances_2005}
 
