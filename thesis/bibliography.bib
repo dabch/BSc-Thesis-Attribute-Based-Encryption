@@ -530,7 +530,7 @@
 	file = {Waters - Ciphertext-Policy Attribute-Based Encryption An E.pdf:/home/daniel/Zotero/storage/UWM2YZJR/Waters - Ciphertext-Policy Attribute-Based Encryption An E.pdf:application/pdf}
 }
 
-@incollection{hutchison_decentralizing_2011,
+@incollection{lewko_decentralizing_2011,
 	location = {Berlin, Heidelberg},
 	title = {Decentralizing Attribute-Based Encryption},
 	volume = {6632},
@@ -541,9 +541,6 @@
 	booktitle = {Advances in Cryptology – {EUROCRYPT} 2011},
 	publisher = {Springer Berlin Heidelberg},
 	author = {Lewko, Allison and Waters, Brent},
-	editor = {Paterson, Kenneth G.},
-	editorb = {Hutchison, David and Kanade, Takeo and Kittler, Josef and Kleinberg, Jon M. and Mattern, Friedemann and Mitchell, John C. and Naor, Moni and Nierstrasz, Oscar and Pandu Rangan, C. and Steffen, Bernhard and Sudan, Madhu and Terzopoulos, Demetri and Tygar, Doug and Vardi, Moshe Y. and Weikum, Gerhard},
-	editorbtype = {redactor},
 	urldate = {2021-01-25},
 	date = {2011},
 	langid = {english},
@@ -552,11 +549,12 @@
 	file = {Lewko and Waters - 2011 - Decentralizing Attribute-Based Encryption.pdf:/home/daniel/Zotero/storage/UL9LK3VC/Lewko and Waters - 2011 - Decentralizing Attribute-Based Encryption.pdf:application/pdf}
 }
 
-@article{liu_efcient_nodate,
+@article{liu_efcient_2010,
 	title = {Efﬁcient Generation of Linear Secret Sharing Scheme Matrices from Threshold Access Trees},
 	abstract = {Linear Secret Sharing Scheme ({LSSS}) matrices are commonly used for implementing monotone access structures in highly expressive Ciphertext-Policy Attribute-Based Encryption ({CP}-{ABE}) schemes. However, {LSSS} matrices are much less intuitive to use when compared with other approaches such as boolean formulas or access trees. To bridge the gap between the usability of an access structure representation method and the implementation technique required in a concrete {CP}-{ABE} construction, Lewko and Waters proposed an algorithm which can convert any monotone boolean formulas to {LSSS} matrices. This algorithm is very useful in practice as a ciphertext policy can now be intuitively expressed using a monotone boolean formula, which has good usability, and the corresponding {LSSS} for an actual {CP}-{ABE} construction can then be generated accordingly using this algorithm. However, in this algorithm, the non-leaf nodes of a monotone boolean formula, when viewed as an access tree, can only be {AND} or {OR} gates. For general monotone access structures, for example, in a (t, n)-threshold access tree, the threshold gates of the tree have to be converted to {AND} and {OR} gates before we can apply the algorithm on this access tree. This results in generating a large {LSSS} matrix, and entailing a large {CPABE} ciphertext. To address this problem, in this paper, we propose a new algorithm which, in addition to {AND} and {OR} gates, can directly support threshold gates, and obtain much smaller {LSSS} matrices (or the same in the worst case when only {AND} and {OR} gates exist). This will particularly be useful for reducing the size of all ciphertexts with policies in the typical (t, n)-threshold type. Furthermore, as {AND} and {OR} gates are the special cases of the general (t, n)-threshold gates, not only an optimization, but also is this new algorithm a generalization of the Lewko-Waters algorithm.},
 	pages = {28},
 	author = {Liu, Zhen and Cao, Zhenfu and Wong, Duncan S},
+	date = {2010},
 	langid = {english},
 	file = {Liu et al. - Efﬁcient Generation of Linear Secret Sharing Schem.pdf:/home/daniel/Zotero/storage/CTQ7RXRF/Liu et al. - Efﬁcient Generation of Linear Secret Sharing Schem.pdf:application/pdf}
 }
@@ -874,4 +872,64 @@
 	editor = {Catalano, Dario and Fazio, Nelly and Gennaro, Rosario and Nicolosi, Antonio},
 	date = {2011},
 	file = {Waters - Ciphertext-Policy Attribute-Based Encryption An E.pdf:/home/daniel/Zotero/storage/PGZM8AYL/Waters - Ciphertext-Policy Attribute-Based Encryption An E.pdf:application/pdf}
+}
+
+@inproceedings{canard_constant-size_2016,
+	location = {Cham},
+	title = {Constant-Size Ciphertext Attribute-Based Encryption from Multi-channel Broadcast Encryption},
+	isbn = {978-3-319-49806-5},
+	abstract = {Attribute-based encryption (\$\$\{{\textbackslash}backslashmathsf \{{ABE}\}\}\$\$) is an extension of traditional public key encryption in which the encryption and decryption phases are based on user's attributes. More precisely, we focus on ciphertext-policy \$\$\{{\textbackslash}backslashmathsf \{{ABE}\}\}\$\$(\$\$\{{\textbackslash}backslashmathsf \{{CP}\}\}\$\$-\$\$\{{\textbackslash}backslashmathsf \{{ABE}\}\}\$\$) where the secret-key is associated to a set of attributes and the ciphertext is generated with an access policy. It then becomes feasible to decrypt a ciphertext only if one's attributes satisfy the used access policy. \$\$\{{\textbackslash}backslashmathsf \{{CP}\}\}\$\$-\$\$\{{\textbackslash}backslashmathsf \{{ABE}\}\}\$\$scheme with constant-size ciphertext supporting fine-grained access control has been investigated at {AsiaCrypt}'15 and then at {TCC}'16. The former makes use of the conversion technique between \$\$\{{\textbackslash}backslashmathsf \{{ABE}\}\}\$\$and spatial encryption, and the later studies the pair encodings framework.},
+	pages = {193--211},
+	booktitle = {Information Systems Security},
+	publisher = {Springer International Publishing},
+	author = {Canard, Sébastien and Trinh, Viet Cuong},
+	editor = {Ray, Indrajit and Gaur, Manoj Singh and Conti, Mauro and Sanghi, Dheeraj and Kamakoti, V.},
+	date = {2016}
+}
+
+@inproceedings{abe_converting_2014,
+	location = {Berlin, Heidelberg},
+	title = {Converting Cryptographic Schemes from Symmetric to Asymmetric Bilinear Groups},
+	isbn = {978-3-662-44371-2},
+	abstract = {We propose a method to convert schemes designed over symmetric bilinear groups into schemes over asymmetric bilinear groups. The conversion assigns variables to one or both of the two source groups in asymmetric bilinear groups so that all original computations in the symmetric bilinear groups go through over asymmetric groups without having to compute isomorphisms between the source groups. Our approach is to represent dependencies among variables using a directed graph, and split it into two graphs so that variables associated to the nodes in each graph are assigned to one of the source groups. Though searching for the best split is cumbersome by hand, our graph-based approach allows us to automate the task with a simple program. With the help of the automated search, our conversion method is applied to several existing schemes including one that has been considered hard to convert.},
+	pages = {241--260},
+	booktitle = {Advances in Cryptology – {CRYPTO} 2014},
+	publisher = {Springer Berlin Heidelberg},
+	author = {Abe, Masayuki and Groth, Jens and Ohkubo, Miyako and Tango, Takeya},
+	editor = {Garay, Juan A. and Gennaro, Rosario},
+	date = {2014}
+}
+
+@inproceedings{abe_converting_2014-1,
+	location = {Berlin, Heidelberg},
+	title = {Converting Cryptographic Schemes from Symmetric to Asymmetric Bilinear Groups},
+	isbn = {978-3-662-44371-2},
+	abstract = {We propose a method to convert schemes designed over symmetric bilinear groups into schemes over asymmetric bilinear groups. The conversion assigns variables to one or both of the two source groups in asymmetric bilinear groups so that all original computations in the symmetric bilinear groups go through over asymmetric groups without having to compute isomorphisms between the source groups. Our approach is to represent dependencies among variables using a directed graph, and split it into two graphs so that variables associated to the nodes in each graph are assigned to one of the source groups. Though searching for the best split is cumbersome by hand, our graph-based approach allows us to automate the task with a simple program. With the help of the automated search, our conversion method is applied to several existing schemes including one that has been considered hard to convert.},
+	pages = {241--260},
+	booktitle = {Advances in Cryptology – {CRYPTO} 2014},
+	publisher = {Springer Berlin Heidelberg},
+	author = {Abe, Masayuki and Groth, Jens and Ohkubo, Miyako and Tango, Takeya},
+	editor = {Garay, Juan A. and Gennaro, Rosario},
+	date = {2014}
+}
+
+@inproceedings{attrapadung_expressive_2011,
+	location = {Berlin, Heidelberg},
+	title = {Expressive Key-Policy Attribute-Based Encryption with Constant-Size Ciphertexts},
+	isbn = {978-3-642-19379-8},
+	abstract = {Attribute-based encryption ({ABE}), as introduced by Sahai and Waters, allows for fine-grained access control on encrypted data. In its key-policy flavor, the primitive enables senders to encrypt messages under a set of attributes and private keys are associated with access structures that specify which ciphertexts the key holder will be allowed to decrypt. In most {ABE} systems, the ciphertext size grows linearly with the number of ciphertext attributes and the only known exceptions only support restricted forms of threshold access policies.},
+	pages = {90--108},
+	booktitle = {Public Key Cryptography – {PKC} 2011},
+	publisher = {Springer Berlin Heidelberg},
+	author = {Attrapadung, Nuttapong and Libert, Benoît and de Panafieu, Elie},
+	editor = {Catalano, Dario and Fazio, Nelly and Gennaro, Rosario and Nicolosi, Antonio},
+	date = {2011}
+}
+
+@book{agrawal_fame_2017,
+	title = {{FAME}: Fast Attribute-based Message Encryption},
+	author = {Agrawal, Shashank and Chase, Melissa},
+	date = {2017},
+	note = {Published: Cryptology {ePrint} Archive, Report 2017/807},
+	file = {Agrawal and Chase - 2017 - FAME Fast Attribute-based Message Encryption.pdf:/home/daniel/Zotero/storage/BN5XK9MS/Agrawal and Chase - 2017 - FAME Fast Attribute-based Message Encryption.pdf:application/pdf}
 }

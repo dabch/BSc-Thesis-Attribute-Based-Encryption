@@ -84,8 +84,18 @@
   description={type of encryption where data is encrypted using a unique identity (e.g. an email address or phone number), and only the participant holding the secret key corresponding to that identity is able to decrypt the ciphertext.}
 }
 
-\newglossaryentry{msp}{name={monotone span program},description={monotone span program}}
-\newglossaryentry{lsss}{name={LSSS},description={linear secret sharing scheme}}
+\newglossaryentry{gls-msp}{
+  name={monotone span program},
+  description={monotone span program},
+}
+
+\newglossaryentry{gls-lsss}{
+  name={LSSS},
+  description={linear secret sharing scheme}
+}
+
+\newacronym[see={[Glossary:]{gls-msp}}]{msp}{MSP}{Monotone Span Program\glsadd{gls-msp}}
+\newacronym[see={[Glossary:]{gls-lsss}}]{lsss}{LSSS}{Linear Secret Sharing Scheme\glsadd{gls-msp}}
 
 \newglossaryentry{standard-model}{
   name={standard model},
