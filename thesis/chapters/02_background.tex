@@ -329,11 +329,15 @@ Note that $\mathcal{A}$ has to be monotone. It is not possible to specify that t
 Using the threshold-gate construction, we can express \emph{A AND B} as a node with two children $A$ and $B$ and threshold $2$, and express \emph{A OR B} as a node with two children $A$ and $B$ and threshold $1$~\cite{yao_lightweight_2015}.
 
 \subsection{Linear Secret Sharing Schemes and Span Programs}\label{sec:lsss} % TODO reference Shamirs Secret Sharing as an example for LSSS (or the oother way round)
-Instead of the \gls{access-tree} construction, nowadays most \acrshortpl{abes} use monotone \acrfullpl{msp} to describe any (monotone) \gls{access-structure} realizable by \acrfull{lsss}.
+Instead of the \gls{access-tree} construction, nowadays most \acrshortpl{abes} use monotone \acrfullpl{msp} to describe any \gls{access-structure} realizable by \acrfull{lsss}.
 For a definition of \acrshort{lsss} see~\cite{beimel_secure_1996}.
 Also see there for a proof of the equivalence of \acrshort{lsss} and \acrshort{msp}.
 
-Any \gls{access-structure} that can be described by an \gls{access-tree} can also be described by a \acrshort{msp}.
+It is conjectured, but not proven, that there are \glspl{access-structure} that require secret shares of exponential size in any secret sharing scheme that realizes them~\cite{beimel_secure_1996}.
+This would especially mean that not all \glspl{access-structure} can be realized by \acrshort{lsss} (as their shares are smaller than exponential).
+\acrshort{lsss}-realizable \glspl{access-structure} seem to be the most general type of \glspl{access-structure} supported by \acrshortpl{abes} in literature. 
+
+Any \gls{access-structure} that can be described by an \gls{access-tree} can also be described by a \acrshort{msp} or \acrshort{lsss}.
 For an efficient conversion from Boolean Formulas (which are essentially \glspl{access-tree} limited to two children per inner node) to \acrlongpl{msp}, see the appendix of~\cite{lewko_decentralizing_2011}.
 A more general construction for the threshold trees described in Section~\ref{sec:access-trees} is given in~\cite{liu_efcient_2010}.
 
