@@ -7,6 +7,7 @@ dependencies = [
  "aes",
  "ccm",
  "generic-array 0.14.4",
+ "heapless",
  "rabe-bn",
  "rand",
  "sha3",

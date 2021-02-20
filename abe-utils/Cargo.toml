@@ -13,6 +13,7 @@ rand = { version = "0.7.3", default-features = false }
 sha3 = { version = "0.9.1", default-features = false }
 generic-array = "0.14.4"
 rabe-bn = { path = "../../rabe-bn-own", default-features = false }
+heapless = "0.5.6"
 
 [dev-dependencies.rand]
 version = ""
