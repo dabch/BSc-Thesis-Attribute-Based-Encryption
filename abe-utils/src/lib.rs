@@ -1,6 +1,6 @@
 #![no_std]
 pub mod kem;
-pub mod hash_to_curve;
+pub mod hash_to_group;
 
 pub use kem::{encrypt, decrypt, Ciphertext};
 
