@@ -106,3 +106,24 @@
   name={generic group model},
   description={formal security model assuming that the attacker only has oracle access to the group operation (provides less formal security than the \gls{standard-model})}
 }
+
+\newglossaryentry{dss}{name={digital signature scheme},description={asymmetric cryptographic scheme/protocol for ensuring message authenticity and integrity}}
+
+\newglossaryentry{dh}{
+  name={diffie-hellman key exchange},
+  text={Diffie-Hellman Key Exchange},
+  description={key agreement protocol that allows two parties A and B to agree on a shared secret value over an insecure channel. A and B can derive the same secret value, while any adversaries cannot (as long as they only passively eavesdrop, but not modify, the information exchanged between A and B)}
+}
+
+\newglossaryentry{security-level}{
+  name={security level},
+  description={ % TODO check this and find a citation
+    measure of the strength of a cryptographic scheme, usually given in bits.
+    A security level of $n$ bits means that the most efficient attack needs to perform at least around $2^n$ operations to break the scheme.
+    Note that this does not directly translate to the size of the used parameters: 
+    to guarantee a security level of $n$ bits, usually the the size of the field underlying our elliptic curve (i.e. the number of bits of its modulus) needs to be \emph{at least} $2n$, sometimes much larger},
+}
+
+\newacronym[description={single instruction, multiple data. Vectorized CPU instruction that processes several pieces of data at once}]{simd}{SIMD}{single instruction multiple data}
+
+\newacronym{iot}{IoT}{Internet of Things}
