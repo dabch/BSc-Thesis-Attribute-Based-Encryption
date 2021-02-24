@@ -24,7 +24,7 @@ pub enum Label<'a> {
 
 impl<'a> Label<'a> {
     #[allow(dead_code)]
-    fn get_str(&self) -> &'a str {
+    pub fn get_str(&self) -> &'a str {
         match self {
             Self::Attribute(s) | Self::NotAttribute(s) => s,
         }
@@ -33,7 +33,7 @@ impl<'a> Label<'a> {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct MSP<'a>(Vec<(Label<'a>, Vec<i8, S>), S>);
+pub struct MSP<'a>(pub Vec<(Label<'a>, Vec<i8, S>), S>);
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Error;
@@ -123,6 +123,14 @@ impl<'a> MSP<'a> {
             }
         };
         Ok(req)
+    }
+}
+
+impl<'a> IntoIterator for MSP<'a> {
+    type Item = <heapless::Vec<(Label<'a>, Vec<i8, S>), S> as IntoIterator>::Item;
+    type IntoIter = <heapless::Vec<(Label<'a>, Vec<i8, S>), S> as IntoIterator>::IntoIter;
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
     }
 }
 

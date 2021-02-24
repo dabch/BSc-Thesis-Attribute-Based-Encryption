@@ -20,6 +20,24 @@ pub fn hash_to_gt(inp: &[u8], generator: Gt) -> Gt {
     generator.pow(scalar)
 }
 
+pub fn hash_xlt<G>(x: &[u8], l: u8, t: u8, generator: G) -> G::Output 
+where G: Mul<Fr> {
+    let mut hasher = Sha3_512::new();
+    hasher.update(x);
+    hasher.update([l, t, 0]); // the 0 is to prevent a collision with hash_jlt
+    let scalar = Fr::interpret(hasher.finalize().as_slice().try_into().unwrap());
+    generator * scalar
+}
+
+pub fn hash_jlt<G>(j: Fr, l: u8, t: u8, generator: G) -> G::Output 
+where G: Mul<Fr> {
+    let mut hasher = Sha3_512::new();
+    hasher.update(j.uninterpret());
+    hasher.update([l, t, 1]); // the 1 is to prevent a collision with hash_jlt
+    let scalar = Fr::interpret(hasher.finalize().as_slice().try_into().unwrap());
+    generator * scalar
+}
+
 #[cfg(test)]
 mod test {
     use super::*;

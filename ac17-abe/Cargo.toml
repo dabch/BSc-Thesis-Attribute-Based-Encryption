@@ -1,0 +1,13 @@
+[package]
+name = "ac17-abe"
+version = "0.1.0"
+authors = ["Daniel Buecheler <daniel.buecheler@tum.de>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rand = { version = "0.7.3", default-features = true}
+heapless = "0.5.6"
+rabe-bn = { path = "../../rabe-bn-own", default-features = false }
+abe-utils = { path = "../abe-utils/" }
