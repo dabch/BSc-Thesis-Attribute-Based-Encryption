@@ -41,27 +41,27 @@ pub type F = rabe_bn::Fr;
 /// Represents the full parameters of an ABE scheme, known in full only to the KGC
 #[derive(Debug)]
 pub struct GpswAbePrivate<'attr, 'own> {
-    atts: &'own FnvIndexMap<&'attr str, F, S>,
-    // pk: G,
-    master_secret: F,
-  }
-    
-  /// represents the public ABE parameters, known to all participants and used for encryption, decryption and the like
-  #[derive(Debug)]
-  pub struct GpswAbePublic<'attr, 'own> {
-    g1: G1,
-    g2: G2,
-    atts: &'own FnvIndexMap<&'attr str, G2, S>,
-    pk: Gt,
-  }
-    
-  /// represents an access structure that defines the powers of a key.
-  /// This is passed to keygen() by the KGC, and then embedded in the private key issued to the user.
-  #[derive(Debug)]
-  pub enum AccessNode<'attr> {
-    Node(u64, Vec<u8, consts::U16>), // threshold, children
-    Leaf(&'attr str),
-  }
+  atts: &'own FnvIndexMap<&'attr str, F, S>,
+  // pk: G,
+  master_secret: F,
+}
+  
+/// represents the public ABE parameters, known to all participants and used for encryption, decryption and the like
+#[derive(Debug)]
+pub struct GpswAbePublic<'attr, 'own> {
+  g1: G1,
+  g2: G2,
+  atts: &'own FnvIndexMap<&'attr str, G2, S>,
+  pk: Gt,
+}
+  
+/// represents an access structure that defines the powers of a key.
+/// This is passed to keygen() by the KGC, and then embedded in the private key issued to the user.
+#[derive(Debug)]
+pub enum AccessNode<'attr> {
+  Node(u64, Vec<u8, consts::U16>), // threshold, children
+  Leaf(&'attr str),
+}
 
 
 /// Represents an access structure defined as a threshold-tree

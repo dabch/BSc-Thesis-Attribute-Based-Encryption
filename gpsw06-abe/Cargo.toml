@@ -8,7 +8,6 @@ edition = "2018"
 
 [dependencies]
 rand = { version = "0.7.3", default-features = false }
-aes = "0.6.0"
 ccm =  { version = "0.3.0", default-features = false, features = ["heapless"] }
 heapless = "0.5.6"
 rabe-bn = { path = "../../rabe-bn-own", default-features = false }

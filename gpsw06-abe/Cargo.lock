@@ -167,7 +167,6 @@ name = "gpsw06_abe"
 version = "0.1.0"
 dependencies = [
  "abe-utils",
- "aes",
  "ccm",
  "heapless",
  "rabe-bn",
