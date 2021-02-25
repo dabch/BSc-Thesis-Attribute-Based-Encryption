@@ -71,12 +71,12 @@ This remains to be assessed.
 ~
 
 % TODO open topics: implementation of lattice-based ABE on microcontrollers / in Rust / at all (?)
-One of major factors for the performance of the implementation of an \acrshort{abes} is the underlying pairing computation.
+One of the major factors for the performance of the implementation of an \acrshort{abes} is the underlying pairing computation.
 Not only \acrshort{abe} is based on bilinear pairings, but a large variety of cryptographic schemes, e.g. a three-party \gls{dh}~\cite{joux_one_2000} or short \glspl{dss}~\cite{boneh_short_2001}).
 
 Therefore, a fast implementation of the bilinear pairing is vital.
 Comparing different pairing implementations is difficult because the performance greatly depends on the \gls{security-level}, the concrete pairing implemented, the choice of elliptic curves and of course the speed of the hardware and architecture used. 
-Furthermore, many implementations are not portable due to hand-optimized assembly code or the use of hardware-specific instructions.
+Furthermore, many implementations are not portable due to hand-optimized assembly code or the use of architecture-specific instructions.
 
 One of the first notable implementations was the \emph{Pairing-Based Cryptography Library (PBC)}\footnote{\label{footnotepbc}\url{https://crypto.stanford.edu/pbc/}}~\cite{lynn_implementation_2007}. % TODO verify that this was the first!
 The efficiency improvements implemented by the PBC library were first described by its author, Ben Lynn, in~\cite{lynn_implementation_2007}.
@@ -95,7 +95,7 @@ Implementations of \acrshort{abe} on standard PC hardware are well-studied \cite
 
 In \cite{akinyele_self-protecting_2010}, a pairing-based \acrshort{abe} scheme is evaluated on a standard computer and an ARM-based smartphone (iPhone 4). % TODO security level unclear
 On the smartphone, only decryption is implemented because encryption is not needed in their scenario.
-They conclude that for policies with less than 30 leaves, decryption on a smartphone is feasible (taking between around 2 and 7 seconds, depending on the scheme) \cite{akinyele_self-protecting_2010}.
+They conclude that for policies with less than 30 leaves, decryption on a smartphone is feasible (taking around 2 to 7 seconds, depending on the scheme) \cite{akinyele_self-protecting_2010}.
 
 In \cite{sanchez_neon_2013}, a pairing library and \acrshort{abes} is implemented using the NEON instructions, a set of \acrshort{simd} vector instructions for ARM processors.
 They evaluate their implementations on several ARM Cortex A9 and A15 processors with clock frequencies between 1GHz and 1.7GHz.
