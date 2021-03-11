@@ -1,4 +1,6 @@
-\chapter{Constructions for Attribue-Based Encryption Schemes}\label{sec:concrete-schemes} 
+\chapter{Constructions}\label{sec:concrete-schemes} 
+
+\section{Barreto-Nahrig Curves and the \texttt{rabe-bn} library}
 
 \section{Goyal, Pandey, Sahai and Waters, 2006}
 This scheme was the first \acrshort{abes} with expressive \glspl{access-policy}. Policies are associated with the key (\acrshort{kp-abe}).
@@ -8,34 +10,40 @@ Goyal~\emph{et.~al.} extend the earlier work from Sahai and Waters~\cite{sahai_f
 They are the first to use Shamir's Secret Sharing hierarchically in the \gls{access-tree} as described in Section~\ref{sec:lss-in-access-trees}. 
 
 The GPSW scheme encrypts a message represented by a point of the bilinear pairing's target group $\mathbb{G}_T$.
-The main construction follows the \emph{small universe} approach, but a construction allowing arbitrary attributes is also given.
-The construction described here ist the \emph{small universe} construction.\\
+The main construction follows the \gls{small-universe} approach, but a construction allowing arbitrary attributes is also given.
+The construction described here ist the \gls{small-universe} construction.
 
-Let $\mathbb{G}_1$ be a bilinear group of prime order $q$, and let $G$ be a generator of $\mathbb{G}_1$. Let $e: \mathbb{G}_1 \times \mathbb{G}_1 \rightarrow \mathbb{G}_T$ be a bilinear map.
-Note that $\mathbb{G}_1$ is written additively, but $\mathbb{G}_T$ is written using multiplicative notation.
+The construction given here is exactly as implemented; it differs from the original construction in the use of an asymmetric pairing ($e: \mathbb{G}_1 \times \mathbb{G}_2 \rightarrow \mathbb{G}_T$) instead of a symmetric pairing ($e: \mathbb{G}_1 \times \mathbb{G}_1 \rightarrow \mathbb{G}_T$).\\
+In the GPSW construction, the pairing is only evaluated during decryption phase for leaf nodes (see below).
+There, the curve point on one side comes from the ciphertext, and the point on the other side from the key.
+Originally, a symmetric pairing is used, so their order can be swapped freely.
+As we want to improve the speed of the encryption, we use the shorter elements of $\mathbb{G}_1$ for everything that has to do with the ciphertext, because that way only elements of $\mathbb{G}_1$ need to manipulated during encryption. \\
+
+Let $\mathbb{G}_1$ and $\mathbb{G}_2$ be bilinear groups of prime order $q$. Let $P$ be a generator of $\mathbb{G}_1$ and $Q$ be a generator of $\mathbb{G}_2$. Let $e: \mathbb{G}_1 \times \mathbb{G}_1 \rightarrow \mathbb{G}_T$ be a bilinear map.
+Note that $\mathbb{G}_1$ and $\mathbb{G}_2$ are written additively, but $\mathbb{G}_T$ is written using multiplicative notation.
 
 \emph{Setup}~\cite{goyal_attribute-based_2006}.
 The attribute universe is defined as $\text{U} = \{1, 2, \dots, n\}$ and is fixed.
 For every attribute $i \in U$, choose uniformly at random a secret number $t_i \in \mathbb{Z}_q$.
-Then the public key of attribute $i$ is $T_i = t_1 \cdot G$.
-Also, choose uniformly at random the master private key $y \in \mathbb{Z}_p$, from which the master public key $Y = e(G, G)^y$ is derived.
+Then the public key of attribute $i$ is $T_i = t_1 \cdot P$.
+Also, choose uniformly at random the master private key $y \in \mathbb{Z}_p$, from which the master public key $Y = e(P, Q)^y$ is derived.
 
 Publish $Params=(Y, T_1, \dots, T_n)$ as the public parameters, privately save $MK = (y, t_1, \dots, t_n)$ as the master key.
 \\
 
 \emph{KeyGen($\Gamma$, MK)}~\cite{goyal_attribute-based_2006}.
-Input \gls{access-tree} $\Gamma$ and master key $MK$.
+Input: \gls{access-tree} $\Gamma$ and master key $MK$.
 
 For each node $u$ in the \gls{access-tree} $\Gamma$, recursively define polynomials $q_u(x)$ with degree $(d_u - 1)$, starting from the root.
 
 For the root $r$, set $q_r(0) = s$ and randomly choose $d_r -1$ other points to determine the polynomial $q_r(x)$.
 Then, for any other node $u$, including leaf nodes, set $q_u(0) = q_{\text{parent}(x)}(\text{index}(x))$ and choose $d_u -1$ other points at random to define the polynomial. 
-For all leaf nodes $u$, create a secret share $D_u = \frac{q_x(0)}{t_i} \cdot G$ where $i = \text{att}(x)$.
+For all leaf nodes $u$, create a secret share $D_u = q_x(0) \cdot t_i^{-1} \cdot Q$ where $i = \text{att}(x)$.
 
 The set of these secret shares is the decryption key $D = \{D_u | u \text{ leaf node of } \Gamma\}$.\\
 
 \emph{Encrypt(M, $\omega$, Params)}~\cite{goyal_attribute-based_2006}.
-Input: Message $M \in \mathbb{G}_T$, set of \glspl{attribute} and public parameters $Params$. 
+Input: Message $M \in \mathbb{G}_T$, set of \glspl{attribute} $\omega$ and public parameters $Params$. 
 
 Choose $s \in \mathbb{Z}_q$ at random and compute $E' = M + s \cdot Y$.
 For each attribute $i \in \omega$ compute $E_i = s \cdot T_i$.
@@ -52,7 +60,7 @@ It outputs either en element of $\mathbb{G}_T$ or $\perp$.
 If $u$ is a leaf node, then $i = \text{att}(x)$ and 
 \begin{equation}
     \text{DecryptNode}(E, D, u) = \begin{cases}
-        e(D_u, E_i) = e(\frac{q_x(0)}{t_i} \cdot G, s \cdot t_i \cdot G) = e(G, G)^{s\cdot q_x(0)} & i \in \omega\\
+        e(E_i, D_u) = e(s \cdot t_i \cdot P, q_u(0) \cdot t_i^{-1} \cdot Q) = e(P, Q)^{s\cdot q_u(0)} & i \in \omega\\
         \perp & i \notin \omega
     \end{cases}\\
 \end{equation}
@@ -63,16 +71,16 @@ Then compute with $i = \text{index}(z)$ and $S'_u = \{\text{index}(z) | z \in S_
 \begin{equation}
     \begin{split}
         F_u &= \prod_{z \in S_u} F_z^{\Delta_{i,S'_u}(0)}\\
-        &= \prod_{z \in S_u} (e(G,G)^{s\cdot q_z(0)})^{\Delta_{i,S'_u}(0)}\\
-        &= \prod_{z \in S_u} (e(G,G)^{s\cdot q_{\text{parent}(z)}(\text{index}(z))})^{\Delta_{i,S'_u}(0)}\\
-        &= \prod_{z \in S_u} e(G,G)^{s\cdot q_u(i) \cdot \Delta_{i,S'_u}(0)}\\
-        &\stackrel{(*)}{=} e(G,G)^{s \cdot q_u(0)}
+        &= \prod_{z \in S_u} (e(P,Q)^{s\cdot q_z(0)})^{\Delta_{i,S'_u}(0)}\\
+        &= \prod_{z \in S_u} (e(P,Q)^{s\cdot q_{\text{parent}(z)}(\text{index}(z))})^{\Delta_{i,S'_u}(0)}\\
+        &= \prod_{z \in S_u} e(P,Q)^{s\cdot q_u(i) \cdot \Delta_{i,S'_u}(0)}\\
+        &\stackrel{(*)}{=} e(P,Q)^{s \cdot q_u(0)}
     \end{split}
 \end{equation}
 
 The equality $(*)$ holds because, in the exponent, the product becomes a sum: $\sum_{i\in S'_u} s \cdot q_u(i) \cdot \Delta_{i,S'_u}(0)$ is exactly the lagrange interpolation of $s \cdot q_u(0)$.
 
-Let the root of the access tree be $r$, then the decryption algorithm simply calls $\text{DecryptNode}(E, D, r) = e(G,G)^{s \cdot y} = Y^s$, if the ciphertexts's attributes satisfy the \gls{access-tree}.
+Let the root of the access tree be $r$, then the decryption algorithm simply calls $\text{DecryptNode}(E, D, r) = e(P,Q)^{s \cdot y} = Y^s$, if the ciphertexts's attributes satisfy the \gls{access-tree}.
 If they don't, then $\text{DecryptNode}(E, D, r) = \perp$.
 
 To retrieve the message from $E' = M \cdot Y^s$, simply calculate and return $M' = E' \cdot (Y^s)^{-1}$.\\
