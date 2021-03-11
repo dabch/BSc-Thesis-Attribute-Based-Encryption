@@ -46,7 +46,7 @@ However, this construction leads to large private keys.
 More specifically, the size is $\mathcal{O}(t \log(n))$, where $t$ is the number of leaf nodes in the key's \gls{access-tree} and $n$ a system-wide bound on the number of attributes a ciphertext may have~\cite{lewko_revocation_2008}. % TODO be more explicit about the size
 
 In \cite{lewko_revocation_2008} direct revocation is related to the realization non-monotone \glspl{access-structure} and a scheme with efficient direct revocation is presented.
-The authors also present an efficient construction for non-monotone access structures with keys of size $\mathcal{O}(t)$~\cite{lewko_revocation_2008}, where $t$ is as above.
+The authors also present an efficient construction for non-monotone access structures with keys of size $\mathcal{O}(t)$~\cite{lewko_revocation_2008}, where $t$ is again the number of leaf nodes in the key's \gls{access-tree}.
 
 The difference between direct and indirect revocation is introduced in \cite{attrapadung_attribute-based_2009}, and a \emph{Hybrid Revocable} \acrshort{abes} is given.
 It allows the encryptor to choose the revocation mode separately for every message~\cite{attrapadung_attribute-based_2009}.
@@ -71,7 +71,7 @@ This remains to be assessed.
 ~
 
 % TODO open topics: implementation of lattice-based ABE on microcontrollers / in Rust / at all (?)
-One of the major factors for the performance of the implementation of an \acrshort{abes} is the underlying pairing computation.
+One of the major factors for the performance of the implementation of an \acrshort{abes} is the underlying pairing computation (except for \cite{yao_lightweight_2015} and its derivatives, of course).
 Not only \acrshort{abe} is based on bilinear pairings, but a large variety of cryptographic schemes, e.g. a three-party \gls{dh}~\cite{joux_one_2000} or short \glspl{dss}~\cite{boneh_short_2001}).
 
 Therefore, a fast implementation of the bilinear pairing is vital.
@@ -95,6 +95,7 @@ Implementations of \acrshort{abe} on standard PC hardware are well-studied \cite
 
 In \cite{akinyele_self-protecting_2010}, a pairing-based \acrshort{abe} scheme is evaluated on a standard computer and an ARM-based smartphone (iPhone 4). % TODO security level unclear
 On the smartphone, only decryption is implemented because encryption is not needed in their scenario.
+This implementation uses the PBC library and 224-bit MNT curve from~\cite{lynn_implementation_2007}.
 They conclude that for policies with less than 30 leaves, decryption on a smartphone is feasible (taking around 2 to 7 seconds, depending on the scheme) \cite{akinyele_self-protecting_2010}.
 
 In \cite{sanchez_neon_2013}, a pairing library and \acrshort{abes} is implemented using the NEON instructions, a set of \acrshort{simd} vector instructions for ARM processors.
@@ -104,16 +105,16 @@ Note that the NEON instruction set is not available on our SoC. % TODO security 
 
 In \cite{wang_performance_2014}, \glslink{gls-cp-abe}{CP-} and \acrshort{kp-abe} are evaluated for different security levels on an Intel Atom-based smartphone using a Java implementation.
 They conclude that \acrshort{abe} on smartphones is not fast enough to be practical.
-This is subsequently challenged in \cite{ambrosin_feasibility_2015}, where a C implementation using Lynn's PBC library is evaluated on another smartphone with a 1.2GHz ARM Cortex A9 CPU.
+This is subsequently challenged in \cite{ambrosin_feasibility_2015}, where a C implementation also using the PBC library from~\cite{lynn} is evaluated on another smartphone with a 1.2GHz ARM Cortex A9 CPU.
 This implementation is significantly faster than the one in \cite{wang_performance_2014} at comparable security levels.
 As such, the authors conclude that \acrshort{abe} is indeed feasible on smartphones.
 
 The authors of \cite{ambrosin_feasibility_2015} shortly thereafter consider the feasibility of \acrshort{abe} on \gls{iot} devices in \cite{ambrosin_feasibility_2016}.
 They evaluate the performance of the same library on, among others, a Raspberry Pi Zero (1GHz ARM11 CPU) and conclude that \acrshort{abe} is feasible on these devices, too.
-However, they note that especially lower security levels are suitable and that the penalty for increasing the security level is very high (e.g. increasing the security level from 80 to 128 bits without increasing the encryption time requires reduction of the number of attributes by a factor of 10~\cite{ambrosin_feasibility_2016}.
+However, they note that especially lower security levels are suitable and that the penalty for increasing the security level is very high (e.g. increasing the security level from 80 to 128 bits without increasing the encryption time requires reduction of the number of attributes by a factor of 10)~\cite{ambrosin_feasibility_2016}.
 
 The setting in \cite{borgh_attribute-based_2016} is much closer to ours: \acrshort{abe} is implemented bare-metal (i.e. without operating system) on a sensor equipped with an STM32L151VCT6 SoC with a maximum clock frequency of 32MHz.
-They use the \emph{RELIC Toolkit}\footnote{\url{https://github.com/relic-toolkit/relic}} and evaluate a C implementation of the \acrshort{cp-abe} scheme in \cite{waters_ciphertext-policy_2011}.
+They use the pairing library \emph{RELIC Toolkit}\footnote{\url{https://github.com/relic-toolkit/relic}} and evaluate a C implementation of the \acrshort{cp-abe} scheme in \cite{waters_ciphertext-policy_2011}.
 The author again concludes that \acrshort{abe} encryption on the sensor is feasible if the policy size is rather small and the runtime of several seconds is acceptable~\cite{borgh_attribute-based_2016}.
 In this case, the encryption time is over 10s already for just six attributes~\cite{borgh_attribute-based_2016}.
 
