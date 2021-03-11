@@ -586,8 +586,7 @@ We will be adding points to themselves a lot. Therefore, we define for ease of n
     \end{equation}
 \end{definition}
  
-That is exactly the definition of group exponentiation, applied to our additive \Gls{ec} group. Note that the product of a scalar with a point is again a point on our curve.
-\\
+That is exactly the definition of group exponentiation, applied to our additive \Gls{ec} group. Note that the product of a scalar with a point is again a point on our curve.\\
 
 \subsection{Groups on Elliptic Curves}
 \begin{theorem}
@@ -652,20 +651,32 @@ These cyclic elliptic curve groups (or, cyclic subgroups of non-cyclic elliptic 
 % In that sense, DLP is the hardest and DDHP the easiest of the three. \cite{katz_introduction_2015} (TODO find out if this is true. \cite{menezes_introduction_2009})
 
 \subsection{Bilinear Pairings}\label{sec:bilinear-pairings}
-\subsubsection{Introduction}
-The final primitive needed for pairing-based encryption schemes are bilinear pairings. These are functions mapping two points on (possibly different) elliptic curves to elements of a finite field (\emph{not} another point on a curve).\cite{blake_advances_2005}
 
-Let $n \in \mathbb{N}_0$, $\mathbb{G}_1$ denote an additive abelian group of order $n$ with generator $P$ and identity $\mathcal{O}$. 
-Let $\mathbb{G}_T$ be another group of order $n$, this time written multiplicatively with generator $g$ and identity $1$.
-A \emph{bilinear pairing} then is a function $e: \mathbb{G}_1 \times \mathbb{G}_1 \rightarrow \mathbb{G}_T$ with the following properties:
-\begin{itemize}
-    \item \emph{Bilinearity.} For all $Q_1, Q_2, Q_3 \in \mathbb{G}_1$, $e(Q_1+Q_2, Q_3) = e(Q_1,Q_3)+e(Q_2,Q_3)$ and $e(Q_1, Q_2+Q_3)=e(Q_1,Q_2)+e(Q_1,Q_3)$
-    \item \emph{Non-Degeneracy.} $e(P,P) \neq 1$
-\end{itemize}
+\begin{definition}Bilinear pairing~\cite{kiraz_still_2016}.\\
+    Let $\mathbb{G}_1$ and $\mathbb{G}_2$ denote cyclic groups with prime order $n$.
+Let $\mathbb{G}_T$ be another cyclic group of the same order $n$. 
+$\mathbb{G}_1$ and $\mathbb{G}_2$ are written additively, $\mathbb{G}_T$ is written using multiplicative notation.\\
+    A \emph{bilinear pairing} then is a function $e: \mathbb{G}_1 \times \mathbb{G}_2 \rightarrow \mathbb{G}_T$ with the following properties:
+    \begin{itemize}
+        \item \emph{Bilinearity.} For all $P_1, P_2 \in \mathbb{G}_1, Q_1, Q_2 \in \mathbb{G}_2$
+        \begin{itemize}
+            \item $e(P_1+P_2, Q_1) = e(P_1,Q_1)\cdot e(P_2,Q_1)$
+            \item $e(P_1, Q_1+Q_2)=e(P_1,Q_1)\cdot e(P_1,Q_2)$
+        \end{itemize}
+        \item \emph{Non-Degeneracy.}
+        \begin{itemize}
+            \item for each $P \in \mathbb{G}_1, P \neq 0$ there is a $Q \in \mathbb{G}_2$ with $e(P, Q) \neq 1$
+            \item for each $Q \in \mathbb{G}_2, Q \neq 0$ there is a $P \in \mathbb{G}_1$ with $e(P, Q) \neq 1$
+        \end{itemize}
+        \item \emph{Computability.} There is an algorithm that computes $e$ efficiently.
+    \end{itemize}
+\end{definition}
 
-Using a bilinear pairing with a group $\mathbb{G}_T$ where the DLP is easy to solve, the DLP in $\mathbb{G}_1$ can also be solved easily:
-To find $n$ such that $Q = nP$, compute $e(P,Q) = e(P, nP) = e(P, \underbrace{P+\cdots+P}_{n \text{ times}}) = \underbrace{e(P,P) \cdots e(P,P)}_{n \text{ times}} = e(P,P)^n$.
-Thus, the discrete logarithm of $Q$ with respect to $P$ is the discrete logarithm of $e(P,Q)$ with respect to $g = e(P,P) \in \mathbb{G}_T$.~\cite{menezes_introduction_2009}
+There are a few different concrete pairing functions, e.g. the Weil pairing, Tate pairing and the Ate pairing~\cite{kiraz_still_2016}.
+Usually the source groups $\mathbb{G}_1$ and $\mathbb{G}_2$ are subgroups of certain elliptic curves \cite{kiraz_still_2016} and the target $\mathbb{G}_T$ is a finite field (\emph{not} another point on a curve)~\cite{blake_advances_2005}.
+% Using a bilinear pairing with a group $\mathbb{G}_T$ where the DLP is easy to solve, the DLP in $\mathbb{G}_1$ can also be solved easily:
+% To find $n$ such that $Q = nP$, compute $e(P,Q) = e(P, nP) = e(P, \underbrace{P+\cdots+P}_{n \text{ times}}) = \underbrace{e(P,P) \cdots e(P,P)}_{n \text{ times}} = e(P,P)^n$.
+% Thus, the discrete logarithm of $Q$ with respect to $P$ is the discrete logarithm of $e(P,Q)$ with respect to $g = e(P,P) \in \mathbb{G}_T$.~\cite{menezes_introduction_2009}
 
 % \subsubsection{Bilinear Hardness Assumption}
 
