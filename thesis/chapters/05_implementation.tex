@@ -1,0 +1,37 @@
+\chapter{Implementation}
+
+The implementation of \acrshort{abe} on the SoC in Rust posed three main challenges:
+\begin{itemize}
+    \item The availability of pairing libraries in Rust is very limited.
+    \item Due to the lack of an operating system, there is no standard library, no dynamic memory allocation and no easy access to a \acrshort{csprng}.
+    \item The low speed of computation compared to PCs or even other \gls{iot} platforms (e.g. Raspberry Pi).
+\end{itemize}
+
+\section{Barreto-Naehrig curves and the \texttt{rabe-bn} library}
+
+Barreto and Naehrig \cite{barreto_pairing-friendly_2006} proposed a family of pairing-friendly elliptic curves (usually called \emph{BN curves}).
+A Rust-only implementation of concrete BN curves and a pairing is provided in the library \texttt{rabe-bn}\footnote{\url{https://github.com/georgbramm/rabe-bn}}, a derivative of the \texttt{bn} library by Zcash~\cite{bowe_bn_2016}.
+
+This implementation unfortunately relies on the standard library (mostly through the use of dynamically sized vectors, i.e. \texttt{std::vec::Vec}) and is thus not suited for bare-metal applications.
+
+Therefore, it was rewritten to introduce a feature \texttt{std} which controls the inclusion of the standard library and is enabled by default.
+If this feature is disabled, stack-allocated collections of fixed size from the \texttt{heapless}\footnote{\url{https://crates.io/crates/heapless}} crate are used instead.
+This modification was fairly straight-forward, as in most occurrences of \texttt{std::vec::Vec} the exact maximum size was fairly obvious. % TODO maybe add an example listing
+
+Some further modifications were necessary to implement the \texttt{core::fmt::Display} trait for the \texttt{Gt} struct in a bare-metal compatible manner.
+The implementation of this trait was used in conjunction with \acrshort{sha3} as a \gls{kdf} to create an AES key from curve points.
+
+With these relatively minor modifications, the \texttt{rabe-bn} library runs on the SoC.
+
+\newpage
+
+\begin{lstlisting}[language=Rust]
+#[derive(Debug)]
+pub struct GpswAbePublic<'attr, 'own> {
+    g1: G1,
+    g2: G2,
+    atts: &'own FnvIndexMap<&'attr str, G2, S>,
+    pk: Gt,
+}
+
+\end{lstlisting}
