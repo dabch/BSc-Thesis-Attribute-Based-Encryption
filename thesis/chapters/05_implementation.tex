@@ -79,6 +79,9 @@ Instead we use the hardware \acrshort{rng}.
 The \texttt{nrf52840-hal} crate directly implements the trait \texttt{rand::RngCore} for the hardware \acrshort{rng}, which makes it extremely easy to use.
 This generator, however, is quite slow and speed can differ greatly: With bias correction enabled (required for uniform distribution of the generated data), typically around 120$\mu$s per byte~\cite{noauthor_nrf52840_nodate}.
 
+To alleviate this, the hardware \acrshort{rng} is only used to seed a ChaCha20 pseudorandom number generator (crate \texttt{rand\_chacha}).
+This is essentially the same construction as the current implementation of \texttt{ThreadRng}~\cite{noauthor_rust_nodate}.
+
 % TODO for evaluation: seed a CSPRNG with a seed from the TRNG!
 
 \section{Representation of Access Trees}
