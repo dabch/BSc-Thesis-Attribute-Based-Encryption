@@ -1,37 +1,109 @@
 \chapter{Implementation}
 
-The implementation of \acrshort{abe} on the SoC in Rust posed three main challenges:
-\begin{itemize}
-    \item The availability of pairing libraries in Rust is very limited.
-    \item Due to the lack of an operating system, there is no standard library, no dynamic memory allocation and no easy access to a \acrshort{csprng}.
-    \item The low speed of computation compared to PCs or even other \gls{iot} platforms (e.g. Raspberry Pi).
-\end{itemize}
+\section{Building Blocks} % TODO rename this
 
-\section{Barreto-Naehrig curves and the \texttt{rabe-bn} library}
+\subsection{Hardware}
 
-Barreto and Naehrig \cite{barreto_pairing-friendly_2006} proposed a family of pairing-friendly elliptic curves (usually called \emph{BN curves}).
-A Rust-only implementation of concrete BN curves and a pairing is provided in the library \texttt{rabe-bn}\footnote{\url{https://github.com/georgbramm/rabe-bn}}, a derivative of the \texttt{bn} library by Zcash~\cite{bowe_bn_2016}.
+The main goal of this project was to implement an \acrshort{abe} scheme on a constrained embedded ARM processor.
+More specifically, the chip used was a Nordic Semiconductor nRF52840 with a 64MHz Cortex M4 CPU, 256kB of RAM and 1MB of flash storage.
+For the detailed specifications, see \cite{noauthor_nrf52840_nodate}.
+This SoC will be referred to simply as `the SoC'.
 
-This implementation unfortunately relies on the standard library (mostly through the use of dynamically sized vectors, i.e. \texttt{std::vec::Vec}) and is thus not suited for bare-metal applications.
+For reference, the implementation was also tested on a standard laptop, referred to as `the Laptop'.
+More specifically, this system has a 2.7GHz Intel i7-7500U CPU and 16GB of RAM.
 
-Therefore, it was rewritten to introduce a feature \texttt{std} which controls the inclusion of the standard library and is enabled by default.
-If this feature is disabled, stack-allocated collections of fixed size from the \texttt{heapless}\footnote{\url{https://crates.io/crates/heapless}} crate are used instead.
-This modification was fairly straight-forward, as in most occurrences of \texttt{std::vec::Vec} the exact maximum size was fairly obvious. % TODO maybe add an example listing
+% The implementation of \acrshort{abe} on the SoC in Rust posed three main challenges:
+% \begin{itemize}
+%     \item The availability of pairing libraries in Rust is very limited.
+%     \item Due to the lack of an operating system, there is no standard library, no dynamic memory allocation and no easy access to a \acrshort{csprng}.
+%     \item The low speed of computation compared to PCs or even other \gls{iot} platforms (e.g. Raspberry Pi).
+% \end{itemize}
+
+\subsection{Programming language and libraries}
+
+\subsubsection{Rust}
+
+Rust was chosen as programming language for this project.
+First, it is a compiled language and thus incurs little overhead at runtime. Its speed is comparable to that of C/C++. % citation needed for that last bit
+Second, it provides much stronger memory safety guarantees than other compiled languages (especially C/C++ where extreme care is required to avoid introducing exploitable vulnerabilities).
+This is especially attractive for something as highly critical to security as an encryption library.
+
+\subsubsection{The \texttt{rabe-bn} library}
+
+A Rust-only implementation of elliptic curves and a pairing is provided by the open-source library \texttt{rabe-bn}\footnote{\url{https://github.com/georgbramm/rabe-bn}}, a derivative of the \texttt{bn} library by Zcash~\cite{bowe_bn_2016}.
+It implements a concrete pairing on 256-bit \emph{BN curves}.
+BN curves are a family of pairing-friendly elliptic curves proposed by Barreto and Naehrig \cite{barreto_pairing-friendly_2006}.
+
+The library provides four structs: \texttt{G1}, \texttt{G2} and \texttt{Gt}, elements of the groups $\mathbb{G}_1$, $\mathbb{G}_2$ and $\mathbb{G}_T$, respectively.
+Let their orders be $r$, then \texttt{Fr} represents an element of the field $\mathbb{F}_r$.
+
+For the elliptic curve groups (structs \texttt{G1} and \texttt{G1}), additive notation is used and the \texttt{*} operator is conveniently overloaded.
+The target group (struct \texttt{Gt}) uses multiplicative notation.
+For this reason, the description of the schemes in Chapter~\ref{chapter:constructions} has also been adapted to use compatible notation.
+
+\subsubsection{nRF52840 HAL crate}
+For easier access to the peripherals of the SoC, the \acrfull{hal} \gls{crate} \texttt{nrf52840-hal} was also used.
+It provides simplified access to the hardware \acrfull{rng} and the timers.
+Strictly speaking, these were not necessary to build a Rust library (timers are only needed for evaluation and the library interface allows the caller to pass their desired random number generator).
+However, for testing and actual use of the library bare-metal on the SoC, both the \acrshort{rng} and the timers were needed.
+
+\section{Porting \texttt{rabe-bn} to the SoC}
+
+The implementation of \texttt{rabe-bn} unfortunately relied on the standard library (mostly through the use of heap-allocated dynamic vectors, i.e. \texttt{std::vec::Vec}) and is thus not suited for bare-metal applications.
+Rust provides the dependency-free and platform-agnostic \texttt{core} library as an alternative to the standard library.
+This library does not depend on an operating system or dynamic memory allocation, and thus does not include heap-allocated data structures (like \texttt{std::vec::Vec}).
+
+Therefore, it was rewritten to introduce a cargo-feature \texttt{std} which controls the inclusion of the standard library and is enabled by default.
+If this feature is disabled, the \texttt{core} library and stack-allocated collections of fixed size from the \texttt{heapless}\footnote{\url{https://crates.io/crates/heapless}} crate are used instead.
+This modification was quite straight-forward, as for most occurrences of \texttt{std::vec::Vec} the exact maximum size was fairly obvious. % TODO maybe add an example listing
 
 Some further modifications were necessary to implement the \texttt{core::fmt::Display} trait for the \texttt{Gt} struct in a bare-metal compatible manner.
 The implementation of this trait was used in conjunction with \acrshort{sha3} as a \gls{kdf} to create an AES key from curve points.
 
 With these relatively minor modifications, the \texttt{rabe-bn} library runs on the SoC.
 
-\newpage
+\section{Random Number Generation} % TODO maybe adapt this to use a CSPRNG to speed up stuff on the SoC
+Normal Rust programs use the \texttt{rand} \gls{crate}'s \verb+rand::thread_rng()+ struct to generate random numbers.
+This generator relies on the operating system for a random seed and is cryptographically secure~\cite{noauthor_rust_nodate}.
 
-\begin{lstlisting}[language=Rust]
-#[derive(Debug)]
-pub struct GpswAbePublic<'attr, 'own> {
-    g1: G1,
-    g2: G2,
-    atts: &'own FnvIndexMap<&'attr str, G2, S>,
-    pk: Gt,
+This generator, of course, is unavailable on the SoC.
+Instead we use the hardware \acrshort{rng}.
+The \texttt{nrf52840-hal} crate directly implements the trait \texttt{rand::RngCore} for the hardware \acrshort{rng}, which makes it extremely easy to use.\\
+This generator, however, is quite slow and speed can differ greatly: With bias correction enabled (required for uniform distribution of the generated data), typically around 120$\mu$s per byte~\cite{noauthor_nrf52840_nodate}.
+
+% TODO for evaluation: seed a CSPRNG with a seed from the TRNG!
+
+\section{Representation of Access Trees}
+The Rust type system is very well suited to represent the type of tree structures we need for Access Trees.
+A simple implementation might look like the one in Listing~\ref{lst:access-tree-naive}. 
+
+\begin{lstlisting}[caption={Simple Implementation of Access Trees (using the standard library)},label={lst:access-tree-naive}]
+enum AccessTree<'a> {
+    // threshold, vector of children (max size 16)
+    Node(u64, std::vec::Vec<AccessTree<'a>>),
+    // reference to the attribute label
+    Leaf(&'a str),
 }
+\end{lstlisting}
 
+This, however, does not work when the \texttt{std::vec::Vec} is replaced by a stack-allocated \texttt{heapless::Vec}:
+The \texttt{std::vec::Vec} is allocated on the heap and thus only a pointer to the vector needs to be stored in the \texttt{AccessTreeNode}.
+This pointer has constant size, of course.
+
+A \texttt{heapless::Vec} is not located on the heap, but directly inside the \texttt{AccessTreeNode}.
+Even if there is a limit on the number of children a single inner node might have, there is no limit to the depth of the access tree.
+Therefore, an \texttt{AccessTreeNode} might be arbitrarily large because the \texttt{heapless::Vec} might need to hold an arbitrary number of child nodes.
+
+Because of this, Access Trees were implemented as a flat slice of nodes as in Listing~\ref{lst:access-tree-heapless}. 
+The vector of children doesn't hold references to the children themselves, but only their index within the vector of Access Tree nodes.
+This again introduces an indirection (like the heap pointer in the simple implementation) and allows the enums to have constant size.
+
+\begin{lstlisting}[caption={Refined implementation of Access Trees (works without standard library)},label={lst:access-tree-heapless}]
+type AccessTree<'a, 'b> = &'b [AccessNode<'a>];
+enum AccessNode<'a> {
+    // threshold, vector of child indexes
+    Node(u64, heapless::Vec<u8, consts::U16>),
+    // reference to the attribute label
+    Leaf(&'a str),
+}
 \end{lstlisting}
