@@ -2,7 +2,7 @@
 use elliptic_curve::{Group, Field, sec1::ToEncodedPoint};
 use k256::{Scalar, ProjectivePoint, AffinePoint};
 use heapless::{IndexMap, FnvIndexMap, Vec, consts};
-use rand::{ RngCore};
+use rand::{RngCore};
 
 use sha3::Sha3_256;
 use hmac::{Hmac, Mac, NewMac};

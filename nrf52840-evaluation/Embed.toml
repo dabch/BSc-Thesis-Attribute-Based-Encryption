@@ -1,0 +1,10 @@
+[default.general]
+chip = "nRF52840_xxAA"
+
+[default.rtt]
+enabled = true
+#channels = [{ up = 0 }]
+timeout = 10000
+speed = 500
+log_enabled = true
+log_path = "./logs"

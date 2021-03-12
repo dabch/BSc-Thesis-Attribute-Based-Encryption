@@ -9,7 +9,7 @@ use abe_utils::kem;
 
 pub use ccm::aead::Error;
 
-pub type S = consts::U16;
+pub type S = consts::U32;
 
 pub type G1 = rabe_bn::G2;
 pub type G2 = rabe_bn::G1;

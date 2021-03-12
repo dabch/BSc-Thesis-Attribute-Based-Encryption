@@ -5,4 +5,4 @@ pub mod msp;
 
 pub use kem::{encrypt, decrypt, Ciphertext};
 
-extern crate std;
+// extern crate std;

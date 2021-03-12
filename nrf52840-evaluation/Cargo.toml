@@ -1,0 +1,26 @@
+[package]
+name = "nrf52840-evaluation"
+version = "0.1.0"
+authors = ["Daniel Buecheler <daniel.buecheler@tum.de>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+cortex-m = "0.6.2"
+cortex-m-rt = "0.6.12"
+rtt-target = { version = "0.1.1", features = ["cortex-m"] }
+nrf52840-hal = "0.10.0"
+
+rand = { version = "0.7.3", default-features = false }
+rand_chacha = { version = "0.2.1", default-features = false }
+gpsw06_abe = { path = "../gpsw06-abe/" }
+#yao-abe-rust = { path = "../yao-abe-rust/" }
+heapless = "0.5.6"
+rabe-bn = { path = "../../rabe-bn-own", default-features = false }
+
+
+abe-utils = { path = "../abe-utils/" }
+
+[profile.dev]
+opt-level = 3
