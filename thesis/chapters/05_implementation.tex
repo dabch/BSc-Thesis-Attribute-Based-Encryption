@@ -63,12 +63,12 @@ The implementation of this trait was used in conjunction with \acrshort{sha3} as
 With these relatively minor modifications, the \texttt{rabe-bn} library runs on the SoC.
 
 \section{Random Number Generation} % TODO maybe adapt this to use a CSPRNG to speed up stuff on the SoC
-Normal Rust programs use the \texttt{rand} \gls{crate}'s \verb+rand::thread_rng()+ struct to generate random numbers.
-This generator relies on the operating system for a random seed and is cryptographically secure~\cite{noauthor_rust_nodate}.
+Regular Rust programs use the \texttt{rand} \gls{crate}'s \verb+ThreadRng+ struct to generate random numbers.
+This generator relies on the operating system for a random seed and is believed to be cryptographically secure~\cite{noauthor_rust_nodate}.
 
 This generator, of course, is unavailable on the SoC.
 Instead we use the hardware \acrshort{rng}.
-The \texttt{nrf52840-hal} crate directly implements the trait \texttt{rand::RngCore} for the hardware \acrshort{rng}, which makes it extremely easy to use.\\
+The \texttt{nrf52840-hal} crate directly implements the trait \texttt{rand::RngCore} for the hardware \acrshort{rng}, which makes it extremely easy to use.
 This generator, however, is quite slow and speed can differ greatly: With bias correction enabled (required for uniform distribution of the generated data), typically around 120$\mu$s per byte~\cite{noauthor_nrf52840_nodate}.
 
 % TODO for evaluation: seed a CSPRNG with a seed from the TRNG!
