@@ -1,0 +1,17 @@
+\chapter{Evaluation}
+
+\section{Pairing computation}
+\dots
+
+RAM size seems to be a limiting factor when computing pairings on embedded devices.
+During development, the ported \texttt{rabe-bn} library was also tested on the nRF52832 SoC, which has 64KB of RAM (vs. 256KB in the nRF52840). 
+On this chip, a pairing could be computed successfully only if the library was build \emph{without debug symbols}.
+With debug symbols, there was not enough RAM available and the pairing computation failed.
+This suggests that the memory use during pairing computation is close to 64KB, which would still be a quarter of the RAM on the nRF52840 SoC.
+While this memory is not consumed permanently, it still needs to be available when the pairing function is called.
+
+\section{Experimental results}
+
+\chapter{Discussion}
+
+\chapter{Conclusion}
