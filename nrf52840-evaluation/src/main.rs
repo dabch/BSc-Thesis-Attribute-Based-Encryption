@@ -49,46 +49,48 @@ fn main() -> ! {
     // rprintln!("starting random generation using ChaCha");
     let mut us = 0;
     for _ in 0..SMPL_CNT {
-        let fr: Fr = rng.gen();
-        let g: G1 = rng.gen();
+        let g1: G1 = rng.gen();
+        let g2: G2 = rng.gen();
         let start = _timer.read();
-        let _g2 = g * fr;
+        let _g2 = rabe_bn::pairing(g1, g2);
         us += _timer.read() - start;
         rprint!(".");
     }
-    rprintln!("Smpl from Fr took {:?}ms using ChaCha", us / SMPL_CNT);
+    rprintln!("pairing took {:?} using ChaCha", us / SMPL_CNT);
 
-    rprintln!("starting random generation using ChaCha");
-    let mut us = 0;
-    for _ in 0..SMPL_CNT {
-        let fr: Fr = rng.gen();
-        let g: G2 = rng.gen();
-        let start = _timer.read();
-        let _g2 = g * fr;
-        us += _timer.read() - start;
-        rprint!(".");
-    }
-    rprintln!("Smpl from G1 took {:?}ms using ChaCha", us / SMPL_CNT);
+    // let mut us = 0;
+    // for _ in 0..SMPL_CNT {
+    //     let g1: G1 = rng.gen();
+    //     let g2: G1 = rng.gen();
+    //     let start = _timer.read();
+    //     let _g2 = g1 + g2;
+    //     us += _timer.read() - start;
+    //     rprint!(".");
+    // }
+    // rprintln!("Smpl from Fr took {:?}ms using ChaCha", us / SMPL_CNT);
 
-    let mut us = 0;
-    for _ in 0..SMPL_CNT {
-        let fr: Fr = rng.gen();
-        let g: Gt = rng.gen();
-        let start = _timer.read();
-        let _g2 = g.pow(fr);
-        us += _timer.read() - start;
-        rprint!(".");
-    }
-    rprintln!("Smpl from G2 took {:?}ms using ChaCha", us / SMPL_CNT);
+    // rprintln!("starting random generation using ChaCha");
+    // let mut us = 0;
+    // for _ in 0..SMPL_CNT {
+    //     let g1: G2 = rng.gen();
+    //     let g2: G2 = rng.gen();
+    //     let start = _timer.read();
+    //     let _g2 = g1 + g2;
+    //     us += _timer.read() - start;
+    //     rprint!(".");
+    // }
+    // rprintln!("Smpl from G1 took {:?}ms using ChaCha", us / SMPL_CNT);
 
-    let mut us = 0;
-    for _ in 0..SMPL_CNT {
-        let start = _timer.read();
-        let gt: Gt = rng.gen();
-        us += _timer.read() - start;
-        rprint!(".");
-    }
-    rprintln!("Smpl from Gt took {:?}ms using ChaCha", us / SMPL_CNT);
+    // let mut us = 0;
+    // for _ in 0..SMPL_CNT {
+    //     let g1: Gt = rng.gen();
+    //     let g2: Gt = rng.gen();
+    //     let start = _timer.read();
+    //     let _g2 = g1 * g2;
+    //     us += _timer.read() - start;
+    //     rprint!(".");
+    // }
+    // rprintln!("Smpl from G2 took {:?}ms using ChaCha", us / SMPL_CNT);
     
     // for i in 1..31 {
     //     // rprintln!("starting setup");
