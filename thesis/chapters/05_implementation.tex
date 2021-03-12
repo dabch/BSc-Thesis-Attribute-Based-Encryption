@@ -37,7 +37,7 @@ BN curves are a family of pairing-friendly elliptic curves proposed by Barreto a
 The library provides four structs: \texttt{G1}, \texttt{G2} and \texttt{Gt}, elements of the groups $\mathbb{G}_1$, $\mathbb{G}_2$ and $\mathbb{G}_T$, respectively.
 Let their orders be $r$, then \texttt{Fr} represents an element of the field $\mathbb{F}_r$.
 
-For the elliptic curve groups (structs \texttt{G1} and \texttt{G1}), additive notation is used and the \texttt{*} operator is conveniently overloaded.
+For the elliptic curve groups (structs \texttt{G1} and \texttt{G2}), additive notation is used and the \texttt{*} operator is conveniently overloaded.
 The target group (struct \texttt{Gt}) uses multiplicative notation.
 For this reason, the description of the schemes in Chapter~\ref{chapter:constructions} has also been adapted to use compatible notation.
 
@@ -47,14 +47,19 @@ It provides simplified access to the hardware \acrfull{rng} and the timers.
 Strictly speaking, these were not necessary to build a Rust library (timers are only needed for evaluation and the library interface allows the caller to pass their desired random number generator).
 However, for testing and actual use of the library bare-metal on the SoC, both the \acrshort{rng} and the timers were needed.
 
+\subsubsection{\texttt{heapless} crate}
+The \texttt{heapless}\footnote{\url{https://crates.io/crates/heapless}} crate provides stack-allocated versions of some of the data structures from \texttt{std::collections}. 
+Most important were \texttt{heapless::Vec} (replaces \texttt{std::vec::Vec}) and \texttt{heapless::IndexMap} (replaces \texttt{std::collections::HashMap}).
+These data structures are statically allocated and require the maximum capacity as an additional generic type parameter.
+
 \section{Porting \texttt{rabe-bn} to the SoC}
 
 The implementation of \texttt{rabe-bn} unfortunately relied on the standard library (mostly through the use of heap-allocated dynamic vectors, i.e. \texttt{std::vec::Vec}) and is thus not suited for bare-metal applications.
 Rust provides the dependency-free and platform-agnostic \texttt{core} library as an alternative to the standard library.
 This library does not depend on an operating system or dynamic memory allocation, and thus does not include heap-allocated data structures (like \texttt{std::vec::Vec}).
 
-Therefore, it was rewritten to introduce a cargo-feature \texttt{std} which controls the inclusion of the standard library and is enabled by default.
-If this feature is disabled, the \texttt{core} library and stack-allocated collections of fixed size from the \texttt{heapless}\footnote{\url{https://crates.io/crates/heapless}} crate are used instead.
+Therefore, \texttt{rabe-bn} was rewritten to introduce a cargo-feature \texttt{std} which controls the inclusion of the standard library and is enabled by default.
+If this feature is disabled, the \texttt{core} library and stack-allocated collections of fixed size from the \texttt{heapless} crate are used instead.
 This modification was quite straight-forward, as for most occurrences of \texttt{std::vec::Vec} the exact maximum size was fairly obvious. % TODO maybe add an example listing
 
 Some further modifications were necessary to implement the \texttt{core::fmt::Display} trait for the \texttt{Gt} struct in a bare-metal compatible manner.
