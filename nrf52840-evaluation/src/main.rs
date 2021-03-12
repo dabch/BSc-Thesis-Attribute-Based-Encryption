@@ -3,13 +3,13 @@
 
 use cortex_m::asm;
 use cortex_m_rt::entry;
-use rtt_target::{rtt_init_print, rprintln};
+use rtt_target::{rtt_init_print, rprintln, rprint};
 use core::panic::PanicInfo;
 use nrf52840_hal as hal;
 use hal::{timer::Instance, };
 // use yao_abe_rust::{AccessNode, AccessStructure, YaoAbeCiphertext, YaoABEPrivate, YaoABEPublic, S, F, G};
-use gpsw06_abe::{self, S, F, G1, G2, Gt, GpswAbePrivate, GpswAbePublic, AccessNode, AccessStructure, GpswAbeCiphertext};
-// use rabe_bn::{Gt};
+// use gpsw06_abe::{self, S, F, G1, G2, Gt, GpswAbePrivate, GpswAbePublic, AccessNode, AccessStructure, GpswAbeCiphertext};
+use rabe_bn::{Fr, G1, G2, Gt};
 use heapless::{Vec, FnvIndexMap};
 // use heapless;
 use rand::{Rng, RngCore as oldRngCore};
@@ -32,43 +32,63 @@ fn main() -> ! {
     p.TIMER0.timer_start(0 as u32);
     let mut _timer = hal::Timer::new(p.TIMER0);
 
-    let mut data: [u8; 64] = [0; 64];
-    rng.fill_bytes(&mut data);
-    rprintln!("data: {:?}", &data);
+    // let system_atts: Vec<&str, S> = Vec::from_slice(&["att01", "att02", "att03", "att04", "att05", "att06", "att07", "att08", "att09", "att10", "att11", "att12", "att13", "att14", "att15", "att16", "att17", "att18", "att19", "att20", "att21", "att22", "att23", "att24", "att25", "att26", "att27", "att28", "att29", "att30"]).unwrap();
 
-    let system_atts: Vec<&str, S> = Vec::from_slice(&["att01", "att02", "att03", "att04", "att05", "att06", "att07", "att08", "att09", "att10", "att11", "att12", "att13", "att14", "att15", "att16", "att17", "att18", "att19", "att20", "att21", "att22", "att23", "att24", "att25", "att26", "att27", "att28", "att29", "att30"]).unwrap();
+    // let access_structure: AccessStructure = &[
+    //   AccessNode::Node(2, Vec::from_slice(&[1,2,3,4]).unwrap()),
+    //   AccessNode::Leaf("tum"),
+    //   AccessNode::Leaf("student"),
+    //   AccessNode::Leaf("has_bachelor"),
+    //   AccessNode::Leaf("over21"),
+    // ];
 
-    let access_structure: AccessStructure = &[
-      AccessNode::Node(2, Vec::from_slice(&[1,2,3,4]).unwrap()),
-      AccessNode::Leaf("tum"),
-      AccessNode::Leaf("student"),
-      AccessNode::Leaf("has_bachelor"),
-      AccessNode::Leaf("over21"),
-    ];
+    // let mut public_map: FnvIndexMap<&str, G2, S> = FnvIndexMap::new();
+    // let mut private_map: FnvIndexMap<&str, F, S> = FnvIndexMap::new();
 
-    let mut public_map: FnvIndexMap<&str, G2, S> = FnvIndexMap::new();
-    let mut private_map: FnvIndexMap<&str, F, S> = FnvIndexMap::new();
-
-    // const SMPL_CNT: u32 = 10000;
-
+    const SMPL_CNT: u32 = 100;
     // rprintln!("starting random generation using ChaCha");
-    // let mut us = 0;
-    // for _ in 0..SMPL_CNT {
-    //     let start = _timer.read();
-    //     rng.fill_bytes(&mut data);
-    //     us += _timer.read() - start;
-    // }
-    // rprintln!("Smpl from Gt took {:?}ms using ChaCha", us / 1000);
+    let mut us = 0;
+    for _ in 0..SMPL_CNT {
+        let fr: Fr = rng.gen();
+        let g: G1 = rng.gen();
+        let start = _timer.read();
+        let _g2 = g * fr;
+        us += _timer.read() - start;
+        rprint!(".");
+    }
+    rprintln!("Smpl from Fr took {:?}ms using ChaCha", us / SMPL_CNT);
 
-    // rprintln!("starting random generation using TRNG");
-    // let mut us = 0;
-    // for _ in 0..SMPL_CNT {
-    //     let start = _timer.read();
-    //     trng.fill_bytes(&mut data);
-    //     us += _timer.read() - start;
-    // }
-    // rprintln!("Smpl from Gt took {:?}ms using TRNG", us / 1000);
+    rprintln!("starting random generation using ChaCha");
+    let mut us = 0;
+    for _ in 0..SMPL_CNT {
+        let fr: Fr = rng.gen();
+        let g: G2 = rng.gen();
+        let start = _timer.read();
+        let _g2 = g * fr;
+        us += _timer.read() - start;
+        rprint!(".");
+    }
+    rprintln!("Smpl from G1 took {:?}ms using ChaCha", us / SMPL_CNT);
 
+    let mut us = 0;
+    for _ in 0..SMPL_CNT {
+        let fr: Fr = rng.gen();
+        let g: Gt = rng.gen();
+        let start = _timer.read();
+        let _g2 = g.pow(fr);
+        us += _timer.read() - start;
+        rprint!(".");
+    }
+    rprintln!("Smpl from G2 took {:?}ms using ChaCha", us / SMPL_CNT);
+
+    let mut us = 0;
+    for _ in 0..SMPL_CNT {
+        let start = _timer.read();
+        let gt: Gt = rng.gen();
+        us += _timer.read() - start;
+        rprint!(".");
+    }
+    rprintln!("Smpl from Gt took {:?}ms using ChaCha", us / SMPL_CNT);
     
     // for i in 1..31 {
     //     // rprintln!("starting setup");
@@ -81,17 +101,17 @@ fn main() -> ! {
     //     rprintln!("{};{:?}", i, us / 1000);
     // }
 
-    let (private, public) = GpswAbePrivate::setup(&system_atts, &mut public_map, &mut private_map, &mut rng);
+    // let (private, public) = GpswAbePrivate::setup(&system_atts, &mut public_map, &mut private_map, &mut rng);
 
-    let atts = ["att12", "att29", "att07", "att10", "att22", "att24", "att23", "att18", "att08", "att06", "att14", "att11", "att25", "att02", "att09", "att26", "att03", "att20", "att04", "att30", "att01", "att21", "att15", "att19", "att05", "att13", "att17", "att27", "att16", "att28"];
-    for i in 1..31 {
-        // rprintln!("starting setup");
+    // let atts = ["att12", "att29", "att07", "att10", "att22", "att24", "att23", "att18", "att08", "att06", "att14", "att11", "att25", "att02", "att09", "att26", "att03", "att20", "att04", "att30", "att01", "att21", "att15", "att19", "att05", "att13", "att17", "att27", "att16", "att28"];
+    // for i in 1..31 {
+    //     // rprintln!("starting setup");
         
-        let start = _timer.read();
-        let ciphertext: GpswAbeCiphertext = public.encrypt(&atts[..i], &mut data, &mut rng).unwrap();
-        let us = _timer.read() - start;
-        rprintln!("{};{:?}", i, us / 1000);
-    }
+    //     let start = _timer.read();
+    //     let ciphertext: GpswAbeCiphertext = public.encrypt(&atts[..i], &mut data, &mut rng).unwrap();
+    //     let us = _timer.read() - start;
+    //     rprintln!("{};{:?}", i, us / 1000);
+    // }
 
     // rprintln!("starting encrypt");
     // let start = _timer.read();

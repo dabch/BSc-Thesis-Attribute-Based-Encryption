@@ -8,8 +8,5 @@ edition = "2018"
 
 
 [dependencies]
-pairing = "0.18.0"
-bls12_381 = "0.3.0"
-group = "0.8.0"
+rabe-bn = { path = "../../rabe-bn-own", default-features=false }
 rand = "0.7.0"
-ff = "0.8.0"
