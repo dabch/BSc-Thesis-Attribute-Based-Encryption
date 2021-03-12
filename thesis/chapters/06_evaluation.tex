@@ -1,7 +1,49 @@
 \chapter{Evaluation}
 
-\section{Pairing computation}
-\dots
+\section{Performance of \texttt{rabe-bn}}
+\begin{table}\centering
+    \begin{tabular}{|c|r|r|}\hline%
+        & SoC [ms] & Laptop [ms]\\\hline\hline
+        \csvreader[late after line=\\]%
+        {data/bn-smpl.csv}{op=\op,soc=\soc,laptop=\laptop}%
+        {\op&\soc&\laptop}%
+        \hline
+        \csvreader[late after line=\\]%
+        {data/bn-groupop.csv}{op=\op,soc=\soc,laptop=\laptop}%
+        {\op&\soc&\laptop}%
+        \hline
+        \csvreader[late after line=\\]%
+        {data/bn-groupexp.csv}{op=\op,soc=\soc,laptop=\laptop}%
+        {\op&\soc&\laptop}%
+        \hline
+        \csvreader[late after line=\\]%
+        {data/bn-pairing.csv}{op=\op,soc=\soc,laptop=\laptop}%
+        {\op&\soc&\laptop}%
+        \hline
+    \end{tabular}  
+    \caption{Execution times for various operations on the SoC and the laptop\label{tbl:rabe-performance}}
+\end{table}
+
+See Table~\ref{tbl:rabe-performance} for performance measurements of random element sampling, group operations, group-scalar exponentiation and the pairing operation.
+The times have been measured using randomly sampled elements and averaged over 100 calls each.
+
+It is 
+
+% \csvreader[tabular=|r|r|r|,
+%     table head=\hline & Soc [ms] & Laptop [ms]\\\hline\hline,
+%     late after line=\\\hline]
+%     {data/smpl-times.csv}{description=\description,soc=\soc,laptop=\laptop}
+%     {\thecsvrow & \description & \soc & \laptop}
+
+% \begin{tabular}{|r|r|r|}\hline%
+%     & SoC [ms] & Laptop [ms]\\\hline
+%     \csvreader[late after line=\\]%
+%         {data/smpl-times.csv}{description=\description,soc=\soc,laptop=\laptop}%
+%         {\description & \soc & \laptop}%
+% \end{tabular}\
+
+
+\dots 
 
 RAM size seems to be a limiting factor when computing pairings on embedded devices.
 During development, the ported \texttt{rabe-bn} library was also tested on the nRF52832 SoC, which has 64KB of RAM (vs. 256KB in the nRF52840). 
