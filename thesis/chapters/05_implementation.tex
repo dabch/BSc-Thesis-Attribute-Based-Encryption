@@ -31,8 +31,11 @@ This is especially attractive for something as highly critical to security as an
 \subsubsection{The \texttt{rabe-bn} library}
 
 A Rust-only implementation of elliptic curves and a pairing is provided by the open-source library \texttt{rabe-bn}\footnote{\url{https://github.com/georgbramm/rabe-bn}}, a derivative of the \texttt{bn} library by Zcash~\cite{bowe_bn_2016}.
-It implements a concrete pairing on 256-bit \emph{BN curves}.
+It implements a concrete pairing on 256-bit \emph{BN curves}. % TODO security level?!
 BN curves are a family of pairing-friendly elliptic curves proposed by Barreto and Naehrig \cite{barreto_pairing-friendly_2006}.
+
+The 256-bit modulus of the BN curve used in \texttt{rabe-bn} was originally believed to provide a security level of 128 bits~\cite{ben-sasson_succinct_2013}. 
+Due to a new variant of the Number Field Sieve (i.e. a better attack on the underlying cryptographic assumptions) the estimate for the security level has been revised down to 100 bits~\cite{yonezawa_pairing-friendly_2019}.
 
 The library provides four structs: \texttt{G1}, \texttt{G2} and \texttt{Gt}, elements of the groups $\mathbb{G}_1$, $\mathbb{G}_2$ and $\mathbb{G}_T$, respectively.
 Let their orders be $r$, then \texttt{Fr} represents an element of the field $\mathbb{F}_r$.
@@ -69,9 +72,9 @@ With these relatively minor modifications, the \texttt{rabe-bn} library runs on 
 
 \section{Random Number Generation} % TODO maybe adapt this to use a CSPRNG to speed up stuff on the SoC
 Regular Rust programs use the \texttt{rand} \gls{crate}'s \verb+ThreadRng+ struct to generate random numbers.
-This generator relies on the operating system for a random seed and is believed to be cryptographically secure~\cite{noauthor_rust_nodate}.
+\texttt{ThreadRng} is cryptographically secure~\cite{noauthor_rust_nodate}, but it relies on the operating system randomness pool for seeding.
 
-This generator, of course, is unavailable on the SoC.
+Therefore, this generator is unavailable on the SoC.
 Instead we use the hardware \acrshort{rng}.
 The \texttt{nrf52840-hal} crate directly implements the trait \texttt{rand::RngCore} for the hardware \acrshort{rng}, which makes it extremely easy to use.
 This generator, however, is quite slow and speed can differ greatly: With bias correction enabled (required for uniform distribution of the generated data), typically around 120$\mu$s per byte~\cite{noauthor_nrf52840_nodate}.
