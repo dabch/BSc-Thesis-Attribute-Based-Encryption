@@ -1,9 +1,12 @@
 \chapter{Evaluation}
 
-\section{Performance of \texttt{rabe-bn}}
-\begin{table}\centering
+\section{Performance of \texttt{rabe\_bn}}
+See Table~\ref{tbl:rabe-performance} for performance measurements of random element sampling, group operations, group-scalar exponentiation and the pairing operation.
+The times have been measured using randomly sampled elements and averaged over 100 calls each.
+
+\begin{center}
     \begin{tabular}{|c|r|r|}\hline%
-        & SoC [ms] & Laptop [ms]\\\hline\hline
+        Operation & SoC [ms] & Laptop [ms]\\\hline\hline
         \csvreader[late after line=\\]%
         {data/bn-smpl.csv}{op=\op,soc=\soc,laptop=\laptop}%
         {\op&\soc&\laptop}%
@@ -21,13 +24,15 @@
         {\op&\soc&\laptop}%
         \hline
     \end{tabular}  
-    \caption{Execution times for various operations on the SoC and the laptop\label{tbl:rabe-performance}}
-\end{table}
+    \captionof{table}{Execution times for various operations on the SoC and the laptop\label{tbl:rabe-performance}}
+\end{center}
 
-See Table~\ref{tbl:rabe-performance} for performance measurements of random element sampling, group operations, group-scalar exponentiation and the pairing operation.
-The times have been measured using randomly sampled elements and averaged over 100 calls each.
 
-It is 
+It is apparent that the the cost of the operations differs greatly between the groups. 
+Sampling a random element takes about the same time as group exponentiation for $\mathbb{G}_1$ and $\mathbb{G}_2$, but is significantly more costly for $\mathbb{G}_T$.
+Looking at the implementation, the reason for this is obvious: Sampling from $\mathbb{G}_1$ and $\mathbb{G}_2$ simply generates a random $z \in \mathbb{F}_r$ and returns the group element $a \cdot G$ for $G$ a generator.
+Sampling from $\mathbb{G}_T$ is done by generating random elements of $\mathbb{G}_1$ and $\mathbb{G}_2$ and computing their pairing.
+This is reflected in the measured timings.
 
 % \csvreader[tabular=|r|r|r|,
 %     table head=\hline & Soc [ms] & Laptop [ms]\\\hline\hline,
@@ -42,17 +47,91 @@ It is
 %         {\description & \soc & \laptop}%
 % \end{tabular}\
 
-
-\dots 
-
-RAM size seems to be a limiting factor when computing pairings on embedded devices.
+Interestingly, RAM size seems to be a limiting factor when computing pairings on embedded devices.
 During development, the ported \texttt{rabe-bn} library was also tested on the nRF52832 SoC, which has 64KB of RAM (vs. 256KB in the nRF52840). 
-On this chip, a pairing could be computed successfully only if the library was build \emph{without debug symbols}.
+On this chip, a pairing could be computed successfully only if the library was built \emph{without debug symbols}.
 With debug symbols, there was not enough RAM available and the pairing computation failed.
 This suggests that the memory use during pairing computation is close to 64KB, which would still be a quarter of the RAM on the nRF52840 SoC.
 While this memory is not consumed permanently, it still needs to be available when the pairing function is called.
 
-\section{Experimental results}
+\section{Performance of the ABE schemes}
+
+\begin{figure}[t!]\centering
+    \begin{subfigure}[t]{0.49\textwidth}
+        \begin{tikzpicture}
+            \begin{axis}[
+                title={Timing of GPSW on the SoC},
+                xlabel={Number of attributes},
+                ylabel={seconds},
+                xmin=0, xmax=32,
+                ymin=0, ymax=9000,
+                scaled y ticks=base 10:-3,
+                ytick scale label code/.code={}, % removes the '\cdot 10^3' label 
+                legend pos=south east,
+                grid=major,
+                grid style=dashed,
+            ]
+            \addlegendentry{Setup};
+            \addplot [color=orange, mark=square] table [x=atts,y=setup,col sep=comma] {data/gpsw06.csv};
+            \addlegendentry{Encrypt};
+            \addplot [color=blue, mark=triangle] table [x=atts,y=enc,col sep=comma] {data/gpsw06.csv};
+            \end{axis}
+            % \begin{axis}[
+            %     width=\linewidth, % Scale the plot to \linewidth
+            %     grid=major, 
+            %     grid style={dashed,gray!30},
+            %     xlabel=X Axis $U$, % Set the labels
+            %     ylabel=Y Axis $I$,
+            %     legend style={at={(0.5,-0.2)},anchor=north},
+            %     x tick label style={rotate=90,anchor=east}
+            %   ]
+            %   \addplot 
+            %   % add a plot from table; you select the columns by using the actual name in
+            %   % the .csv file (on top)
+            %   table[x=atts,y=setup,col sep=comma] {data/gpsw06.csv}; 
+            %   \legend{Plot}
+            % \end{axis}
+        \end{tikzpicture}
+    \end{subfigure}%
+    ~
+    \begin{subfigure}[t]{0.49\textwidth}
+        \begin{tikzpicture}
+            \begin{axis}[
+                title={Timing of YCT on the SoC},
+                xlabel={Number of attributes},
+                ylabel={seconds},
+                xmin=0, xmax=32,
+                ymin=0, ymax=9000,
+                scaled y ticks=base 10:-3,
+                ytick scale label code/.code={}, % removes the '\cdot 10^3' label 
+                legend pos=south east,
+                grid=major,
+                grid style=dashed,
+            ]
+            \addlegendentry{Setup};
+            \addplot [color=orange, mark=square] table [x=atts,y=setup,col sep=comma] {data/gpsw06.csv};
+            \addlegendentry{Encrypt};
+            \addplot [color=blue, mark=triangle] table [x=atts,y=enc,col sep=comma] {data/gpsw06.csv};
+            \end{axis}
+            % \begin{axis}[
+            %     width=\linewidth, % Scale the plot to \linewidth
+            %     grid=major, 
+            %     grid style={dashed,gray!30},
+            %     xlabel=X Axis $U$, % Set the labels
+            %     ylabel=Y Axis $I$,
+            %     legend style={at={(0.5,-0.2)},anchor=north},
+            %     x tick label style={rotate=90,anchor=east}
+            %   ]
+            %   \addplot 
+            %   % add a plot from table; you select the columns by using the actual name in
+            %   % the .csv file (on top)
+            %   table[x=atts,y=setup,col sep=comma] {data/gpsw06.csv}; 
+            %   \legend{Plot}
+            % \end{axis}
+        \end{tikzpicture}
+    \end{subfigure}
+\end{figure}
+
 
 \chapter{Discussion}
 
