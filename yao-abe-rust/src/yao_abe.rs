@@ -1,10 +1,14 @@
 // use rabe_bn::{Group, Fr, G};
-use elliptic_curve::{Group, Field, sec1::ToEncodedPoint};
-use k256::{Scalar, ProjectivePoint, AffinePoint};
-use heapless::{IndexMap, FnvIndexMap, Vec, consts};
-use rand::{RngCore};
+// use elliptic_curve::{Group, Field, sec1::ToEncodedPoint};
+// use k256::{Scalar, ProjectivePoint, AffinePoint};
 
-use sha3::Sha3_256;
+extern crate std;
+use core::convert::TryInto;
+use rabe_bn::{G1, Fr, Group};
+use heapless::{IndexMap, FnvIndexMap, Vec, consts};
+use rand::{RngCore, Rng};
+
+use sha3::Sha3_512;
 use hmac::{Hmac, Mac, NewMac};
 
 use abe_utils::kem;
@@ -14,9 +18,9 @@ pub use ccm::aead::Error;
 
 pub type S = consts::U16;
 
-pub type G = AffinePoint;
-type GIntermediate = ProjectivePoint;
-pub type F = Scalar;
+pub type G = G1;
+type GIntermediate = G1;
+pub type F = Fr;
 
 /// Represents the full parameters of an ABE scheme, known in full only to the KGC
 //#[derive(Debug)]
@@ -79,7 +83,7 @@ impl Polynomial {
   /// Generates a random polynomial p(x) of degree `coeffs` coefficients, where p(0) = `a0`
   fn randgen(a0: F, coeffs: u64, mut rng: &mut dyn RngCore) -> Polynomial {
     let mut coefficients: Vec<F, consts::U16> = Vec::from_slice(&[a0]).unwrap();
-    coefficients.extend((1..coeffs).map(|_| -> F { F::random(&mut rng) }));
+    coefficients.extend((1..coeffs).map(|_| -> F { rng.gen() }));
     assert_eq!(coefficients.len() as u64, coeffs);
     Polynomial(coefficients)
   }
@@ -91,7 +95,7 @@ impl Polynomial {
     let r = omega.iter()
       .filter(|x| *x != i)
       // .map(|x| { println!("{:?}", x); x} )
-      .map(|j| -*j * (*i-*j).invert().unwrap())
+      .map(|j| -*j * (*i-*j).inverse().unwrap())
       .fold(F::one(), |acc, x| acc * x);
     //println!("\n");
     r
@@ -110,18 +114,20 @@ impl<'attr: 'es, 'es: 'key, 'key> YaoABEPrivate<'attr, 'es> {
   ) -> (Self, YaoABEPublic<'attr, 'es>) 
   where 'attr: 'es
   {
-    let master_secret: F = F::random(&mut rng); // corresponds to "s" in the original paper
-    let g = GIntermediate::random(&mut rng);
+    let master_secret: F = rng.gen(); // corresponds to "s" in the original paper
+    let g: GIntermediate = rng.gen();
     
     // for each attribute, choose a private field element s_i and make G * s_i public
     for attr in att_names {
-      let si: F = F::random(&mut rng);
-      let gi = (g * si).to_affine();
+      let si: F = rng.gen();
+      let mut gi = g * si;
+      gi.normalize();
       private_map.insert(attr, (si, gi)).unwrap();
       public_map.insert(attr, gi).unwrap();
     }
     
-    let pk = (g * master_secret).to_affine(); // master public key, corresponds to `PK`
+    let mut pk = g * master_secret;
+    pk.normalize(); // master public key, corresponds to `PK`
 
     (
       YaoABEPrivate {
@@ -183,7 +189,7 @@ impl<'attr: 'es, 'es: 'key, 'key> YaoABEPrivate<'attr, 'es> {
         // terminate recursion, embed secret share in the leaf
         let q_of_zero = parent_poly.eval(index);
         let (s, _) = self.atts.get(*attr_name).unwrap();
-        let s_inverse = s.invert().unwrap();
+        let s_inverse = s.inverse().unwrap();
         return Ok(Vec::from_slice(&[(tree_ptr, q_of_zero * s_inverse)]).unwrap());
       },
       AccessNode::Node(thresh, children) => {
@@ -201,10 +207,11 @@ impl<'attr: 'es, 'es: 'key, 'key> YaoABEPrivate<'attr, 'es> {
 }
 
 fn index_prf(r: [u8; 8], i: F) -> F {
-  let mut maccer: Hmac<Sha3_256> = Hmac::new_varkey(&r).unwrap();
-  maccer.update(&i.to_bytes());
+  let mut maccer: Hmac<Sha3_512> = Hmac::new_varkey(&r).unwrap();
+  maccer.update(&i.uninterpret());
   let mac_res = maccer.finalize().into_bytes();
-  F::from_bytes_reduced(&mac_res)
+  std::println!("{:?}", mac_res);
+  F::interpret(mac_res.as_slice().try_into().unwrap())
 }
 
 impl<'data, 'key, 'es, 'attr> YaoABEPublic<'attr, 'es> {
@@ -224,9 +231,10 @@ impl<'data, 'key, 'es, 'attr> YaoABEPublic<'attr, 'es> {
   {
     // choose a C', which is then used to encrypt the actual plaintext with a symmetric cipher
     let (k, c_prime) = loop {
-      let k: F = F::random(&mut rng);
-      let cprime = GIntermediate::from(self.pk) * k;
-      if !bool::from(cprime.is_identity()) { break (k, cprime) };
+      let k: F = rng.gen();
+      let mut cprime = GIntermediate::from(self.pk) * k;
+      cprime.normalize();
+      if !bool::from(cprime.is_zero()) { break (k, cprime) };
     };
 
     // Store the information needed to reconstruct C' under a matching key. For each attribute, only a single point
@@ -234,14 +242,15 @@ impl<'data, 'key, 'es, 'attr> YaoABEPublic<'attr, 'es> {
     let mut att_cs: FnvIndexMap<&str, G, S> = FnvIndexMap::new();
     for att in atts {
       let att_pubkey = GIntermediate::from(*self.atts.get(att).unwrap());
-      let c_i = att_pubkey * k;
-      att_cs.insert(att, c_i.to_affine()).unwrap();
+      let mut c_i = att_pubkey * k;
+      c_i.normalize();
+      att_cs.insert(att, c_i).unwrap();
     }
 
-    let key = c_prime.to_affine().to_encoded_point(false).to_untagged_bytes().unwrap();
+    // let key = c_prime.to_affine().to_encoded_point(false).to_untagged_bytes().unwrap();
 
     //println!("---------- ENCRYPT: encrypting with point ------------\n{:?}", c_prime.to_affine());
-    let kem_ciphertext = match kem::encrypt_bytes(&key, data, rng) {
+    let kem_ciphertext = match kem::encrypt(&c_prime, data, rng) {
       Ok(c) => c,
       Err(_) => return Err(()),
     };
@@ -289,7 +298,7 @@ impl<'data, 'key, 'es, 'attr> YaoABEPublic<'attr, 'es> {
           .map(|(i, _)| i.clone()).collect(); // our langrange helper function wants this vector of field elements
         let result: GIntermediate = relevant_children.into_iter()
           .map(|(i, dec_res)| { dec_res * Polynomial::lagrange_of_zero(&i, &relevant_indexes) } )
-          .fold(GIntermediate::identity(), |acc, g| g + acc);
+          .fold(GIntermediate::zero(), |acc, g| g + acc);
         // //println!("node got result: {:?}\n at node {:?}\n", result, key);
         return Some(result);
       }
@@ -307,13 +316,14 @@ impl<'data, 'key, 'es, 'attr> YaoABEPublic<'attr, 'es> {
     let PrivateKey(access_structure, secret_shares, r_per_level) = key;
     
     let res = Self::decrypt_node(&access_structure, 0, &secret_shares, &kem_cipher.0, 0, r_per_level);
-    let c_prime = match res {
+    let mut c_prime = match res {
       None => return Err(YaoAbeCiphertext(kem_cipher, data_cipher)),
       Some(p) => p,
     };
 
-    let key = c_prime.to_affine().to_encoded_point(false).to_untagged_bytes().unwrap();
-    match kem::decrypt_bytes(&key, data_cipher) {
+    c_prime.normalize();
+    // let key = c_prime.to_affine().to_encoded_point(false).to_untagged_bytes().unwrap();
+    match kem::decrypt(&c_prime, data_cipher) {
       Ok(data) => Ok(data),
       Err(ct) => Err(YaoAbeCiphertext(kem_cipher, ct)),
     }
@@ -482,10 +492,10 @@ mod tests {
   fn curve_operations_dry_run() {
     let mut rng = rand::thread_rng();
 
-    let s = F::random(&mut rng);
-    let s_inv = s.invert().unwrap();
+    let s: F = rng.gen();
+    let s_inv: F = s.inverse().unwrap();
 
-    let g: GIntermediate = GIntermediate::random(&mut rng);
+    let g: GIntermediate = rng.gen();
 
     let c = g * s;
 
