@@ -16,10 +16,10 @@ use abe_utils::kem;
 
 pub use ccm::aead::Error;
 
-pub type S = consts::U16;
+pub type S = consts::U32;
 
 pub type G = G1;
-type GIntermediate = G1;
+type GIntermediate = G;
 pub type F = Fr;
 
 /// Represents the full parameters of an ABE scheme, known in full only to the KGC
