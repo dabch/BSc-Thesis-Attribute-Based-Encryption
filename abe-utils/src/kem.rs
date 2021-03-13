@@ -96,9 +96,11 @@ mod tests {
     extern crate std;
     extern crate alloc;
     use rabe_bn::Gt;
-    use rand::Rng;
+    use rand::{Rng, SeedableRng};
     use super::*;
     use alloc::string::ToString;
+
+    use rand_chacha::ChaCha20Rng;
     #[test]
     fn successful_decryption() {
         let mut rng = rand::thread_rng();
@@ -148,5 +150,17 @@ mod tests {
         let h1 = kdf(&g1);
         let h2 = Sha3_256::digest(&g1.to_string().into_bytes());
         assert_eq!(h1, h2);
+    }
+
+    #[test]
+    fn check_kdf() {
+        let mut rng = ChaCha20Rng::seed_from_u64(0xdeadbeef15dead);
+        let g1: Gt = rng.gen();
+        let g2: Gt = rng.gen();
+
+        assert_ne!(kdf(&g1), kdf(&g2));
+
+        std::println!("g1: {:?}", g1.to_string());
+        std::println!("g2: {:?}", kdf(&g2));
     }
 }
