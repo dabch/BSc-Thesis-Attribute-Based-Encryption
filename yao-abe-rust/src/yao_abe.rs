@@ -67,7 +67,7 @@ pub struct YaoAbeCiphertext<'attr, 'data>(YaoABEGroupCiphertext<'attr>, kem::Cip
 /// of decryption. The secret shared (D_u in the original paper) allowing decryption are embedded
 /// in the leaves of the tree.
 //#[derive(Debug)]
-pub struct PrivateKey<'attr, 'own>(AccessStructure<'attr, 'own>, FnvIndexMap<u8, F, consts::U64>, [[u8; 8]; 4]);
+pub struct PrivateKey<'attr, 'own>(AccessStructure<'attr, 'own>, FnvIndexMap<u8, F, consts::U64>, [[u8; 8]; 32]);
 // pub struct PrivateKey<'attr, 'own>(AccessStructure<'attr, 'own>, FnvIndexMap<u8, F, consts::U64>);
 
 /// Polynomial p(x) = a0 + a1 * x + a2 * x^2 + ... defined by a vector of coefficients [a0, a1, a2, ...]
@@ -153,8 +153,8 @@ impl<'attr: 'es, 'es: 'key, 'key> YaoABEPrivate<'attr, 'es> {
     Result<PrivateKey<'attr, 'key>, ()>
   where 'es: 'key
   { 
-    let mut r_per_level = [[0; 8]; 4];
-    for i in 0..4 {
+    let mut r_per_level = [[0; 8]; 32];
+    for i in 0..r_per_level.len() {
       rng.fill_bytes(&mut r_per_level[i]);
     }
     let tuple_arr: Vec<(u8, F), S> = self.keygen_node(
@@ -176,7 +176,7 @@ impl<'attr: 'es, 'es: 'key, 'key> YaoABEPrivate<'attr, 'es> {
     parent_poly: &Polynomial,
     index: F,
     level: u8,
-    r_per_level: &[[u8; 8]; 4],
+    r_per_level: &[[u8; 8]; 32],
     rng: &mut dyn RngCore,
   ) ->
     Result<Vec<(u8, F), S>, ()>
@@ -264,7 +264,7 @@ impl<'data, 'key, 'es, 'attr> YaoABEPublic<'attr, 'es> {
     secret_shares: &FnvIndexMap<u8, F, consts::U64>,
     att_cs: &FnvIndexMap<& 'attr str, G, S>,
     level: u8,
-    r_per_level: &[[u8; 8]; 4],
+    r_per_level: &[[u8; 8]; 32],
   ) -> Option<GIntermediate> 
   where 'attr: 'es, 'es: 'key, 'key: 'data
   {
