@@ -95,7 +95,7 @@ fn kdf_bytes(inp: &[u8]) -> GenericArray<u8, ccm::consts::U32> {
 mod tests {
     extern crate std;
     extern crate alloc;
-    use rabe_bn::Gt;
+    use rabe_bn::{Gt, G1};
     use rand::{Rng, SeedableRng};
     use super::*;
     use alloc::string::ToString;
@@ -155,12 +155,12 @@ mod tests {
     #[test]
     fn check_kdf() {
         let mut rng = ChaCha20Rng::seed_from_u64(0xdeadbeef15dead);
-        let g1: Gt = rng.gen();
+        let g1: G1 = rng.gen();
         let g2: Gt = rng.gen();
 
         assert_ne!(kdf(&g1), kdf(&g2));
 
         std::println!("g1: {:?}", g1.to_string());
-        std::println!("g2: {:?}", kdf(&g2));
+        std::println!("g2: {:?}", g2.to_string());
     }
 }
