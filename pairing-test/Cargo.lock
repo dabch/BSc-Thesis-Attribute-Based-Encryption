@@ -173,6 +173,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "gpsw06_abe"
+version = "0.1.0"
+dependencies = [
+ "abe-utils",
+ "ccm",
+ "heapless",
+ "rabe-bn",
+ "rand",
+]
+
+[[package]]
 name = "hash32"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -225,6 +236,7 @@ checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
 name = "pairing-test"
 version = "0.1.0"
 dependencies = [
+ "gpsw06_abe",
  "heapless",
  "rabe-bn",
  "rand",

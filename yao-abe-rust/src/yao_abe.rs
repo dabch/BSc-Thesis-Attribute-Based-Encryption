@@ -210,7 +210,7 @@ fn index_prf(r: [u8; 8], i: F) -> F {
   let mut maccer: Hmac<Sha3_512> = Hmac::new_varkey(&r).unwrap();
   maccer.update(&i.uninterpret());
   let mac_res = maccer.finalize().into_bytes();
-  std::println!("{:?}", mac_res);
+  // std::println!("{:?}", mac_res);
   F::interpret(mac_res.as_slice().try_into().unwrap())
 }
 
