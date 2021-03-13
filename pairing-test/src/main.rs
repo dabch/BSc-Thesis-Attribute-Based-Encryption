@@ -2,18 +2,18 @@
 use rand::{self, Rng, RngCore};
 use std::time::Instant;
 
-use yao_abe_rust::{AccessNode, AccessStructure, YaoABEPrivate, YaoABEPublic, F, G, S};
-// use gpsw06_abe::{GpswAbeCiphertext, GpswAbePrivate, GpswAbePublic, AccessNode, AccessStructure, G1, G2, F, S};
+// use yao_abe_rust::{AccessNode, AccessStructure, YaoABEPrivate, YaoABEPublic, F, G, S};
+use gpsw06_abe::{GpswAbeCiphertext, GpswAbePrivate, GpswAbePublic, AccessNode, AccessStructure, G1, G2, F, S};
 use heapless::{consts, FnvIndexMap, Vec};
 
 const SMPL_CNT: u128 = 100;
 
-type PUBLIC<'a, 'b> = YaoABEPublic<'a, 'b>;
-type PRIVATE<'a, 'b> = YaoABEPrivate<'a, 'b>;
+type PUBLIC<'a, 'b> = GpswAbePublic<'a, 'b>;
+type PRIVATE<'a, 'b> = GpswAbePrivate<'a, 'b>;
 type ACCESS_NODE<'a> = AccessNode<'a>;
 
-type PUBLIC_MAP = G;
-type PRIVATE_MAP = (F, G);
+type PUBLIC_MAP = G2;
+type PRIVATE_MAP = F;
 
 fn main() {
     let mut rng = rand::thread_rng();
@@ -908,11 +908,11 @@ fn main() {
             let ciphertext = public.encrypt(&atts, &mut data_cpy, &mut rng).unwrap();
 
             let start = Instant::now();
-            let key = private.keygen(&SET_A[i], &mut rng).unwrap();
+            let key = private.keygen(&public, &SET_A[i], &mut rng);
             keygen_us += Instant::now().duration_since(start).as_micros();
 
             let start = Instant::now();
-            let data_recovered = YaoABEPublic::decrypt(ciphertext, &key).unwrap();
+            let data_recovered = PUBLIC::decrypt(ciphertext, &key).unwrap();
             dec_us += Instant::now().duration_since(start).as_micros();
             assert_eq!(data_recovered, data);
         }

@@ -121,6 +121,10 @@ While this memory is not consumed permanently, it still needs to be available wh
             \addplot [color=orange, mark=square] table [x=atts,y=setup,col sep=comma] {data/gpsw06-laptop.csv};
             \addlegendentry{Encrypt};
             \addplot [color=blue, mark=triangle] table [x=atts,y=enc,col sep=comma] {data/gpsw06-laptop.csv};
+            \addlegendentry{KeyGen};
+            \addplot [color=green, mark=o] table [x=atts,y=keygen,col sep=comma] {data/gpsw06-laptop.csv};
+            \addlegendentry{Decrypt};
+            \addplot [color=red, mark=+] table [x=atts,y=dec,col sep=comma] {data/gpsw06-laptop.csv};
             \end{axis}
         \end{tikzpicture}
     \end{subfigure}
@@ -147,7 +151,7 @@ While this memory is not consumed permanently, it still needs to be available wh
             \addplot [color=green, mark=o] table [x=atts,y=keygen,col sep=comma] {data/yct14-laptop.csv};
             \addlegendentry{Decrypt};
             \addplot [color=red, mark=+] table [x=atts,y=dec,col sep=comma] {data/yct14-laptop.csv};
-            \addlegendentry{Decrypt};
+            % \addlegendentry{Decrypt};
             \addplot [color=black, mark=+] table [x=atts,y=dec2,col sep=comma] {data/yct14-laptop.csv};
             \end{axis}
         \end{tikzpicture}
