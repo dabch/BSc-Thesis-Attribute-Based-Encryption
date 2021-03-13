@@ -11,6 +11,7 @@ This SoC will be referred to simply as `the SoC'.
 
 For reference, the implementation was also tested on a standard laptop, referred to as `the Laptop'.
 More specifically, this system has a 2.7GHz Intel i7-7500U CPU and 16GB of RAM.
+It runs a Linux-based operating system.
 
 % The implementation of \acrshort{abe} on the SoC in Rust posed three main challenges:
 % \begin{itemize}
@@ -26,7 +27,7 @@ More specifically, this system has a 2.7GHz Intel i7-7500U CPU and 16GB of RAM.
 Rust was chosen as programming language for this project.
 First, it is a compiled language and thus incurs little overhead at runtime. Its speed is comparable to that of C/C++. % citation needed for that last bit
 Second, it provides much stronger memory safety guarantees than other compiled languages (especially C/C++ where extreme care is required to avoid introducing exploitable vulnerabilities).
-This is especially attractive for something as highly critical to security as an encryption library.
+This is especially attractive for security-critical components like an encryption library.
 
 \subsubsection{The \texttt{rabe-bn} library}
 
@@ -35,7 +36,7 @@ It implements a concrete pairing on 256-bit \emph{BN curves}. % TODO security le
 BN curves are a family of pairing-friendly elliptic curves proposed by Barreto and Naehrig \cite{barreto_pairing-friendly_2006}.
 
 The 256-bit modulus of the BN curve used in \texttt{rabe-bn} was originally believed to provide a security level of 128 bits~\cite{ben-sasson_succinct_2013}. 
-Due to a new variant of the Number Field Sieve (i.e. a better attack on the underlying cryptographic assumptions) the estimate for the security level has been revised down to 100 bits~\cite{yonezawa_pairing-friendly_2019}.
+Due to the discovery of better attacks on the underlying cryptographic assumptions, the estimate for the security level has been revised down to 100 bits~\cite{yonezawa_pairing-friendly_2019}.
 
 The library provides four structs: \texttt{G1}, \texttt{G2} and \texttt{Gt}, elements of the groups $\mathbb{G}_1$, $\mathbb{G}_2$ and $\mathbb{G}_T$, respectively.
 Let their orders be $r$, then \texttt{Fr} represents an element of the field $\mathbb{F}_r$.
@@ -53,7 +54,7 @@ However, for testing and actual use of the library bare-metal on the SoC, both t
 \subsubsection{\texttt{heapless} crate}
 The \texttt{heapless}\footnote{\url{https://crates.io/crates/heapless}} crate provides stack-allocated versions of some of the data structures from \texttt{std::collections}. 
 Most important were \texttt{heapless::Vec} (replaces \texttt{std::vec::Vec}) and \texttt{heapless::IndexMap} (replaces \texttt{std::collections::HashMap}).
-These data structures are statically allocated and require the maximum capacity as an additional generic type parameter.
+These data structures are statically allocated and expect their desired capacity as an additional generic type parameter.
 
 \section{Porting \texttt{rabe-bn} to the SoC}
 
