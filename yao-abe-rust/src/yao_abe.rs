@@ -48,7 +48,7 @@ pub enum AccessNode<'attr> {
 }
 
 /// Represents an access structure defined as a threshold-tree
-// Implementation: Array of 256 AccessNodes, the first one is the root
+// Implementation: Array of 256 AccessNodes, the first one is the root.
 // size of this is 10248 bytes (!)
 // pub type AccessStructure<'a> = Vec<AccessNode<'a>, consts::U256>; 
 pub type AccessStructure<'attr, 'own> = &'own [AccessNode<'attr>];
@@ -81,7 +81,7 @@ impl Polynomial {
   }
 
   /// Generates a random polynomial p(x) of degree `coeffs` coefficients, where p(0) = `a0`
-  fn randgen(a0: F, coeffs: u64, mut rng: &mut dyn RngCore) -> Polynomial {
+  fn randgen(a0: F, coeffs: u64, rng: &mut dyn RngCore) -> Polynomial {
     let mut coefficients: Vec<F, consts::U16> = Vec::from_slice(&[a0]).unwrap();
     coefficients.extend((1..coeffs).map(|_| -> F { rng.gen() }));
     assert_eq!(coefficients.len() as u64, coeffs);
