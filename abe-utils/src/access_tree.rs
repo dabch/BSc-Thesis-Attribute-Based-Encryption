@@ -46,7 +46,7 @@ pub fn prune_dec<'attr, 'key, T> (
         // we can only reconstruct our secret share if at least `thresh` children decrypted successfully (interpolation of `thresh-1`-degree polynomial)
         if children_result.len() < *thresh as usize { return None }
         // an arbitrary subset omega with |omega| = thresh is enough to reconstruct the secret. We choose that with the minimal number of pairings
-        children_result.sort_by(|(_, n1), (_, n2)| n1.partial_cmp(n2).unwrap());
+        children_result[..].sort_unstable_by(|(_, n1), (_, n2)| n1.partial_cmp(n2).unwrap());
         let relevant_children: Vec<(u8, u8), consts::U16> = children_result.into_iter().take(*thresh as usize).collect();
         return Some((relevant_children.iter().map(|(_, p) | p).sum(), relevant_children.iter().map(|(i, _)| *i).collect()));
       }
