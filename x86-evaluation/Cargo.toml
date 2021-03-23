@@ -1,5 +1,5 @@
 [package]
-name = "pairing-test"
+name = "x86-evaluation"
 version = "0.1.0"
 authors = ["Daniel Bücheler <daniel.buecheler@tum.de>"]
 edition = "2018"

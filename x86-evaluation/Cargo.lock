@@ -233,18 +233,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
 
 [[package]]
-name = "pairing-test"
-version = "0.1.0"
-dependencies = [
- "abe-utils",
- "gpsw06_abe",
- "heapless",
- "rabe-bn",
- "rand",
- "yao-abe-rust",
-]
-
-[[package]]
 name = "ppv-lite86"
 version = "0.2.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -395,6 +383,18 @@ name = "wasi"
 version = "0.9.0+wasi-snapshot-preview1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cccddf32554fecc6acb585f82a32a72e28b48f8c4c1883ddfeeeaa96f7d8e519"
+
+[[package]]
+name = "x86-evaluation"
+version = "0.1.0"
+dependencies = [
+ "abe-utils",
+ "gpsw06_abe",
+ "heapless",
+ "rabe-bn",
+ "rand",
+ "yao-abe-rust",
+]
 
 [[package]]
 name = "yao-abe-rust"
