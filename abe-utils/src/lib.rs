@@ -3,6 +3,7 @@ pub mod kem;
 pub mod hash_to_group;
 pub mod msp;
 pub mod access_tree;
+pub mod test_policies;
 
 pub use kem::{encrypt, decrypt, Ciphertext};
 

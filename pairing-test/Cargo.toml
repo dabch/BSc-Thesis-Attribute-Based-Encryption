@@ -11,5 +11,6 @@ edition = "2018"
 rabe-bn = { path = "../../rabe-bn-own", default-features=false }
 yao-abe-rust = { path = "../yao-abe-rust/" }
 gpsw06_abe = { path = "../gpsw06-abe/" }
+abe-utils = { path = "../abe-utils" }
 rand = "0.7.0"
 heapless = "0.5.6"
