@@ -274,8 +274,13 @@ impl<'data, 'key, 'es, 'attr> YaoABEPublic<'attr, 'es> {
       AccessNode::Node(thresh, children) => {
         // continue recursion - call for all children and then, if enough children decrypt successfully, reconstruct the secret share for 
         // this intermediate node.
-        let children_result: Vec<(F, GIntermediate), consts::U16> = children.into_iter().enumerate()
-          .map(|(i, child_ptr)| (index_prf(r_per_level[level as usize], F::from((i + 1) as u64)), Self::decrypt_node(tree_arr, *child_ptr, secret_shares, att_cs, level+1, r_per_level))) // node indexes start at one, enumerate() starts at zero! 
+        let pruned = match abe_utils::access_tree::prune_dec(tree_arr, tree_ptr, att_cs) {
+          Some((_, children)) => children,
+          None => return None,
+        };
+
+        let children_result: Vec<(F, GIntermediate), consts::U16> = pruned.iter()
+          .map(|i| (index_prf(r_per_level[level as usize], F::from(*i as u64)), Self::decrypt_node(tree_arr, children[(i-1) as usize], secret_shares, att_cs, level+1, r_per_level))) // node indexes start at one, enumerate() starts at zero! 
           .filter_map(|(i, x)| match x { None => None, Some(y) => Some((i, y))}) // filter out all children that couldn't decrypt because of missing ciphertext secret shares
           .collect();
         // we can only reconstruct our secret share if at least `thresh` children decrypted successfully (interpolation of `thresh-1`-degree polynomial)
