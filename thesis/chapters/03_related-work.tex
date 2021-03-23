@@ -18,6 +18,7 @@
 % b) schemes for IoT (using conventional crypto, pairing-free, server-aided etc.)
 % c) implementation works (IoT, BAN, pairings on microcontrollers)
 
+\section{Theoretical work on ABE schemes}
 \acrlong{abe} was introduced by Sahai and Waters in 2005~\cite{sahai_fuzzy_2005}.
 They proposed a new type of \gls{ibe} where identities are a set of attributes.
 Their so-called \emph{fuzzy} \gls{ibe} scheme allows a user to decrypt a ciphertext even if their identity doesn't exactly match the identity specified at the time of encryption~\cite{sahai_fuzzy_2005}.
@@ -70,6 +71,7 @@ For this reason, the security of pairing-free schemes like \cite{yao_lightweight
 
 ~
 
+\section{Evaluation on unconstrained hardware}
 % TODO open topics: implementation of lattice-based ABE on microcontrollers / in Rust / at all (?)
 One of the major factors for the performance of the implementation of an \acrshort{abes} is the underlying pairing computation (except for \cite{yao_lightweight_2015} and its derivatives, of course).
 Not only \acrshort{abe} is based on bilinear pairings, but a large variety of cryptographic schemes, e.g. a three-party \gls{dh}~\cite{joux_one_2000} or short \glspl{dss}~\cite{boneh_short_2001}).
@@ -81,13 +83,6 @@ Furthermore, many implementations are not portable due to hand-optimized assembl
 One of the first notable implementations was the \emph{Pairing-Based Cryptography Library (PBC)}\footnote{\label{footnotepbc}\url{https://crypto.stanford.edu/pbc/}}~\cite{lynn_implementation_2007}. % TODO verify that this was the first!
 The efficiency improvements implemented by the PBC library were first described by its author, Ben Lynn, in~\cite{lynn_implementation_2007}.
 This implementation runs sufficiently fast on standard PC hardware, e.g. it takes 20.5ms to compute a pairing on a 224-bit MNT curve on a 2.4GHz Intel Core i5 processor~\cite{akinyele_self-protecting_2010}.
-
-On the other end of the hardware spectrum stands the assembly-optimized \emph{TinyPBC} library\footnote{\url{https://sites.google.com/site/tinypbc/}}.
-It takes a minimum of 1.9s to compute a pairing on a 7MHz ATmega128L processor with optimized assembly code~\cite{oliveira_tinypbc_2011}. 
-Their choice of elliptic curves, however, only provides a security level of 80 bit (the 224-bit MNT curve from the PBC library is closer to a 128-bit security level~\cite{akinyele_self-protecting_2010}).
-
-Scott~\cite{scott_deployment_2020} provides a fast implementation of the 254-bit BN curve (the same as used in \texttt{rabe-bn}) in the \emph{MIRACL Core Cryptographic Library}\footnote{\url{https://github.com/miracl/core}}.
-They also evaluate their library on the same SoC as used in this thesis (nRF52840, 64MHz ARM Cortex M4 CPU) and compute a pairing of the 254-bit BN curve in 439ms \cite[Table~4]{scott_deployment_2020}.
 
 ~
 
@@ -109,7 +104,18 @@ This is subsequently challenged in \cite{ambrosin_feasibility_2015}, where a C i
 This implementation is significantly faster than the one in \cite{wang_performance_2014} at comparable security levels.
 As such, the authors conclude that \acrshort{abe} is indeed feasible on smartphones.
 
-The authors of \cite{ambrosin_feasibility_2015} shortly thereafter consider the feasibility of \acrshort{abe} on \gls{iot} devices in \cite{ambrosin_feasibility_2016}.
+\section{Evaluation on constrained devices}
+
+Despite pairing computation being very computationally demanding, there exist libraries even for the smalles microcontrollers:
+For example, the \emph{TinyPBC} library\footnote{\url{https://sites.google.com/site/tinypbc/}}.
+It takes a minimum of 1.9s to compute a pairing on a 7MHz ATmega128L processor with optimized assembly code~\cite{oliveira_tinypbc_2011}. 
+Their choice of elliptic curves, however, only provides a security level of 80 bit (the 224-bit MNT curve from the PBC library is closer to a 128-bit security level~\cite{akinyele_self-protecting_2010}).
+
+Scott~\cite{scott_deployment_2020} provides a fast implementation of the 254-bit BN curve (the same as used in \texttt{rabe-bn}) in the \emph{MIRACL Core Cryptographic Library}\footnote{\url{https://github.com/miracl/core}}.
+They also evaluate their library on the same SoC as used in this thesis (nRF52840, 64MHz ARM Cortex M4 CPU) and compute a pairing of the 254-bit BN curve in 439ms \cite[Table~4]{scott_deployment_2020}.
+
+
+The authors of \cite{ambrosin_feasibility_2015} also test their \acrshort{abe} implementation on \gls{iot} devices in \cite{ambrosin_feasibility_2016}.
 They evaluate the performance of the same library on, among others, a Raspberry Pi Zero (1GHz ARM11 CPU) and conclude that \acrshort{abe} is feasible on these devices, too.
 However, they note that especially lower security levels are suitable and that the penalty for increasing the security level is very high (e.g. increasing the security level from 80 to 128 bits without increasing the encryption time requires reduction of the number of attributes by a factor of 10)~\cite{ambrosin_feasibility_2016}.
 

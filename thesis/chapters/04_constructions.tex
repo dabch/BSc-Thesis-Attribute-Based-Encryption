@@ -1,4 +1,8 @@
 \chapter{Constructions}\label{chapter:constructions} 
+
+This chapter will describe two \acrshort{abe} schemes in detail; those were implemented in this thesis.
+In addition to a detailed description of the schemes, any modifications of the schemes are described.
+
 \section{Goyal, Pandey, Sahai and Waters, 2006}
 This scheme was the first \acrshort{abes} with expressive \glspl{access-policy}. Policies are associated with the key (\acrshort{kp-abe}).
 It was described by Goyal, Pandey, Sahai and Waters \cite{goyal_attribute-based_2006} in 2006. This scheme will be referred to as GPSW.
@@ -98,7 +102,11 @@ This makes it especially useful for our resource-constrained context, as bilinea
 
 As opposed to other ABE schemes based on pairings, YCT uses a hybrid approach similar to Elliptic Curve Integrated Encryption Standard (ECIES):
 The actual encryption of the plaintext is done by a symmetric cipher, for which the key is derived from a curve point determined by the YCT scheme~\cite{yao_lightweight_2015}.
-If a key's \gls{access-structure} is satisfied by a certain ciphertext, this curve point and thus the symmetric encryption key can be reconstructed, allowing for decryption.~\cite{yao_lightweight_2015}
+If a key's \gls{access-structure} is satisfied by a certain ciphertext, this curve point and thus the symmetric encryption key can be reconstructed, allowing for decryption~\cite{yao_lightweight_2015}.
+
+The original description of this scheme uses the x- and y-coordinates as keys for separate encryption and authentication mechanisms.
+Instead, my implementation uses a combined \acrshort{aead} scheme (more specifically, AES-256 in CCM mode).
+This uses a single key (derived by hashing the curve point) to ensure confidentiality and integrity of the data.
 
 The description below includes the fix proposed in \cite{tan_enhancement_2019}, for which an additional \acrshort{prf} is used to randomize the value of the $\text{index}(\cdot)$ function for nodes of the \gls{access-tree}.
 For this, instead of $\text{index}(\cdot)$, the modified $\text{index}'(\cdot) = \text{PRF}(r_l, index(\cdot))$ is used~\cite{tan_enhancement_2019}.

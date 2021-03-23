@@ -134,7 +134,7 @@ Figure~\ref{fig:abe-system} shows a small \acrshort{abe} system with the \acrsho
         \caption{If $\textcolor{olive}{S_A}$ and $\textcolor{blue}{S_B}$ are allowed access policies for Alice and Bob, respectively, the \acrshort{kgc} creates their private keys and transmits them via a secure channel.}
     \end{subfigure}
     \par\bigskip
-    \begin{subfigure}[c]{0.6\textwidth}
+    \begin{subfigure}[t]{0.6\textwidth}
         \centering
         \begin{tikzpicture}[actor/.style={draw, minimum width=1.5cm}]
             \node[actor] (a) at (-2,0) {Alice};
@@ -154,10 +154,30 @@ Figure~\ref{fig:abe-system} shows a small \acrshort{abe} system with the \acrsho
         \end{tikzpicture}
         \caption{Alice can now use the public parameters $PK$ and $\omega$ to encrypt a message for Bob, which he can decrypt only if his access policy $\textcolor{blue}{S_B}$ is satisfied by $\omega$. Note that the \acrshort{kgc} plays no role in this step}
     \end{subfigure}
+    % \begin{subfigure}[t]{0.6\textwidth}
+    %     \centering
+    %     \begin{tikzpicture}
+    %         \matrix [draw] at (0,0) {
+    %             % \node [label=right:Public Key (system parameters)] {$PK$};\\
+    %             % \node [label=right:Access Structures for Alice and Bob] {$S_A$, $S_B$}; \\
+    %             % \node [label=right:Plaintext message] {$m$}; \\
+    %             % \node [label=right:Set of attributes] {$\omega$}; \\
+    %         };
+    %     \end{tikzpicture}
+    % \end{subfigure}
     \caption[Interaction of Alice, Bob and KGC in an \acrshort{abes}]{
         Alice wants to send an \acrshort{kp-abe} encrypted message $m$ to Bob. She wants to encrypt the message under a set of attributes $\omega$.
         Both Alice and Bob create a desired \gls{access-policy}, $\textcolor{olive}{S_A}$ and $\textcolor{blue}{S_B}$, respectively.
         Note that the \acrshort{kgc} will only issue a corresponding key if it deems that they should be allowed to obtain a key under the given access policy.
+
+        % \begin{itemize}
+        %     \item test
+        % %     \item $PK$: Public Key (system parameters, equal for all participants)
+        % %     \item $S_A, S_B$: Alice's and Bob's Access policies
+        % %     \item $k_A, k_B$: Alice's and Bob's private keys (corresponding to $S_A$ and $S_B$)
+        % %     \item $m$: Plaintext message
+        % %     \item $\omega$: Set of attributes
+        % \end{itemize}
     }
     \label{fig:abe-system}
 \end{figure}
@@ -200,14 +220,14 @@ We will define a \acrshort{kp-abe} scheme here, for the difference between \acrs
 
 The definition of a \acrshort{cp-abe} scheme is identical, except that \emph{Encrypt(PK, m, S)} takes an \gls{access-structure} $S$ and \emph{KeyGen(PK, s, $\omega$)} takes a set of attributes.
 
-How exactly these algorithms work in concrete ABE schemes will be discussed in Section~\ref{chapter:constructions}.
+How exactly these algorithms work in concrete ABE schemes will be discussed in Chapter~\ref{chapter:constructions}.
 
 \subsection{KP-ABE and CP-ABE}\label{sec:cp-vs-kp}
 
 Two components are necessary to specify a group of keys that shall be able to decrypt a ciphertext: A number of attributes that are present, and a policy that defines a combination of required attributes. 
 Each of these can either be associated with the ciphertext, or with the decryption key:
 
-In \acrfull{cp-abe}, so the key is associated with a set of attributes and the ciphertext is encrypted under an \gls{access-policy}.
+In \acrfull{cp-abe}, the key is associated with a set of attributes and the ciphertext is encrypted under an \gls{access-policy}.
 \acrfull{kp-abe} works the other way around, so the ciphertext is associated with a set of attributes, and the key is associated with an \gls{access-policy}.
 See Figure~\ref{fig:cp-kp-abe} for illustration.
 
@@ -215,17 +235,25 @@ In both cases, a ciphertext can be decrypted if and only if the set of attribute
 
 \acrshort{cp-abe} tends to be more intuitive because, when encrypting a plaintext, the encryptor controls rather explicitly who can decrypt their ciphertext:
 They set the \gls{access-policy} that defines which combinations of attributes are required from the users to successfully decrypt the ciphertext~\cite{bethencourt_ciphertext-policy_2007}.
-
-With \acrshort{kp-abe}, on the other hand, the encryptor doesn't have any control over who will be able to access the data, except for the choice of attributes under which they encrypt the plaintext~\cite{bethencourt_ciphertext-policy_2007}.
-Instead, the \acrlong{kgc} must be trusted with intelligently deciding which key to give to the decrypting party~\cite{bethencourt_ciphertext-policy_2007}.
-For example, imagine a \acrshort{kp-abe} system in which it is common practice to label all ciphertexts with an attribute corresponding to the version number of the encryption software used.
-If the \acrshort{kgc} were to give out a key containing a monotone \gls{access-structure} satisfied by just a single attribute corresponding to a commonly-used version of this software, this key could be used to decrypt any ciphertext - completely disregarding any other attributes that might be associated with it.
-
 An example use case for \acrshort{cp-abe} in a hospital setting would be sending an encrypted note about problems with a specific treatment to all doctors, patients that received that treatment and nurses of the department that administered the treatment.
 This could be specified by an \gls{access-policy} as (\texttt{hospital-name} AND (\texttt{doctor} OR (\texttt{patient} AND \texttt{received-treatment-x}) OR (\texttt{nurse} AND \texttt{department-y})). % TODO maybe add a picture here
 
-In the same hospital setting, \acrshort{kp-abe} could be employed in a different use case: When storing medical data about a patient, \acrshort{cp-abe} would require re-encrypting the data under a new \gls{access-policy} whenever a patient needs to see a different doctor.
-With \acrshort{kp-abe}, the data could instead be associated with the patient's name as an attribute, and the hospital's IT department could extend the new doctor's key's policy to allow decrypting the new patient's data.
+With \acrshort{kp-abe}, on the other hand, the encryptor doesn't have direct control over who will be able to access the data, except for the choice of attributes under which they encrypt the plaintext~\cite{bethencourt_ciphertext-policy_2007}.
+In the hospital setting from above, \acrshort{kp-abe} could be employed in a different use case: For encrypted storage of a patient's medical record, the patient's name could be used as an attribute in \acrshort{kp-abe}.
+If the patient sees a new doctor, they could simply have their key policy extended to include the patient's attribute.
+With \acrshort{cp-abe}, seeing a new doctor would require re-encrypting the entire data under a new access policy.
+
+With \acrshort{kp-abe}, instead of the encryptor, the \acrlong{kgc} must be trusted with intelligently deciding which key to give to the decrypting party~\cite{bethencourt_ciphertext-policy_2007}.
+This property can be desirable: Consider a constrained IoT device as an encryptor, which can reliably transmit data, but not receive.
+If a new doctor must be given access to a patient's data, \acrshort{cp-abe} would require updating the policy on this device.
+With \acrshort{kp-abe}, policies are handled by the \acrshort{kgc}, which is in general much more powerful and better-connected than encryptors might be.
+
+
+% For example, imagine a \acrshort{kp-abe} system in which it is common practice to label all ciphertexts with an attribute corresponding to the version number of the encryption software used.
+% If the \acrshort{kgc} were to give out a key containing a monotone \gls{access-structure} satisfied by just a single attribute corresponding to a commonly-used version of this software, this key could be used to decrypt any ciphertext - completely disregarding any other attributes that might be associated with it.
+
+
+
 
 \begin{figure}
     \centering
@@ -486,7 +514,8 @@ $p_2(x)$ is the polynomial for the $(1,2)$-threshold scheme belonging to the nod
 
 \subsection{Revocation}
 So far, it is not possible to take away privileges from a user:
-Once the private key has been issued, it can not be taken back.A user's capabilities can only be extended (e.g. by issuing a key with additional attributes or with a more permissive policy).
+Once the private key has been issued, it can not be taken back.
+A user's capabilities can only be extended (e.g. by issuing a key with additional attributes or with a more permissive policy).
 This is is an problem, e.g. if their private key is compromised~\cite{boldyreva_identity-based_2008}.
 
 The simplest approach is to simply renew the keys of valid users from time to time~\cite{boldyreva_identity-based_2008}.
@@ -499,12 +528,14 @@ With direct revocation, the list of revoked users is directly specified by the e
 Indirect revocation achieves revocation by means of updating the keys of valid users, as described in the naive approach above.
 
 Direct revocation requires the encryptor to know the list of revoked users \cite{attrapadung_attribute-based_2009} (i.e. the encrypting party is responsible for correct revocation of the users on the revocation list).
+This can be a major drawback, especially in large systems or when encryptors are severely constrained (as in our case, \gls{iot} devices).
 With indirect revocation, the encryptor does not need to do anything except use the most recent version of the public parameters~\cite{attrapadung_attribute-based_2009}.
 
-Direct revocation also works instantly: As soon as an encryptor knows about the revocation of a user, they will include them on their revocation list for future encryptions.
-With indirect revocation, a revoked user can still use their key normally until the next key update is distributed by the \acrshort{kgc}~\cite{attrapadung_attribute-based_2009}.
+The advantage of direct revocation, however, is that it works instantly: As soon as an encryptor knows about the revocation of a user, they will include them on their revocation list for future encryptions.
+With indirect revocation, a revoked user can decrypt all ciphertexts created until the next key update is distributed by the \acrshort{kgc}~\cite{attrapadung_attribute-based_2009}.
 
-
+In either case, ciphertext encrypted before a user's revocation becomes effective, remains readable using the revoked key.
+Some schemes include a proxy-reencryption mechanism that allows an untrusted third party to update ciphertexts such that they cannot be decrypted by revoked users~\cite{manna_sea-brew_2021}.
 
 \section{Elliptic Curves}
 \label{sec:ec}
@@ -573,7 +604,7 @@ Using this intersecting line, we can define an operation on curve points:
 \end{definition} 
 
 \begin{figure}
-    \includegraphics[width=\textwidth]{figures/ecc_point_addition.png}
+    \includegraphics[width=\textwidth]{figures/ecc_point_addition.pdf}
     \caption[Elliptic Curve point addition]{Elliptic Curve point addition\\(Image by \href{https://commons.wikimedia.org/wiki/File:ECClines-2.svg}{SuperManu}, licensed under \href{https://creativecommons.org/licenses/by-sa/3.0/deed.en}{Creative Commons}.)}
     \label{fig:ecc-point-addition}
 \end{figure}
