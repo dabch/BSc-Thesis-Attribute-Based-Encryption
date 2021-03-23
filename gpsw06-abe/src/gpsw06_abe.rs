@@ -6,6 +6,7 @@ use rabe_bn::{self, Group};
 use heapless::{FnvIndexMap, Vec, consts};
 use rand::{Rng, RngCore};
 use abe_utils::kem;
+pub use abe_utils::access_tree::{AccessNode, AccessStructure};
 
 pub use ccm::aead::Error;
 
@@ -55,21 +56,6 @@ pub struct GpswAbePublic<'attr, 'own> {
   pk: Gt,
 }
   
-/// represents an access structure that defines the powers of a key.
-/// This is passed to keygen() by the KGC, and then embedded in the private key issued to the user.
-#[derive(Debug)]
-pub enum AccessNode<'attr> {
-  Node(u64, Vec<u8, consts::U16>), // threshold, children
-  Leaf(&'attr str),
-}
-
-
-/// Represents an access structure defined as a threshold-tree
-// Implementation: Array of 256 AccessNodes, the first one is the root
-// size of this is 10248 bytes (!)
-// pub type AccessStructure<'a> = Vec<AccessNode<'a>, consts::U256>; 
-pub type AccessStructure<'attr, 'own> = &'own [AccessNode<'attr>];
-
 /// Represents a ciphertext as obtained by encrypt() and consumed by decrypt()
 /// Contains both the actual (symetrically) encrypted data and all data required to reconstruct the 
 /// symmetric keys given a private key created under a matching access structure.
@@ -316,7 +302,7 @@ impl<'data, 'key, 'es, 'attr> GpswAbePublic<'attr, 'es> {
       AccessNode::Node(thresh, children) => {
         // continue recursion - call for all children and then, if enough children decrypt successfully, reconstruct the secret share for 
         // this intermediate node.
-        let pruned = match Self::prune_dec(tree_arr, tree_ptr, att_es) {
+        let pruned = match abe_utils::access_tree::prune_dec(tree_arr, tree_ptr, att_es) {
           Some((_, children)) => children,
           None => return None,
         };
@@ -343,41 +329,6 @@ impl<'data, 'key, 'es, 'attr> GpswAbePublic<'attr, 'es> {
     }
   }
 
-  fn prune_dec(
-    tree_arr: AccessStructure<'attr, 'key>,
-    tree_ptr: u8,
-    att_es: &FnvIndexMap<& 'attr str, G2, S>,
-  ) -> Option<(u8, Vec<u8, consts::U16>)>
-  where 'attr: 'es, 'es: 'key, 'key: 'data
-  {
-    let own_node = &tree_arr[tree_ptr as usize];
-    match own_node {
-      AccessNode::Leaf(name) => {
-        // terminate recursion - we have reached a leaf node containing a secret share. Encryption can only be successful if
-        // the matching remaining part of the secret is embedded within the ciphertext (that is the case iff the ciphertext
-        // was encrypted under the attribute that our current Leaf node represents)
-        match att_es.get(name) {
-          Some(_) => Some((1, Vec::from_slice(&[0]).unwrap())),
-          None => None,
-        }
-      },
-      AccessNode::Node(thresh, children) => {
-        // continue recursion - call for all children and then, if enough children decrypt successfully, reconstruct the secret share for 
-        // this intermediate node.
-
-        // this contains tuples (index, no. of pairings required) for each child node that is satisfied
-        let mut children_result: Vec<(u8, u8), consts::U16> = children.into_iter().enumerate()
-          .filter_map(|(index, child_ptr)| match Self::prune_dec(tree_arr, *child_ptr, att_es) { Some((pairings, _)) => Some(((index + 1) as u8, pairings)), None => None })
-          .collect();
-        // we can only reconstruct our secret share if at least `thresh` children decrypted successfully (interpolation of `thresh-1`-degree polynomial)
-        if children_result.len() < *thresh as usize { return None }
-        // an arbitrary subset omega with |omega| = thresh is enough to reconstruct the secret. We choose that with the minimal number of pairings
-        children_result.sort_by(|(_, n1), (_, n2)| n1.partial_cmp(n2).unwrap());
-        let relevant_children: Vec<(u8, u8), consts::U16> = children_result.into_iter().take(*thresh as usize).collect();
-        return Some((relevant_children.iter().map(|(_, p) | p).sum(), relevant_children.iter().map(|(i, _)| *i).collect()));
-      }
-    }
-  }
 
   /// Decrypt a ciphertext using a given private key. At this point, doesn't actually do any decryption, it just reconstructs the point used as encryption/mac key.
   fn decrypt_group_element(

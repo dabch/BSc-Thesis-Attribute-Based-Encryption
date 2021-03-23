@@ -13,6 +13,8 @@ use hmac::{Hmac, Mac, NewMac};
 
 use abe_utils::kem;
 
+pub use abe_utils::access_tree::{AccessNode, AccessStructure};
+
 
 pub use ccm::aead::Error;
 
@@ -39,20 +41,6 @@ pub struct YaoABEPublic<'attr, 'own> {
   pk: G,
 }
   
-/// represents an access structure that defines the powers of a key.
-/// This is passed to keygen() by the KGC, and then embedded in the private key issued to the user.
-#[derive(Debug)]
-pub enum AccessNode<'attr> {
-  Node(u64, Vec<u8, consts::U16>), // threshold, children
-  Leaf(&'attr str),
-}
-
-/// Represents an access structure defined as a threshold-tree
-// Implementation: Array of 256 AccessNodes, the first one is the root.
-// size of this is 10248 bytes (!)
-// pub type AccessStructure<'a> = Vec<AccessNode<'a>, consts::U256>; 
-pub type AccessStructure<'attr, 'own> = &'own [AccessNode<'attr>];
-
 /// Represents a ciphertext as obtained by encrypt() and consumed by decrypt()
 /// Contains both the actual (symetrically) encrypted data and all data required to reconstruct the 
 /// symmetric keys given a private key created under a matching access structure.
