@@ -895,10 +895,10 @@ fn main() {
         "att01", "att21", "att15", "att19", "att05", "att13", "att17", "att27", "att16", "att28",
     ];
 
-    let ciphertext = public.encrypt(&atts, &mut data, &mut rng).unwrap();
+    // let ciphertext = public.encrypt(&atts, &mut data, &mut rng).unwrap();
 
     rng.fill_bytes(&mut data);
-    println!("atts;setup;dec");
+    println!("atts;keygen;dec");
     for i in 0..SET_A.len() {
         // rprintln!("starting setup");
         let mut keygen_us = 0;
