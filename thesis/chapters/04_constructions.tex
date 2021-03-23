@@ -1,4 +1,8 @@
 \chapter{Constructions}\label{chapter:constructions} 
+
+This chapter will describe two \acrshort{abe} schemes in detail; those were implemented in this thesis.
+In addition to a detailed description of the schemes, any modifications of the schemes are described.
+
 \section{Goyal, Pandey, Sahai and Waters, 2006}
 This scheme was the first \acrshort{abes} with expressive \glspl{access-policy}. Policies are associated with the key (\acrshort{kp-abe}).
 It was described by Goyal, Pandey, Sahai and Waters \cite{goyal_attribute-based_2006} in 2006. This scheme will be referred to as GPSW.
@@ -98,9 +102,18 @@ This makes it especially useful for our resource-constrained context, as bilinea
 
 As opposed to other ABE schemes based on pairings, YCT uses a hybrid approach similar to Elliptic Curve Integrated Encryption Standard (ECIES):
 The actual encryption of the plaintext is done by a symmetric cipher, for which the key is derived from a curve point determined by the YCT scheme~\cite{yao_lightweight_2015}.
-If a key's \gls{access-structure} is satisfied by a certain ciphertext, this curve point and thus the symmetric encryption key can be reconstructed, allowing for decryption.~\cite{yao_lightweight_2015}
+If a key's \gls{access-structure} is satisfied by a certain ciphertext, this curve point and thus the symmetric encryption key can be reconstructed, allowing for decryption~\cite{yao_lightweight_2015}.
 
-The four algorithms of an ABE scheme are defined as follows: \\
+The original description of this scheme uses the x- and y-coordinates as keys for separate encryption and authentication mechanisms.
+Instead, my implementation uses a combined \acrshort{aead} scheme (more specifically, AES-256 in CCM mode).
+This uses a single key (derived by hashing the curve point) to ensure confidentiality and integrity of the data.
+
+The description below includes the fix proposed in \cite{tan_enhancement_2019}, for which an additional \acrshort{prf} is used to randomize the value of the $\text{index}(\cdot)$ function for nodes of the \gls{access-tree}.
+For this, instead of $\text{index}(\cdot)$, the modified $\text{index}'(\cdot) = \text{PRF}(r_l, index(\cdot))$ is used~\cite{tan_enhancement_2019}.
+$r_l$ is a random seed value that differs for each layer $l$ of the \gls{access-tree}~\cite{tan_enhancement_2019}.
+In our implementation, HMAC-SHA512 is used as the \acrshort{prf}.
+
+The four algorithms of the YCT scheme are defined as follows: \\
 
 \emph{Setup}~\cite{yao_lightweight_2015}.
 The attribute universe is defined as $\text{U} = \{1, 2, \dots, n\}$ and is fixed.
@@ -116,14 +129,16 @@ Publish $Params=(PK, P_1, \dots, P_n)$ as the public parameters, privately save 
 \emph{KeyGen($\Gamma$, MK)}~\cite{yao_lightweight_2015}.
 Input: \glspl{access-tree} $\Gamma$ and master key $MK$.
 
+For each layer $l = 0, 1, \dots$ of the access tree, generate a random seed value $r_l \in \mathcal{K}_{PRF}$ from the PRF's key space.
+
 For each node $u$ in the Access Tree $\Gamma$, recursively define polynomials $q_u(x)$ with degree $(d_u - 1)$, starting from the root.
 
 For the root $r$, set $q_r(0) = s$ and randomly choose $(d_r - 1)$ other points to determine the polynomial $q_r(x)$.
-Then, for any other node $u$ (including leafs), set $q_u(0) = q_{\text{parent}(u)}(\text{index(u)})$ and choose $(d_u -1)$ other points for $q_u$, similar to above.
+Then, for any other node $u$ (including leafs), set $q_u(0) = q_{\text{parent}(u)}(\text{index}'(u))$ and choose $(d_u -1)$ other points for $q_u$, similar to above.
 
 Whenever $u$ is a leaf node, use $q_u(x)$ to define a secret share $D_u = \frac{q_u(0)}{s_i}$; where $i = \text{attr}(u)$, $s_i$ the randomly chosen secret number from \emph{Setup} and $s_i^{-1}$ the inverse of $s_i$ in $\mathbb{Z}_q^*$.
 
-Return the generated key as $D = \{D_u | u \text{ leaf node of } \Gamma\}$.\\
+Return the generated key as $D = (\{D_u | u \text{ leaf node of } \Gamma\}, \{r_0, r_1, \dots \})$.\\
 
 \emph{Encrypt(m, $\omega$, Params)}~\cite{yao_lightweight_2015}.
 Input: Message $m$, set of attributes $\omega$ and public parameters $Params$.
@@ -155,7 +170,7 @@ Where the equality $(*)$ holds because $s_i$ and $s_i^{-1}$ cancel out:
     D_u \cdot C_i = q_u(0) \cdot s_i^{-1} \cdot k \cdot P_i = q_u(0) \cdot s_i^{-1} \cdot k \cdot s_i \cdot G = q_u(0) \cdot k \cdot G
 \end{equation*}
 
-For an internal node $u$, call $\text{DecryptNode}(CM, D, v)$ for each of its childen $v$. If for less than $d_u$ of the child nodes $\text{DecryptNode}(CM, D, v) \neq \perp$, return $\text{DecryptNode}(CM, D, )=\perp$.
+For an internal node $u$ on layer $l$, call $\text{DecryptNode}(CM, D, v)$ for each of its childen $v$. If for less than $d_u$ of the child nodes $\text{DecryptNode}(CM, D, v) \neq \perp$, return $\text{DecryptNode}(CM, D, )=\perp$.
 Then let $\omega_u$ be an arbitrary subset of $d_u$ child nodes of $u$, where for all $v \in \omega_u$, $\text{DecryptNode}(CM, D, v) \neq \perp$.
 Then $\text{DecryptNode}(CM, D, u)$ is defined as follows, where $i = \text{index}(v)$, $\omega'_u = \{\text{index}(v) | v \in \omega_u\}$.
 \begin{equation*}

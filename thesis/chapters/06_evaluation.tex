@@ -1,16 +1,166 @@
 \chapter{Evaluation}
 
-\section{Pairing computation}
-\dots
+\section{Performance of \texttt{rabe\_bn}}
+See Table~\ref{tbl:rabe-performance} for performance measurements of random element sampling, group operations, group-scalar exponentiation and the pairing operation.
+The times have been measured using randomly sampled elements and averaged over 100 calls each.
 
-RAM size seems to be a limiting factor when computing pairings on embedded devices.
-During development, the ported \texttt{rabe-bn} library was also tested on the nRF52832 SoC, which has 64KB of RAM (vs. 256KB in the nRF52840). 
-On this chip, a pairing could be computed successfully only if the library was build \emph{without debug symbols}.
+\begin{center}
+    \begin{tabular}{|c|r|r|}\hline%
+        Operation & SoC [ms] & Laptop [ms]\\\hline\hline
+        \csvreader[late after line=\\]%
+        {data/bn-smpl.csv}{op=\op,soc=\soc,laptop=\laptop}%
+        {\op&\soc&\laptop}%
+        \hline
+        \csvreader[late after line=\\]%
+        {data/bn-groupop.csv}{op=\op,soc=\soc,laptop=\laptop}%
+        {\op&\soc&\laptop}%
+        \hline
+        \csvreader[late after line=\\]%
+        {data/bn-groupexp.csv}{op=\op,soc=\soc,laptop=\laptop}%
+        {\op&\soc&\laptop}%
+        \hline
+        \csvreader[late after line=\\]%
+        {data/bn-pairing.csv}{op=\op,soc=\soc,laptop=\laptop}%
+        {\op&\soc&\laptop}%
+        \hline
+    \end{tabular}  
+    \captionof{table}{Execution times for various operations on the SoC and the laptop}
+    \label{tbl:rabe-performance}
+\end{center}
+
+
+It is apparent that the the cost of the operations differs greatly between the groups. 
+Sampling a random element takes about the same time as group exponentiation for $\mathbb{G}_1$ and $\mathbb{G}_2$, but is significantly more costly for $\mathbb{G}_T$.
+Looking at the implementation, the reason for this is obvious: Sampling from $\mathbb{G}_1$ and $\mathbb{G}_2$ simply generates a random $z \in \mathbb{F}_r$ and returns the group element $z \cdot G$ for $G$ a generator.
+Sampling from $\mathbb{G}_T$ is done by generating random elements of $\mathbb{G}_1$ and $\mathbb{G}_2$ and computing their pairing.
+This is reflected in the measured timings.
+
+% \csvreader[tabular=|r|r|r|,
+%     table head=\hline & Soc [ms] & Laptop [ms]\\\hline\hline,
+%     late after line=\\\hline]
+%     {data/smpl-times.csv}{description=\description,soc=\soc,laptop=\laptop}
+%     {\thecsvrow & \description & \soc & \laptop}
+
+% \begin{tabular}{|r|r|r|}\hline%
+%     & SoC [ms] & Laptop [ms]\\\hline
+%     \csvreader[late after line=\\]%
+%         {data/smpl-times.csv}{description=\description,soc=\soc,laptop=\laptop}%
+%         {\description & \soc & \laptop}%
+% \end{tabular}\
+
+Interestingly, RAM size seems to be a limiting factor when computing pairings on embedded devices.
+During development, I also tested the ported \texttt{rabe-bn} library on the nRF52832 SoC, which has 64KB of RAM (vs. 256KB in the nRF52840). 
+On this chip, a pairing could be computed successfully only if the library was built \emph{without debug symbols}.
 With debug symbols, there was not enough RAM available and the pairing computation failed.
 This suggests that the memory use during pairing computation is close to 64KB, which would still be a quarter of the RAM on the nRF52840 SoC.
 While this memory is not consumed permanently, it still needs to be available when the pairing function is called.
 
-\section{Experimental results}
+\section{Performance of the ABE schemes}
+
+\begin{figure}\centering
+    \begin{subfigure}[h]{0.45\textwidth}
+        \begin{tikzpicture}
+            \begin{axis}[
+                title={Timing of GPSW \cite{goyal_attribute-based_2006} on the SoC},
+                xlabel={attributes / leaf nodes},
+                ylabel={seconds},
+                xmin=0, xmax=32,
+                ymin=0, ymax=9000,
+                % scaled y ticks=base 10:-3,
+                ytick scale label code/.code={}, % removes the '\cdot 10^3' label 
+                legend pos=south east,
+                grid=major,
+                grid style=dashed,
+            ]
+            \addlegendentry{Setup};
+            \addplot [color=orange, mark=square] table [x=atts,y=setup,col sep=comma] {data/gpsw06.csv};
+            \addlegendentry{Encrypt};
+            \addplot [color=blue, mark=triangle] table [x=atts,y=enc,col sep=comma] {data/gpsw06.csv};
+            \end{axis}
+        \end{tikzpicture}
+    \end{subfigure}%
+    \hspace{0.09\textwidth}
+    \begin{subfigure}[h]{0.45\textwidth}
+        \begin{tikzpicture}
+            \begin{axis}[
+                title={Timing of GPSW \cite{goyal_attribute-based_2006} on the SoC},
+                xlabel={attributes / leaf nodes},
+                ylabel={seconds},
+                xmin=0, xmax=32,
+                ymin=0, ymax=9000,
+                % scaled y ticks=base 10:-3,
+                ytick scale label code/.code={}, % removes the '\cdot 10^3' label 
+                legend pos=south east,
+                grid=major,
+                grid style=dashed,
+            ]
+            \addlegendentry{Setup};
+            \addplot [color=orange, mark=square] table [x=atts,y=setup,col sep=comma] {data/gpsw06.csv};
+            \addlegendentry{Encrypt};
+            \addplot [color=blue, mark=triangle] table [x=atts,y=enc,col sep=comma] {data/gpsw06.csv};
+            \end{axis}
+        \end{tikzpicture}
+    \end{subfigure}%
+    % \caption{Performance of GPSW and YCT on the SoC.}
+    \vspace{1cm}
+    \begin{subfigure}[h]{0.448\textwidth}
+        \begin{tikzpicture}
+            \begin{axis}[
+                title={Timing of GPSW \cite{goyal_attribute-based_2006} on the laptop},
+                xlabel={attributes / leaf nodes},
+                ylabel={milliseconds},
+                xmin=0, xmax=32,
+                ymin=0, ymax=270000,
+                scaled y ticks=base 10:-3,
+                ytick scale label code/.code={}, % removes the '\cdot 10^3' label 
+                legend pos=north west,
+                grid=major,
+                grid style=dashed,
+            ]
+            % \addlegendentry{Setup};
+            % \addplot [color=orange, mark=square] table [x=atts,y=setup,col sep=comma] {data/gpsw06-laptop.csv};
+            % \addlegendentry{Encrypt};
+            % \addplot [color=blue, mark=triangle] table [x=atts,y=enc,col sep=comma] {data/gpsw06-laptop.csv};
+            % \addlegendentry{KeyGen};
+            % \addplot [color=green, mark=o] table [x=atts,y=keygen,col sep=comma] {data/gpsw06-laptop.csv};
+            \addlegendentry{Decrypt};
+            \addplot [color=red, mark=+] table [x=atts,y=dec,col sep=comma] {data/gpsw06-laptop.csv};
+            \addplot [color=black, mark=+] table [x=atts,y=dec2,col sep=comma] {data/gpsw06-laptop.csv};
+            \addplot [color=olive, mark=+] table [x=atts,y=dec3,col sep=comma] {data/gpsw06-laptop.csv};
+            \end{axis}
+        \end{tikzpicture}
+    \end{subfigure}
+    \hspace{0.09\textwidth}
+    \begin{subfigure}[h]{0.448\textwidth}
+        \begin{tikzpicture}
+            \begin{axis}[
+                title={Timing of YCT \cite{yang_lightweight_2020} on the laptop},
+                xlabel={attributes / leaf nodes},
+                ylabel={milliseconds},
+                xmin=0, xmax=32,
+                ymin=0, ymax=100000,
+                scaled y ticks=base 10:-3,
+                ytick scale label code/.code={}, % removes the '\cdot 10^3' label 
+                legend pos=north west, 
+                grid=major,
+                grid style=dashed,
+            ]
+            \addlegendentry{Setup};
+            \addplot [color=orange, mark=square] table [x=atts,y=setup,col sep=comma] {data/yct14-laptop.csv};
+            \addlegendentry{Encrypt};
+            \addplot [color=blue, mark=triangle] table [x=atts,y=enc,col sep=comma] {data/yct14-laptop.csv};
+            \addlegendentry{KeyGen};
+            \addplot [color=green, mark=o] table [x=atts,y=keygen,col sep=comma] {data/yct14-laptop.csv};
+            \addlegendentry{Decrypt};
+            \addplot [color=red, mark=+] table [x=atts,y=dec,col sep=comma] {data/yct14-laptop.csv};
+            % \addlegendentry{Decrypt};
+            % \addplot [color=black, mark=+] table [x=atts,y=dec2,col sep=comma] {data/yct14-laptop.csv};
+            \end{axis}
+        \end{tikzpicture}
+    \end{subfigure}
+    \caption{Performance of GPSW and YCT on the laptop. Note the different scales between the SoC and the laptop (seconds vs. milliseconds!)}
+\end{figure}
+
 
 \chapter{Discussion}
 

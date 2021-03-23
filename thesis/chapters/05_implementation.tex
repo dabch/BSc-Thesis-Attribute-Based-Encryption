@@ -11,6 +11,7 @@ This SoC will be referred to simply as `the SoC'.
 
 For reference, the implementation was also tested on a standard laptop, referred to as `the Laptop'.
 More specifically, this system has a 2.7GHz Intel i7-7500U CPU and 16GB of RAM.
+It runs a Linux-based operating system.
 
 % The implementation of \acrshort{abe} on the SoC in Rust posed three main challenges:
 % \begin{itemize}
@@ -26,7 +27,7 @@ More specifically, this system has a 2.7GHz Intel i7-7500U CPU and 16GB of RAM.
 Rust was chosen as programming language for this project.
 First, it is a compiled language and thus incurs little overhead at runtime. Its speed is comparable to that of C/C++. % citation needed for that last bit
 Second, it provides much stronger memory safety guarantees than other compiled languages (especially C/C++ where extreme care is required to avoid introducing exploitable vulnerabilities).
-This is especially attractive for something as highly critical to security as an encryption library.
+This is especially attractive for security-critical components like an encryption library.
 
 \subsubsection{The \texttt{rabe-bn} library}
 
@@ -35,7 +36,7 @@ It implements a concrete pairing on 256-bit \emph{BN curves}. % TODO security le
 BN curves are a family of pairing-friendly elliptic curves proposed by Barreto and Naehrig \cite{barreto_pairing-friendly_2006}.
 
 The 256-bit modulus of the BN curve used in \texttt{rabe-bn} was originally believed to provide a security level of 128 bits~\cite{ben-sasson_succinct_2013}. 
-Due to a new variant of the Number Field Sieve (i.e. a better attack on the underlying cryptographic assumptions) the estimate for the security level has been revised down to 100 bits~\cite{yonezawa_pairing-friendly_2019}.
+Due to the discovery of better attacks on the underlying cryptographic assumptions, the estimate for the security level has been revised down to 100 bits~\cite{yonezawa_pairing-friendly_2019}.
 
 The library provides four structs: \texttt{G1}, \texttt{G2} and \texttt{Gt}, elements of the groups $\mathbb{G}_1$, $\mathbb{G}_2$ and $\mathbb{G}_T$, respectively.
 Let their orders be $r$, then \texttt{Fr} represents an element of the field $\mathbb{F}_r$.
@@ -53,7 +54,7 @@ However, for testing and actual use of the library bare-metal on the SoC, both t
 \subsubsection{\texttt{heapless} crate}
 The \texttt{heapless}\footnote{\url{https://crates.io/crates/heapless}} crate provides stack-allocated versions of some of the data structures from \texttt{std::collections}. 
 Most important were \texttt{heapless::Vec} (replaces \texttt{std::vec::Vec}) and \texttt{heapless::IndexMap} (replaces \texttt{std::collections::HashMap}).
-These data structures are statically allocated and require the maximum capacity as an additional generic type parameter.
+These data structures are statically allocated and expect their desired capacity as an additional generic type parameter.
 
 \section{Porting \texttt{rabe-bn} to the SoC}
 
@@ -61,14 +62,14 @@ The implementation of \texttt{rabe-bn} unfortunately relied on the standard libr
 Rust provides the dependency-free and platform-agnostic \texttt{core} library as an alternative to the standard library.
 This library does not depend on an operating system or dynamic memory allocation, and thus does not include heap-allocated data structures (like \texttt{std::vec::Vec}).
 
-Therefore, \texttt{rabe-bn} was rewritten to introduce a cargo-feature \texttt{std} which controls the inclusion of the standard library and is enabled by default.
+Therefore, I rewrote the \texttt{rabe-bn} library to introduce a cargo-feature \texttt{std} which controls the inclusion of the standard library and is enabled by default.
 If this feature is disabled, the \texttt{core} library and stack-allocated collections of fixed size from the \texttt{heapless} crate are used instead.
-This modification was quite straight-forward, as for most occurrences of \texttt{std::vec::Vec} the exact maximum size was fairly obvious. % TODO maybe add an example listing
 
 Some further modifications were necessary to implement the \texttt{core::fmt::Display} trait for the \texttt{Gt} struct in a bare-metal compatible manner.
 The implementation of this trait was used in conjunction with \acrshort{sha3} as a \gls{kdf} to create an AES key from curve points.
+The behavior of the \texttt{core::fmt::Display} implementation stayed exactly the same to ensure interoperability with the original \texttt{rabe-bn} library.
 
-With these relatively minor modifications, the \texttt{rabe-bn} library runs on the SoC.
+With these modifications, the \texttt{rabe-bn} library runs on the SoC.
 
 \section{Random Number Generation} % TODO maybe adapt this to use a CSPRNG to speed up stuff on the SoC
 Regular Rust programs use the \texttt{rand} \gls{crate}'s \verb+ThreadRng+ struct to generate random numbers.
@@ -79,6 +80,9 @@ Instead we use the hardware \acrshort{rng}.
 The \texttt{nrf52840-hal} crate directly implements the trait \texttt{rand::RngCore} for the hardware \acrshort{rng}, which makes it extremely easy to use.
 This generator, however, is quite slow and speed can differ greatly: With bias correction enabled (required for uniform distribution of the generated data), typically around 120$\mu$s per byte~\cite{noauthor_nrf52840_nodate}.
 
+To alleviate this, the hardware \acrshort{rng} is only used to seed a ChaCha20 pseudorandom number generator (crate \texttt{rand\_chacha}).
+This is essentially the same construction as the current implementation of \texttt{ThreadRng}~\cite{noauthor_rust_nodate}.
+
 % TODO for evaluation: seed a CSPRNG with a seed from the TRNG!
 
 \section{Representation of Access Trees}
@@ -87,7 +91,7 @@ A simple implementation might look like the one in Listing~\ref{lst:access-tree-
 
 \begin{lstlisting}[caption={Simple Implementation of Access Trees (using the standard library)},label={lst:access-tree-naive}]
 enum AccessTree<'a> {
-    // threshold, vector of children (max size 16)
+    // threshold, vector of children
     Node(u64, std::vec::Vec<AccessTree<'a>>),
     // reference to the attribute label
     Leaf(&'a str),
