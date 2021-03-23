@@ -3,6 +3,7 @@
 from abc import ABC, abstractmethod
 import random
 
+SET_COUNT = 10
 POLICY_COUNT = 30
 
 total_count = 0
@@ -40,7 +41,7 @@ class Node(Tree):
         if random.randint(0,4) == 0: # insert into the current node (25% probability)
             newleaf = Leaf(random.sample(atts, 1)[0])
             self.children.append(newleaf)
-            if random.randint(0,1) == 0:
+            if random.randint(0,4) != 0: # raise the current threshold (or not)
                 self.thresh += 1
             return self
         else:
@@ -97,11 +98,24 @@ class Leaf(Tree):
 tree = Leaf(atts[0])
 
 # print(tree.to_rust())
-
-for i in range(30):
+for i in range(SET_COUNT):
+print("""
+#[macro_export]
+macro_rules! policy_%d {
+    () => {""" % (2 //2))
+print("&[")
     print("&[")
-    print(tree.to_rust(True))
+    total_count = 0
+    tree = Leaf(atts[0])
+    res = ""
+    for i in range(POLICY_COUNT):
+        print("&[")
+        print(tree.to_rust(True))
+        print("],")
+        tree = tree.randgen()
     print("],")
-    tree = tree.randgen()
+print("]")
+print("""};
+}""")
 # print("AccessNode::Node(1, Vec::from_slice[&[]).unwrap()),")
 # print(tree.to_rust(True))
