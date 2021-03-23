@@ -24,7 +24,8 @@ The times have been measured using randomly sampled elements and averaged over 1
         {\op&\soc&\laptop}%
         \hline
     \end{tabular}  
-    \captionof{table}{Execution times for various operations on the SoC and the laptop\label{tbl:rabe-performance}}
+    \captionof{table}{Execution times for various operations on the SoC and the laptop}
+    \label{tbl:rabe-performance}
 \end{center}
 
 
@@ -48,7 +49,7 @@ This is reflected in the measured timings.
 % \end{tabular}\
 
 Interestingly, RAM size seems to be a limiting factor when computing pairings on embedded devices.
-During development, the ported \texttt{rabe-bn} library was also tested on the nRF52832 SoC, which has 64KB of RAM (vs. 256KB in the nRF52840). 
+During development, I also tested the ported \texttt{rabe-bn} library on the nRF52832 SoC, which has 64KB of RAM (vs. 256KB in the nRF52840). 
 On this chip, a pairing could be computed successfully only if the library was built \emph{without debug symbols}.
 With debug symbols, there was not enough RAM available and the pairing computation failed.
 This suggests that the memory use during pairing computation is close to 64KB, which would still be a quarter of the RAM on the nRF52840 SoC.
@@ -56,16 +57,16 @@ While this memory is not consumed permanently, it still needs to be available wh
 
 \section{Performance of the ABE schemes}
 
-\begin{figure}[t!]\centering
-    \begin{subfigure}[t]{0.49\textwidth}
+\begin{figure}\centering
+    \begin{subfigure}[h]{0.45\textwidth}
         \begin{tikzpicture}
             \begin{axis}[
                 title={Timing of GPSW \cite{goyal_attribute-based_2006} on the SoC},
-                xlabel={Number of attributes},
+                xlabel={attributes / leaf nodes},
                 ylabel={seconds},
                 xmin=0, xmax=32,
                 ymin=0, ymax=9000,
-                scaled y ticks=base 10:-3,
+                % scaled y ticks=base 10:-3,
                 ytick scale label code/.code={}, % removes the '\cdot 10^3' label 
                 legend pos=south east,
                 grid=major,
@@ -78,16 +79,16 @@ While this memory is not consumed permanently, it still needs to be available wh
             \end{axis}
         \end{tikzpicture}
     \end{subfigure}%
-    ~
-    \begin{subfigure}[t]{0.49\textwidth}
+    \hspace{0.09\textwidth}
+    \begin{subfigure}[h]{0.45\textwidth}
         \begin{tikzpicture}
             \begin{axis}[
                 title={Timing of GPSW \cite{goyal_attribute-based_2006} on the SoC},
-                xlabel={Number of attributes},
+                xlabel={attributes / leaf nodes},
                 ylabel={seconds},
                 xmin=0, xmax=32,
                 ymin=0, ymax=9000,
-                scaled y ticks=base 10:-3,
+                % scaled y ticks=base 10:-3,
                 ytick scale label code/.code={}, % removes the '\cdot 10^3' label 
                 legend pos=south east,
                 grid=major,
@@ -100,43 +101,44 @@ While this memory is not consumed permanently, it still needs to be available wh
             \end{axis}
         \end{tikzpicture}
     \end{subfigure}%
-\end{figure}
-
-\begin{figure}
-    \begin{subfigure}[t]{0.49\textwidth}
+    % \caption{Performance of GPSW and YCT on the SoC.}
+    \vspace{1cm}
+    \begin{subfigure}[h]{0.448\textwidth}
         \begin{tikzpicture}
             \begin{axis}[
                 title={Timing of GPSW \cite{goyal_attribute-based_2006} on the laptop},
-                xlabel={Number of attributes},
+                xlabel={attributes / leaf nodes},
                 ylabel={milliseconds},
                 xmin=0, xmax=32,
-                ymin=0, ymax=35000,
+                ymin=0, ymax=270000,
                 scaled y ticks=base 10:-3,
                 ytick scale label code/.code={}, % removes the '\cdot 10^3' label 
-                legend pos=south east,
+                legend pos=north west,
                 grid=major,
                 grid style=dashed,
             ]
-            \addlegendentry{Setup};
-            \addplot [color=orange, mark=square] table [x=atts,y=setup,col sep=comma] {data/gpsw06-laptop.csv};
-            \addlegendentry{Encrypt};
-            \addplot [color=blue, mark=triangle] table [x=atts,y=enc,col sep=comma] {data/gpsw06-laptop.csv};
-            \addlegendentry{KeyGen};
-            \addplot [color=green, mark=o] table [x=atts,y=keygen,col sep=comma] {data/gpsw06-laptop.csv};
+            % \addlegendentry{Setup};
+            % \addplot [color=orange, mark=square] table [x=atts,y=setup,col sep=comma] {data/gpsw06-laptop.csv};
+            % \addlegendentry{Encrypt};
+            % \addplot [color=blue, mark=triangle] table [x=atts,y=enc,col sep=comma] {data/gpsw06-laptop.csv};
+            % \addlegendentry{KeyGen};
+            % \addplot [color=green, mark=o] table [x=atts,y=keygen,col sep=comma] {data/gpsw06-laptop.csv};
             \addlegendentry{Decrypt};
             \addplot [color=red, mark=+] table [x=atts,y=dec,col sep=comma] {data/gpsw06-laptop.csv};
+            \addplot [color=black, mark=+] table [x=atts,y=dec2,col sep=comma] {data/gpsw06-laptop.csv};
+            \addplot [color=olive, mark=+] table [x=atts,y=dec3,col sep=comma] {data/gpsw06-laptop.csv};
             \end{axis}
         \end{tikzpicture}
     \end{subfigure}
-    ~
-    \begin{subfigure}[t]{0.49\textwidth}
+    \hspace{0.09\textwidth}
+    \begin{subfigure}[h]{0.448\textwidth}
         \begin{tikzpicture}
             \begin{axis}[
                 title={Timing of YCT \cite{yang_lightweight_2020} on the laptop},
-                xlabel={Number of attributes},
+                xlabel={attributes / leaf nodes},
                 ylabel={milliseconds},
                 xmin=0, xmax=32,
-                ymin=0, ymax=35000,
+                ymin=0, ymax=100000,
                 scaled y ticks=base 10:-3,
                 ytick scale label code/.code={}, % removes the '\cdot 10^3' label 
                 legend pos=north west, 
@@ -152,10 +154,11 @@ While this memory is not consumed permanently, it still needs to be available wh
             \addlegendentry{Decrypt};
             \addplot [color=red, mark=+] table [x=atts,y=dec,col sep=comma] {data/yct14-laptop.csv};
             % \addlegendentry{Decrypt};
-            \addplot [color=black, mark=+] table [x=atts,y=dec2,col sep=comma] {data/yct14-laptop.csv};
+            % \addplot [color=black, mark=+] table [x=atts,y=dec2,col sep=comma] {data/yct14-laptop.csv};
             \end{axis}
         \end{tikzpicture}
     \end{subfigure}
+    \caption{Performance of GPSW and YCT on the laptop. Note the different scales between the SoC and the laptop (seconds vs. milliseconds!)}
 \end{figure}
 
 
