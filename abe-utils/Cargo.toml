@@ -15,9 +15,9 @@ generic-array = "0.14.4"
 rabe-bn = { path = "../../rabe-bn-own", default-features = false }
 heapless = "0.5.6"
 
-[dev-dependencies.rand]
-version = ""
-features = ["std"]
+#[dev-dependencies.rand]
+#version = ""
+#features = ["std"]
 
 [dev-dependencies]
 rand_chacha = { version = "0.2.1", default-features = false }

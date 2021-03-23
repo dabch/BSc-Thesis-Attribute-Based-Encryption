@@ -2,7 +2,7 @@
 // use elliptic_curve::{Group, Field, sec1::ToEncodedPoint};
 // use k256::{Scalar, ProjectivePoint, AffinePoint};
 
-extern crate std;
+// extern crate std;
 use core::convert::TryInto;
 use rabe_bn::{G1, Fr, Group};
 use heapless::{IndexMap, FnvIndexMap, Vec, consts};

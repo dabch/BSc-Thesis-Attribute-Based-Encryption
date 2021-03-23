@@ -26,14 +26,6 @@ fn main() {
         "att21", "att22", "att23", "att24", "att25", "att26", "att27", "att28", "att29", "att30",
     ])
     .unwrap();
-    // let access_structure = &[
-    //   ACCESS_NODE::Node(2, Vec::from_slice(&[1,2,3,4]).unwrap()),
-    //   ACCESS_NODE::Leaf("tum"),
-    //   ACCESS_NODE::Leaf("student"),
-    //   ACCESS_NODE::Leaf("has_bachelor"),
-    //   ACCESS_NODE::Leaf("over21"),
-    // ];
-
     let mut public_map: FnvIndexMap<&str, PUBLIC_MAP, S> = FnvIndexMap::new();
     let mut private_map: FnvIndexMap<&str, PRIVATE_MAP, S> = FnvIndexMap::new();
 
@@ -102,7 +94,11 @@ fn main() {
                 assert_eq!(data_recovered, data);
             }
         }
-        println!("{};{}", keygen_us / (SMPL_CNT * sets.len() as u128), dec_us / (SMPL_CNT * sets.len() as u128));
+        println!(
+            "{};{}",
+            keygen_us / (SMPL_CNT * sets.len() as u128),
+            dec_us / (SMPL_CNT * sets.len() as u128)
+        );
     }
     // let access_structure: AccessStructure = &[
     //   AccessNode::Node(2, Vec::from_slice(&[1,2,3,4]).unwrap()),

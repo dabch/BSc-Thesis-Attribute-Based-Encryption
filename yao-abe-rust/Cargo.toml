@@ -14,9 +14,9 @@ heapless = "0.5.6"
 sha3 = { version = "0.9.1", default-features = false }
 hmac = { version = "0.10.1", default-features = false }
 
-rabe-bn = { path = "../../rabe-bn-own", default-features=false }
+rabe-bn = { path = "../../rabe-bn-own", default-features = false }
 abe-utils = { path = "../abe-utils" }
 
-[dev-dependencies.rand]
-version = ""
-features = ["std"]
+#[dev-dependencies.rand]
+#version = ""
+#features = ["std"]

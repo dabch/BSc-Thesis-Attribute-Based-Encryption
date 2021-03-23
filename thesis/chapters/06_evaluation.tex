@@ -66,7 +66,7 @@ While this memory is not consumed permanently, it still needs to be available wh
                 ylabel={seconds},
                 xmin=0, xmax=32,
                 ymin=0, ymax=9000,
-                % scaled y ticks=base 10:-3,
+                scaled y ticks=base 10:-3,
                 ytick scale label code/.code={}, % removes the '\cdot 10^3' label 
                 legend pos=south east,
                 grid=major,
@@ -83,21 +83,25 @@ While this memory is not consumed permanently, it still needs to be available wh
     \begin{subfigure}[h]{0.45\textwidth}
         \begin{tikzpicture}
             \begin{axis}[
-                title={Timing of GPSW \cite{goyal_attribute-based_2006} on the SoC},
+                title={Timing of YCT \cite{yao_lightweight_2015} on the SoC},
                 xlabel={attributes / leaf nodes},
                 ylabel={seconds},
                 xmin=0, xmax=32,
-                ymin=0, ymax=9000,
-                % scaled y ticks=base 10:-3,
+                ymin=0, ymax=9000000,
+                scaled y ticks=base 10:-6,
                 ytick scale label code/.code={}, % removes the '\cdot 10^3' label 
-                legend pos=south east,
+                legend pos=north west,
                 grid=major,
                 grid style=dashed,
             ]
             \addlegendentry{Setup};
-            \addplot [color=orange, mark=square] table [x=atts,y=setup,col sep=comma] {data/gpsw06.csv};
+            \addplot [color=orange, mark=square] table [x=atts,y=setup,col sep=comma] {data/yct14-soc.csv};
             \addlegendentry{Encrypt};
-            \addplot [color=blue, mark=triangle] table [x=atts,y=enc,col sep=comma] {data/gpsw06.csv};
+            \addplot [color=blue, mark=triangle] table [x=atts,y=enc,col sep=comma] {data/yct14-soc.csv};
+            \addlegendentry{KeyGen};
+            \addplot [color=green, mark=o] table [x=atts,y=keygen,col sep=comma] {data/yct14-soc.csv};
+            \addlegendentry{Decrypt};
+            \addplot [color=red, mark=+] table [x=atts,y=dec,col sep=comma] {data/yct14-soc.csv};
             \end{axis}
         \end{tikzpicture}
     \end{subfigure}%
@@ -116,6 +120,7 @@ While this memory is not consumed permanently, it still needs to be available wh
                 legend pos=north west,
                 grid=major,
                 grid style=dashed,
+                legend style={nodes={scale=0.7, transform shape}}
             ]
             \addlegendentry{Setup};
             \addplot [color=orange, mark=square] table [x=atts,y=setup,col sep=comma] {data/gpsw06-laptop.csv};

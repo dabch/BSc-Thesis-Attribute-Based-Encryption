@@ -4072,6 +4072,14 @@ AccessNode::Node(1, Vec::from_slice(&[47,48]).unwrap()),
 AccessNode::Node(1, Vec::from_slice(&[46,49]).unwrap()),
 ],
 ],
+]
+    };
+}
+
+#[macro_export]
+macro_rules! policy_2 {
+    () => {
+&[
 &[
 &[
 AccessNode::Leaf("att01"),
