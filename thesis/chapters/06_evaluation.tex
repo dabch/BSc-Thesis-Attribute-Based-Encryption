@@ -57,6 +57,8 @@ While this memory is not consumed permanently, it still needs to be available wh
 
 \section{Performance of the ABE schemes}
 
+For performance measurements of the GPSW and YCT \acrshortpl{abes}, see Figure~\ref{fig:abe-performance-diagrams}. 
+The diagrams show the time required to compute Setup, Encryption, Key Generation and Decryption on the laptop and on the nRF52840 SoC.
 
 \begin{figure}[h]\centering
     \begin{subfigure}[h]{0.45\textwidth}
@@ -177,7 +179,36 @@ While this memory is not consumed permanently, it still needs to be available wh
     \label{fig:abe-performance-diagrams}
 \end{figure}
 
+\subsection{Methods of measurement}
+For Setup, the number of attributes refers to the total number of attributes in the system.
 
+For Encrypt, the number of attributes refers to the number of attributes under which a ciphertext is encrypted.
+
+For KeyGen, the number of attributes refers to the number of leaf nodes in the used access policy.
+The \glspl{access-tree} used for this evaluation were generated using a python script, starting with a single node and incrementally adding leaf nodes in random positions to the tree.
+To minimize the effects of specific \glspl{access-tree}, ten sets of policies with size 1 to 30 were generated.
+The timings for KeyGen and Decrypt represent the average for the policies of the respective size from each of the ten sets.
+
+For Decrypt, the same access policies from KeyGen are used to decrypt a ciphertext encrypted with all system attributes.
+This ensures that the ciphertext can always be decrypted, and does not influence the decryption speed.
+The decryption algorithms perform a pre-calculation of a minimal subset of the \gls{access-tree} required to satisfy the policy to reduce the number of pairings (which are necessary only at the leafs).
+Therefore, the timing for decryption greatly depends on the specific structure of an \gls{access-tree} and the values given here must be understood as a rough heuristic.
+
+Due to the small RAM size, KeyGen and Decrypt failed for policies of larger size with GPSW on the SoC.
+This is why the KeyGen and Decrypt timings were omitted for policies of more than 26 attributes in the first diagram:
+For \glspl{access-tree} with 27-attributes, KeyGen and Decrypt succeeded only for two of the ten tested trees.
+
+\subsection{Results}
+Two results are immediately visible from the diagrams:
+First, the laptop is obviously much faster than the SoC.
+This was expected and any other result would be deeply concerning.
+
+Second, the pairing-free YCT scheme is significantly faster than the pairing-based GPSW scheme on both platforms. 
+Setup and encryption for the respective schemes take about the same time.
+In both setup and encryption, GPSW has a constant overhead of about four seconds, which is not present with YCT:
+On the SoC, setup and encryption with a single attribute take about 4 seconds with GPSW and only about 0.4 seconds with YCT.
+With 30 attributes, GPSW requires about 8.5 seconds and YCT about 5 seconds.
+In other words, the additional time per attribute seems to be constant at around 150ms, which is exactly the time needed to perform an exponentiation in $\mathbb{G}_1$.
 \chapter{Discussion}
 
 \chapter{Conclusion}
