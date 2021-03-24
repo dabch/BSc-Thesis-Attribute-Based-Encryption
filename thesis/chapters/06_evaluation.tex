@@ -175,8 +175,8 @@ The timings for the laptop are purely there to give some context; the evaluation
             % \addplot [color=green, mark=+] table [x=atts,y=dec4,col sep=comma] {data/yct14-laptop.csv};
             \end{axis}
         \end{tikzpicture}
-    \end{subfigure}
-    \caption{Performance of GPSW and YCT on the SoC and on the laptop. Note the different scales between the SoC and the laptop (seconds vs. milliseconds!)}
+    \end{subfigure} 
+    \caption[Performance of ABE schemes on the SoC and laptop]{Performance of GPSW and YCT on the SoC and on the laptop. Note the different scales between the SoC and the laptop (seconds vs. milliseconds!)}
     \label{fig:abe-performance-diagrams}
 \end{figure}
 
@@ -239,4 +239,19 @@ This is also the case for decryption: YCT only requires exponentation and point 
 
 \section{Further Improvements / Future Work}
 
+For embedded applications, computation time is not the only important factor. 
+The large size of \acrshort{abe} ciphertexts can be a problem, e.g. when transmitting data via low-power wireless protocols (such as Bluetooth LE).
+In addition to the hybrid encryption approach taken in this thesis (key encapsulation, i.e. choosing a random symmetric key to encrypt the payload and then encrypting this key using \acrshort{abe}), measures such as point compression can be taken.
+
+Another option to reduce both message sizes and encryption times would be to re-use the ABE-encapsulated symmetric key: 
+Instead of encrypting each message with a new random symmetric key that is encapsulated with \acrshort{abe}, the same symmetric key can be used for many messages. 
+For example, an embedded sensor could choose a new symmetric key once per day, encrypt it using ABE and transmit it to the cloud. 
+Then it could use this key to encrypt all messages for the next 24 hours, requiring very short encryption times and little overhead for the message size. 
+This construction was already implemented for the \emph{Medisec} application, but not evaluated for this thesis because it is not a ``true'' \acrlong{abes}.
+% TODO check that this section is in line with the introduction / medisec overview
+
+
+
 \chapter{Conclusion}
+
+ABE is feasible, but only for encryption, only when a few seconds wait time is ok and for small policy sizes / attribute numbers.
