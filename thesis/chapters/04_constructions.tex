@@ -18,8 +18,13 @@ The construction given here is exactly as implemented; it differs from the origi
 In the GPSW construction, the pairing is only evaluated during decryption phase for leaf nodes (see below).
 There, the curve point on one side comes from the ciphertext, and the point on the other side from the key.
 Originally, a symmetric pairing is used, so their order can be swapped freely.
-As we want to improve the speed of the encryption, we use the shorter elements of $\mathbb{G}_1$ for everything that has to do with the ciphertext, because that way only elements of $\mathbb{G}_1$ need to manipulated during encryption. \\
+As we want to improve the speed of the encryption, we use the shorter elements of $\mathbb{G}_1$ for everything that has to do with the ciphertext, because that way only elements of $\mathbb{G}_1$ need to manipulated during encryption.
 
+To speed up encryption and decryption, the plaintext is not encrypted with the GPSW \acrshort{abes} directly.
+Instead, a random group element is chosen and encrypted under GPSW (i.e. a $k \in \mathbb{G}_T$).
+This element is hashed to obtain an symmetric key, which is then used to encrypt the plaintext with AES-GCM (an \acrshort{aead} mode of operation).
+The ciphertext now consists of the GPSW-encrypted group element plus the AES-GCM ciphertext.
+\\
 Let $\mathbb{G}_1$ and $\mathbb{G}_2$ be bilinear groups of prime order $q$. Let $P$ be a generator of $\mathbb{G}_1$ and $Q$ be a generator of $\mathbb{G}_2$. Let $e: \mathbb{G}_1 \times \mathbb{G}_1 \rightarrow \mathbb{G}_T$ be a bilinear map.
 Note that $\mathbb{G}_1$ and $\mathbb{G}_2$ are written additively, but $\mathbb{G}_T$ is written using multiplicative notation.
 
