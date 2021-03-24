@@ -1,7 +1,7 @@
 \chapter{Evaluation}
 
 \section{Performance of \texttt{rabe\_bn}}
-See Table~\ref{tbl:rabe-performance} for performance measurements of random element sampling, group operations, group-scalar exponentiation and the pairing operation.
+See Table~\ref{tbl:rabebn-performance} for performance measurements of random element sampling, group operations, group-scalar exponentiation and the pairing operation.
 The times have been measured using randomly sampled elements and averaged over 100 calls each.
 
 \begin{center}
@@ -25,7 +25,7 @@ The times have been measured using randomly sampled elements and averaged over 1
         \hline
     \end{tabular}  
     \captionof{table}{Execution times for various operations on the SoC and the laptop}
-    \label{tbl:rabe-performance}
+    \label{tbl:rabebn-performance}
 \end{center}
 
 
@@ -57,7 +57,8 @@ While this memory is not consumed permanently, it still needs to be available wh
 
 \section{Performance of the ABE schemes}
 
-\begin{figure}\centering
+
+\begin{figure}[h]\centering
     \begin{subfigure}[h]{0.45\textwidth}
         \begin{tikzpicture}
             \begin{axis}[
@@ -65,17 +66,22 @@ While this memory is not consumed permanently, it still needs to be available wh
                 xlabel={attributes / leaf nodes},
                 ylabel={seconds},
                 xmin=0, xmax=32,
-                ymin=0, ymax=9000,
-                scaled y ticks=base 10:-3,
+                ymin=0, ymax=25500000,
+                scaled y ticks=base 10:-6,
                 ytick scale label code/.code={}, % removes the '\cdot 10^3' label 
-                legend pos=south east,
+                legend pos=north west,
                 grid=major,
                 grid style=dashed,
+                legend style={nodes={scale=0.65, transform shape}}
             ]
             \addlegendentry{Setup};
-            \addplot [color=orange, mark=square] table [x=atts,y=setup,col sep=comma] {data/gpsw06.csv};
+            \addplot [color=orange, mark=square] table [x=atts,y=setup,col sep=comma] {data/gpsw06-soc.csv};
             \addlegendentry{Encrypt};
-            \addplot [color=blue, mark=triangle] table [x=atts,y=enc,col sep=comma] {data/gpsw06.csv};
+            \addplot [color=blue, mark=triangle] table [x=atts,y=enc,col sep=comma] {data/gpsw06-soc.csv};
+            \addlegendentry{KeyGen};
+            \addplot [color=green, mark=o] table [x=atts,y=keygen,col sep=comma] {data/gpsw06-soc.csv};
+            \addlegendentry{Decrypt};
+            \addplot [color=red, mark=+] table [x=atts,y=dec,col sep=comma] {data/gpsw06-soc.csv};
             \end{axis}
         \end{tikzpicture}
     \end{subfigure}%
@@ -87,12 +93,13 @@ While this memory is not consumed permanently, it still needs to be available wh
                 xlabel={attributes / leaf nodes},
                 ylabel={seconds},
                 xmin=0, xmax=32,
-                ymin=0, ymax=9000000,
+                ymin=0, ymax=25500000,
                 scaled y ticks=base 10:-6,
                 ytick scale label code/.code={}, % removes the '\cdot 10^3' label 
                 legend pos=north west,
                 grid=major,
                 grid style=dashed,
+                legend style={nodes={scale=0.65, transform shape}}
             ]
             \addlegendentry{Setup};
             \addplot [color=orange, mark=square] table [x=atts,y=setup,col sep=comma] {data/yct14-soc.csv};
@@ -120,7 +127,7 @@ While this memory is not consumed permanently, it still needs to be available wh
                 legend pos=north west,
                 grid=major,
                 grid style=dashed,
-                legend style={nodes={scale=0.7, transform shape}}
+                legend style={nodes={scale=0.65, transform shape}}
             ]
             \addlegendentry{Setup};
             \addplot [color=orange, mark=square] table [x=atts,y=setup,col sep=comma] {data/gpsw06-laptop.csv};
@@ -149,6 +156,7 @@ While this memory is not consumed permanently, it still needs to be available wh
                 legend pos=north west, 
                 grid=major,
                 grid style=dashed,
+                legend style={nodes={scale=0.65, transform shape}}
             ]
             \addlegendentry{Setup};
             \addplot [color=orange, mark=square] table [x=atts,y=setup,col sep=comma] {data/yct14-laptop.csv};
@@ -165,7 +173,8 @@ While this memory is not consumed permanently, it still needs to be available wh
             \end{axis}
         \end{tikzpicture}
     \end{subfigure}
-    \caption{Performance of GPSW and YCT on the laptop. Note the different scales between the SoC and the laptop (seconds vs. milliseconds!)}
+    \caption{Performance of GPSW and YCT on the SoC and on the laptop. Note the different scales between the SoC and the laptop (seconds vs. milliseconds!)}
+    \label{fig:abe-performance-diagrams}
 \end{figure}
 
 

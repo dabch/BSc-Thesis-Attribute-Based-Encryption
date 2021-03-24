@@ -183,7 +183,7 @@ impl<'attr: 'es, 'es: 'key, 'key> GpswAbePrivate<'attr, 'es> {
     index: F,
     rng: &mut dyn RngCore,
   ) ->
-    Vec<(u8, G1), consts::U64>
+    Vec<(u8, G1), consts::U30>
   {
     // own polynomial at x = 0. Exactly q_parent(index).
     let q_of_zero = parent_poly.eval(index);
@@ -199,7 +199,7 @@ impl<'attr: 'es, 'es: 'key, 'key> GpswAbePrivate<'attr, 'es> {
       AccessNode::Node(thresh, children) => {
         // continue recursion, call recursively for all children and return a key node that contains children's key subtrees
         let own_poly = Polynomial::randgen(q_of_zero, thresh.clone(), rng); // `thres`-degree polynomial determined by q_of_zero and `thresh` random coefficients
-        let children_res: Vec<(u8, G1), consts::U64> = children.iter().enumerate().
+        let children_res: Vec<(u8, G1), consts::U30> = children.iter().enumerate().
           map(|(i, child_ptr)| self.keygen_node(pubkey, tree_arr, *child_ptr, &own_poly, F::from((i+1) as u64), rng))
           .flatten()
           .collect();

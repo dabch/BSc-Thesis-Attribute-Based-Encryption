@@ -825,6 +825,14 @@ AccessNode::Node(2, Vec::from_slice(&[46,47]).unwrap()),
 AccessNode::Node(1, Vec::from_slice(&[45,48]).unwrap()),
 ],
 ],
+]
+    };
+}
+
+#[macro_export]
+macro_rules! policy_2 {
+    () => {
+&[
 &[
 &[
 AccessNode::Leaf("att01"),
@@ -1645,6 +1653,15 @@ AccessNode::Node(1, Vec::from_slice(&[45,46]).unwrap()),
 AccessNode::Leaf("att28"),
 ],
 ],
+
+]
+    };
+}
+
+#[macro_export]
+macro_rules! policy_3 {
+    () => {
+&[
 &[
 &[
 AccessNode::Leaf("att01"),
@@ -2479,6 +2496,15 @@ AccessNode::Node(1, Vec::from_slice(&[46,47]).unwrap()),
 AccessNode::Leaf("att26"),
 ],
 ],
+
+]
+    };
+}
+
+#[macro_export]
+macro_rules! policy_4 {
+    () => {
+&[
 &[
 &[
 AccessNode::Leaf("att01"),
@@ -3249,6 +3275,15 @@ AccessNode::Node(2, Vec::from_slice(&[44,45]).unwrap()),
 AccessNode::Leaf("att21"),
 ],
 ],
+
+]
+    };
+}
+
+#[macro_export]
+macro_rules! policy_5 {
+    () => {
+&[
 &[
 &[
 AccessNode::Leaf("att01"),
@@ -4077,7 +4112,7 @@ AccessNode::Node(1, Vec::from_slice(&[46,49]).unwrap()),
 }
 
 #[macro_export]
-macro_rules! policy_2 {
+macro_rules! policy_6 {
     () => {
 &[
 &[
@@ -4951,6 +4986,15 @@ AccessNode::Node(2, Vec::from_slice(&[42,47,48]).unwrap()),
 AccessNode::Leaf("att06"),
 ],
 ],
+
+]
+    };
+}
+
+#[macro_export]
+macro_rules! policy_7 {
+    () => {
+&[
 &[
 &[
 AccessNode::Leaf("att01"),
@@ -5787,6 +5831,15 @@ AccessNode::Leaf("att04"),
 AccessNode::Node(2, Vec::from_slice(&[46,47]).unwrap()),
 ],
 ],
+
+]
+    };
+}
+
+#[macro_export]
+macro_rules! policy_8 {
+    () => {
+&[
 &[
 &[
 AccessNode::Leaf("att01"),
@@ -6610,6 +6663,15 @@ AccessNode::Node(2, Vec::from_slice(&[45,46]).unwrap()),
 AccessNode::Leaf("att12"),
 ],
 ],
+
+]
+    };
+}
+
+#[macro_export]
+macro_rules! policy_9 {
+    () => {
+&[
 &[
 &[
 AccessNode::Leaf("att01"),
@@ -7445,6 +7507,15 @@ AccessNode::Node(2, Vec::from_slice(&[46,47]).unwrap()),
 AccessNode::Node(2, Vec::from_slice(&[44,45,48]).unwrap()),
 ],
 ],
+
+]
+    };
+}
+
+#[macro_export]
+macro_rules! policy_10 {
+    () => {
+&[
 &[
 &[
 AccessNode::Leaf("att01"),

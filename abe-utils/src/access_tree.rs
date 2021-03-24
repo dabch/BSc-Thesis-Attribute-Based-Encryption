@@ -6,7 +6,7 @@ type S = consts::U32;
 /// This is passed to keygen() by the KGC, and then embedded in the private key issued to the user.
 #[derive(Debug)]
 pub enum AccessNode<'attr> {
-  Node(u64, Vec<u8, consts::U16>), // threshold, children
+  Node(u64, Vec<u8, consts::U12>), // threshold, children
   Leaf(&'attr str),
 }
 
