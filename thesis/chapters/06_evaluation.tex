@@ -58,7 +58,8 @@ While this memory is not consumed permanently, it still needs to be available wh
 \section{Performance of the ABE schemes}
 
 For performance measurements of the GPSW and YCT \acrshortpl{abes}, see Figure~\ref{fig:abe-performance-diagrams}. 
-The diagrams show the time required to compute Setup, Encryption, Key Generation and Decryption on the laptop and on the nRF52840 SoC.
+The diagrams show the time required to compute Setup, Encryption, Key Generation and Decryption on the nRF52840 SoC and the laptop.
+The timings for the laptop are purely there to give some context; the evaluation focuses on the performance on the SoC.
 
 \begin{figure}[h]\centering
     \begin{subfigure}[h]{0.45\textwidth}
@@ -180,8 +181,10 @@ The diagrams show the time required to compute Setup, Encryption, Key Generation
 \end{figure}
 
 \subsection{Methods of measurement}
-For Setup, the number of attributes refers to the total number of attributes in the system.
 
+All times were measured using a hardware timer (on the SoC) and the operating system time (on the laptop) with microsecond resolution.
+
+For Setup, the number of attributes refers to the total number of attributes in the system.
 For Encrypt, the number of attributes refers to the number of attributes under which a ciphertext is encrypted.
 
 For KeyGen, the number of attributes refers to the number of leaf nodes in the used access policy.
@@ -195,20 +198,45 @@ The decryption algorithms perform a pre-calculation of a minimal subset of the \
 Therefore, the timing for decryption greatly depends on the specific structure of an \gls{access-tree} and the values given here must be understood as a rough heuristic.
 
 Due to the small RAM size, KeyGen and Decrypt failed for policies of larger size with GPSW on the SoC.
-This is why the KeyGen and Decrypt timings were omitted for policies of more than 26 attributes in the first diagram:
-For \glspl{access-tree} with 27-attributes, KeyGen and Decrypt succeeded only for two of the ten tested trees.
+This is why the KeyGen and Decrypt timings were omitted for policies of more than 25 attributes in the first diagram:
+For \glspl{access-tree} with 26 attributes, KeyGen and Decrypt succeeded only for two of the ten tested trees.
 
 \subsection{Results}
 Two results are immediately visible from the diagrams:
 First, the laptop is obviously much faster than the SoC.
-This was expected and any other result would be deeply concerning.
+This was expected and any other result would be very surprising.
 
 Second, the pairing-free YCT scheme is significantly faster than the pairing-based GPSW scheme on both platforms. 
-Setup and encryption for the respective schemes take about the same time.
-In both setup and encryption, GPSW has a constant overhead of about four seconds, which is not present with YCT:
+For both schemes, Setup takes about the same time as Encryption for the same number of attributes in the system or ciphertext, respectively.
+In both Setup and Encryption, the difference between GPSW and YCT for the same number of attributes is constant:
 On the SoC, setup and encryption with a single attribute take about 4 seconds with GPSW and only about 0.4 seconds with YCT.
 With 30 attributes, GPSW requires about 8.5 seconds and YCT about 5 seconds.
-In other words, the additional time per attribute seems to be constant at around 150ms, which is exactly the time needed to perform an exponentiation in $\mathbb{G}_1$.
-\chapter{Discussion}
+The runtimes increase linearly, with each additional attribute adding about 150ms.
+
+For the KeyGen algorithm, difference is even larger:
+The runtime of GPSW increases considerably for a larger number of attributes.
+With one attribute, KeyGen takes about 650ms. With 25 attributes, it already takes more than 16 seconds.
+The runtime of YCT only increases slightly from 35ms for one attribute to 210ms for 25 attributes.
+For more than 25 attributes, GPSW-KeyGen failed because of limited RAM on the SoC.
+
+The performance of the Decrypt algorithm is very difficult to evaluate because the number of nodes that needs to be evaluated depends on the key's \gls{access-tree} and the ciphertext's \glspl{attribute}.
+Here again, YCT is much, much faster than GPSW: For larger policies, decryption takes about eight to ten times longer for GPSW than it takes for YCT.
+
+\section{Discussion}
+The results for Setup and Encrypt are in line with the time-consuming operations performed by the algorithms: 
+In both schemes, each additional attribute results in one additional exponentiation in $\mathbb{G}_1$.
+This takes about 150ms as per Table~\ref{tbl:rabebn-performance}, which is exactly the additional time per attribute.
+The constant overhead of about 3.5 with GPSW is a result of the pairing computation and exponentiation in $\mathbb{G}_T$ (for Setup) and the sampling and exponentiation in $\mathbb{G}_T$ (for Encrypt).
+
+For the KeyGen algorithm, the speed difference between YCT and GSPW is especially striking: 
+The YCT algorithm is extremely fast for a small number of attributes (below 100ms) and only increases slightly as more attributes are added.
+GPSW is not only slower already for a few attributes, but its runtime also increases much more quickly when increasing the policy size.
+Again, looking at the schemes, the reason becomes evident: YCT's KeyGen only works on elements of $\mathbb{F}_r$, which are small and easy to calculate with.
+GPSW uses secret shares from $\mathbb{G}_2$, for which operations take considerably more time.
+This is also the case for decryption: YCT only requires exponentation and point addition in $\mathbb{G}_1$, whereas GPSW performs pairings and multiplications and exponentiations in $\mathbb{G}_T$.
+
+% TODO section on why only encryption is really relevant and that especially keygen and setup should only run on a proper computer
+
+\section{Further Improvements / Future Work}
 
 \chapter{Conclusion}

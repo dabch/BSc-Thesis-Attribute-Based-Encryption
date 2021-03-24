@@ -25,7 +25,7 @@ Instead, a random group element is chosen and encrypted under GPSW (i.e. a $k \i
 This element is hashed to obtain an symmetric key, which is then used to encrypt the plaintext with AES-GCM (an \acrshort{aead} mode of operation).
 The ciphertext now consists of the GPSW-encrypted group element plus the AES-GCM ciphertext.
 \\
-Let $\mathbb{G}_1$ and $\mathbb{G}_2$ be bilinear groups of prime order $q$. Let $P$ be a generator of $\mathbb{G}_1$ and $Q$ be a generator of $\mathbb{G}_2$. Let $e: \mathbb{G}_1 \times \mathbb{G}_1 \rightarrow \mathbb{G}_T$ be a bilinear map.
+Let $\mathbb{G}_1$ and $\mathbb{G}_2$ be bilinear groups of prime order $q$. Let $P$ be a generator of $\mathbb{G}_1$ and $Q$ be a generator of $\mathbb{G}_2$. Let $e: \mathbb{G}_1 \times \mathbb{G}_2 \rightarrow \mathbb{G}_T$ be a bilinear map.
 Note that $\mathbb{G}_1$ and $\mathbb{G}_2$ are written additively, but $\mathbb{G}_T$ is written using multiplicative notation.
 
 \emph{Setup}~\cite{goyal_attribute-based_2006}.
@@ -51,7 +51,7 @@ The set of these secret shares is the decryption key $D = \{D_u | u \text{ leaf 
 \emph{Encrypt(M, $\omega$, Params)}~\cite{goyal_attribute-based_2006}.
 Input: Message $M \in \mathbb{G}_T$, set of \glspl{attribute} $\omega$ and public parameters $Params$. 
 
-Choose $s \in \mathbb{Z}_q$ at random and compute $E' = M + s \cdot Y$.
+Choose $s \in \mathbb{Z}_q$ at random and compute $E' = M \cdot Y^s$.
 For each attribute $i \in \omega$ compute $E_i = s \cdot T_i$.
 
 Return the ciphertext as $E = (\omega, E', \{E_i | i \in \omega\})$
