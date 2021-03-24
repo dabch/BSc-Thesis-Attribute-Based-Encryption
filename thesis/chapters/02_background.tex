@@ -356,44 +356,44 @@ Note that $\mathcal{A}$ has to be monotone. It is not possible to specify that t
 
 Using the threshold-gate construction, we can express \emph{A AND B} as a node with two children $A$ and $B$ and threshold $2$, and express \emph{A OR B} as a node with two children $A$ and $B$ and threshold $1$~\cite{yao_lightweight_2015}.
 
-\subsection{Linear Secret Sharing Schemes and Span Programs}\label{sec:lsss} % TODO reference Shamirs Secret Sharing as an example for LSSS (or the oother way round)
-Instead of the \gls{access-tree} construction, nowadays most \acrshortpl{abes} use monotone \acrfullpl{msp} to describe any \gls{access-structure} realizable by \acrfull{lsss}.
-For a definition of \acrshort{lsss} see~\cite{beimel_secure_1996}.
-Also see there for a proof of the equivalence of \acrshort{lsss} and \acrshort{msp}.
+% \subsection{Linear Secret Sharing Schemes and Span Programs}\label{sec:lsss} % TODO reference Shamirs Secret Sharing as an example for LSSS (or the oother way round)
+% Instead of the \gls{access-tree} construction, nowadays most \acrshortpl{abes} use monotone \acrfullpl{msp} to describe any \gls{access-structure} realizable by \acrfull{lsss}.
+% For a definition of \acrshort{lsss} see~\cite{beimel_secure_1996}.
+% Also see there for a proof of the equivalence of \acrshort{lsss} and \acrshort{msp}.
 
-It is conjectured, but not proven, that there are \glspl{access-structure} that require secret shares of exponential size in any secret sharing scheme that realizes them~\cite{beimel_secure_1996}.
-This would especially mean that not all \glspl{access-structure} can be realized by \acrshort{lsss} (as their shares are smaller than exponential).
-\acrshort{lsss}-realizable \glspl{access-structure} seem to be the most general type of \glspl{access-structure} supported by \acrshortpl{abes} in literature. 
+% It is conjectured, but not proven, that there are \glspl{access-structure} that require secret shares of exponential size in any secret sharing scheme that realizes them~\cite{beimel_secure_1996}.
+% This would especially mean that not all \glspl{access-structure} can be realized by \acrshort{lsss} (as their shares are smaller than exponential).
+% \acrshort{lsss}-realizable \glspl{access-structure} seem to be the most general type of \glspl{access-structure} supported by \acrshortpl{abes} in literature. 
 
-Any \gls{access-structure} that can be described by an \gls{access-tree} can also be described by a \acrshort{msp} or \acrshort{lsss}.
-For an efficient conversion from Boolean Formulas (which are essentially \glspl{access-tree} limited to two children per inner node) to \acrlongpl{msp}, see the appendix of~\cite{lewko_decentralizing_2011}.
-A more general construction for the threshold trees described in Section~\ref{sec:access-trees} is given in~\cite{liu_efcient_2010}.
+% Any \gls{access-structure} that can be described by an \gls{access-tree} can also be described by a \acrshort{msp} or \acrshort{lsss}.
+% For an efficient conversion from Boolean Formulas (which are essentially \glspl{access-tree} limited to two children per inner node) to \acrlongpl{msp}, see the appendix of~\cite{lewko_decentralizing_2011}.
+% A more general construction for the threshold trees described in Section~\ref{sec:access-trees} is given in~\cite{liu_efcient_2010}.
 
-\acrshortpl{msp} can realize more general access structures than \glspl{access-tree} and better suited for the design of \acrshortpl{abes}~\cite{agrawal_fame_2017}.
+% \acrshortpl{msp} can realize more general access structures than \glspl{access-tree} and better suited for the design of \acrshortpl{abes}~\cite{agrawal_fame_2017}.
 
-\begin{definition}
-    (Monotone) Span Program. Adapted from~\cite{goyal_attribute-based_2006, beimel_secure_1996}.\\
-    Let $\mathbb{K}$ be a field and $\{x_1, \dots, x_n,\}$ a set of variables.\\
-    A span program over $\mathbb{K}$ is a labelled matrix $\hat{M} = (M, \rho)$ where $M$ is a matrix over $\mathbb{K}$.
-    $\rho$ is a function that labels every row of $M$ by one literal from $\{x_1, \dots, x_n, \bar{x}_1, \dots, \bar{x}_n\}$.
+% \begin{definition}
+%     (Monotone) Span Program. Adapted from~\cite{goyal_attribute-based_2006, beimel_secure_1996}.\\
+%     Let $\mathbb{K}$ be a field and $\{x_1, \dots, x_n,\}$ a set of variables.\\
+%     A span program over $\mathbb{K}$ is a labelled matrix $\hat{M} = (M, \rho)$ where $M$ is a matrix over $\mathbb{K}$.
+%     $\rho$ is a function that labels every row of $M$ by one literal from $\{x_1, \dots, x_n, \bar{x}_1, \dots, \bar{x}_n\}$.
 
-    Span programs reject or accept inputs as follows:
-    For an input set $\gamma \subseteq \{x_1, \dots, x_n\}$ let $M_\gamma$ define the submatrix of $M$ consisting only of those rows whose labels are contained in $\gamma$, and the rows labelled by a negated literal $\bar{x}_i$ that is not contained in $\gamma$.
-    That means $M_\gamma$ contains a row $i$ if $\rho(i) = x_j$ and $x_j \in \gamma$ or $\rho(i) = \bar{x}_j$ and $x_j \notin \gamma$.
-    The \acrshort{msp} accepts $\gamma$ if and only if $\vec{1} \in \text{span}(M_\gamma)$, i.e. there exists a linear combination of the rows of $M_\gamma$ that is the row vector consisting of only ones ($\vec{1} = (1, \dots, 1)$).
+%     Span programs reject or accept inputs as follows:
+%     For an input set $\gamma \subseteq \{x_1, \dots, x_n\}$ let $M_\gamma$ define the submatrix of $M$ consisting only of those rows whose labels are contained in $\gamma$, and the rows labelled by a negated literal $\bar{x}_i$ that is not contained in $\gamma$.
+%     That means $M_\gamma$ contains a row $i$ if $\rho(i) = x_j$ and $x_j \in \gamma$ or $\rho(i) = \bar{x}_j$ and $x_j \notin \gamma$.
+%     The \acrshort{msp} accepts $\gamma$ if and only if $\vec{1} \in \text{span}(M_\gamma)$, i.e. there exists a linear combination of the rows of $M_\gamma$ that is the row vector consisting of only ones ($\vec{1} = (1, \dots, 1)$).
 
-    A span program is called \emph{monotone} if the rows are labelled using only the (positive) literals $\{x_1, \dots, x_n\}$.
-\end{definition}
+%     A span program is called \emph{monotone} if the rows are labelled using only the (positive) literals $\{x_1, \dots, x_n\}$.
+% \end{definition}
 
-Note that the vector $\vec{1}$ can be replaced by any other fixed nonzero vector~\cite{beimel_secure_1996}.
+% Note that the vector $\vec{1}$ can be replaced by any other fixed nonzero vector~\cite{beimel_secure_1996}.
 
-Intuitively, a row $i$ labelled by the literal $\rho(i) = x$ is labelled with the \emph{positive} of $x$; a row labelled by $\rho(i) = \bar{x}$ is labelled by the \emph{negative} of $x$.
+% Intuitively, a row $i$ labelled by the literal $\rho(i) = x$ is labelled with the \emph{positive} of $x$; a row labelled by $\rho(i) = \bar{x}$ is labelled by the \emph{negative} of $x$.
 
-The linear combination yielding $\vec{1}$ may only consist of the rows labelled with positive attributes that are included in $\gamma$ and those labelled with negative literals not included in $\gamma$.
-That means there are coefficients $\{\alpha_i\}_{\rho(i) \in \gamma \text{ or } \rho(i) = \bar{x} \land x \notin \gamma}$ such that $\sum \alpha_i \cdot M_i = \vec{1}$.
-$M_i$ denotes the $i$-th row of the matrix $M$.
+% The linear combination yielding $\vec{1}$ may only consist of the rows labelled with positive attributes that are included in $\gamma$ and those labelled with negative literals not included in $\gamma$.
+% That means there are coefficients $\{\alpha_i\}_{\rho(i) \in \gamma \text{ or } \rho(i) = \bar{x} \land x \notin \gamma}$ such that $\sum \alpha_i \cdot M_i = \vec{1}$.
+% $M_i$ denotes the $i$-th row of the matrix $M$.
 
-The role of the variables in the definition will be taken by attributes in our context, i.e. each row will be labelled by an attribute or the negation of an attribute~\cite{goyal_attribute-based_2006}.
+% The role of the variables in the definition will be taken by attributes in our context, i.e. each row will be labelled by an attribute or the negation of an attribute~\cite{goyal_attribute-based_2006}.
 
 \section{Shamir's Secret Sharing}
 This secret sharing scheme based on polynomial interpolation was first introduced by Adi Shamir in 1979~\cite{shamir_how_1979}.
