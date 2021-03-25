@@ -3,14 +3,47 @@
 
 \chapter{Introduction}\label{chapter:introduction}
 
+% TODO starting sentence
+
+% section: motivation
+The collected medical data is highly sensitive, and it is vital to protect it as well as possible during transmission and storage.
+
+
+\begin{figure}[t]
+    \centering
+    \begin{tikzpicture}[fullnode/.style={draw, minimum width=3.75cm, minimum height=1.5cm, align=center}]
+        % \draw (0, 0) node (soc) {Sensor\\(nRF52840 SoC)} |- ++(5, 0) node (gateway) {Gateway\\(Smartphone or Raspberry Pi)};
+        \node[fullnode] (soc) {Sensor \\(nRF52840 SoC)};
+        \node[fullnode] (gateway) [right=4cm of soc] {Gateway\\(e.g. Smartphone)};
+        \node[fullnode] (cloud) [below=2.5cm of gateway] {Cloud\\(e.g. AWS instance)};
+        \node[fullnode] (kgc) [below=2.5cm of soc] {Key Generation\\Center};
+
+        \draw[->] (soc) -- (gateway) node [pos=0.5, align=center] {Bluetooth\\Low Energy};
+        \draw[<->] (gateway) -- (cloud) node [pos=0.5, align=center] {Internet\\(TCP/IP)};
+
+        \node[fullnode] (user1) [below=2.5cm of kgc] {User 1\\(e.g. Patient)};
+        \node[fullnode] (user2) [below=2.5cm of cloud] {User 2\\(e.g. Doctor)};
+
+        % \draw[->] (kgc) -- (gateway) node [pos=0.5] {Internet};
+        \draw[->, dotted] (kgc) -- (soc);% node [pos=0.5, align=center] {Key exchanged\\before deployment};
+        \draw[->, dotted] (kgc) -- (user1);% node [pos=0.5] {Internet};
+        \draw[->, dotted] (kgc) -- (user2);% node [pos=0.5] {Internet};
+        \draw[<->] (user1) -- (cloud) node [pos=0.25, sloped, above] {Internet};
+        \draw[<->] (user2) -- (cloud) node [pos=0.5] {Internet};
+
+        \node [draw, dashed, fit=(soc) (gateway), inner sep=3mm, label={[anchor=south west]north west:Carried by the patient}] {};
+        \node [red, draw, dashed, fit=(gateway) (cloud), inner sep=5mm, label={[red,anchor=south]above:Not trusted}] {};
+    \end{tikzpicture}
+    \caption{Simplified system architecture for end-to-end Attribute Based Encryption }
+\end{figure}
 
 \emph{Martin: }
 hier wünsche ich mir vor allem die Motivation und eine Einordnung ins große Ganze. Du kannst gern den Medisec Anwendungsfall als Beispiel hernehmen, an dem du das diskutierst, musst du aber nicht
 
-- Warum sollte ich ABE hernehmen? 
-- Welche Probleme löst es, die ich sonst nicht elegant lösen kann? (Update nach dem Lesen von 2.1: da erklärst du es super. Dann hier halt in kurz "gut für Verschlüsselung an mehrere Empfänger") 
-- Welche Alternativen zu ABE gäbe es denn überhaupt? Was ist nervig an ABE (z.B. dass man ein KGC braucht?)
-- Ist das sinnvoll, das auf Mikrocontrollern zu machen? 
+- Warum sollte ich ABE hernehmen?\\ 
+- Welche Probleme löst es, die ich sonst nicht elegant lösen kann? (Update nach dem Lesen von 2.1: da erklärst du es super. Dann hier halt in kurz "gut für Verschlüsselung an mehrere Empfänger") \\
+- Welche Alternativen zu ABE gäbe es denn überhaupt? Was ist nervig an ABE (z.B. dass man ein KGC braucht?)\\
+- Ist das sinnvoll, das auf Mikrocontrollern zu machen? \\
 
 In der BA ist es noch nicht so wichtig wie in der MA, dass du eine zentrale Forschungsfrage hinschreibst. Wenn du es aber kannst, macht es den Rest leichter weil du die ganze Arbeit dran strukturieren kannst. Vor allem beim Related Work zusammenstellen hilft es, siehe meine Anmerkungen da. 
 Nach meinem Verständnis behandelst du die Frage "kann man ABE gescheit auf Mikrocontrollern machen?". Ggf. kann man den Titel der BA noch dahingehend anpassen, dass er mehr sciency klingt ("Implementierung" ist "Ingenieurs-Handwerk" und das findet der Academia Mensch unter seiner Würde. Ist Quatsch, aber leider ticken die so). Also wenn du mehr sciency klingen willst etwa "Evaluating the feasibility of a Rust-based ABE Library on MCUs" --> Evaluation ist wieder die ureigenste Aufgabe des Scientisten, also alles gut.
