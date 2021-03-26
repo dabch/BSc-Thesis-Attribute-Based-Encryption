@@ -1,4 +1,5 @@
 \chapter{Evaluation}
+This chapter shall present the results of my study and discuss the implications of what was observed.
 
 \section{Performance of \texttt{rabe\_bn}}\label{sec:rabebn-evaluation}
 See Table~\ref{tbl:rabebn-performance} for performance measurements of random element sampling, group operations, group-scalar exponentiation and the pairing operation.
@@ -34,19 +35,6 @@ Sampling a random element takes about the same time as group exponentiation for 
 Looking at the implementation, the reason for this is obvious: Sampling from $\mathbb{G}_1$ and $\mathbb{G}_2$ simply generates a random $z \in \mathbb{F}_r$ and returns the group element $z \cdot G$ for $G$ a generator.
 Sampling from $\mathbb{G}_T$ is done by generating random elements of $\mathbb{G}_1$ and $\mathbb{G}_2$ and computing their pairing.
 This is reflected in the measured timings.
-
-% \csvreader[tabular=|r|r|r|,
-%     table head=\hline & Soc [ms] & Laptop [ms]\\\hline\hline,
-%     late after line=\\\hline]
-%     {data/smpl-times.csv}{description=\description,soc=\soc,laptop=\laptop}
-%     {\thecsvrow & \description & \soc & \laptop}
-
-% \begin{tabular}{|r|r|r|}\hline%
-%     & SoC [ms] & Laptop [ms]\\\hline
-%     \csvreader[late after line=\\]%
-%         {data/smpl-times.csv}{description=\description,soc=\soc,laptop=\laptop}%
-%         {\description & \soc & \laptop}%
-% \end{tabular}\
 
 Interestingly, RAM size seems to be a limiting factor when computing pairings on embedded devices.
 During development, I also tested the ported \texttt{rabe-bn} library on the nRF52832 SoC, which has 64KB of RAM (vs. 256KB in the nRF52840). 
