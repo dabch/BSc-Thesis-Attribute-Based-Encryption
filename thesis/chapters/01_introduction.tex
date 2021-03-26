@@ -4,9 +4,36 @@
 \chapter{Introduction}\label{chapter:introduction}
 
 % TODO starting sentence
+The \acrfull{iot} offers great potential for improved efficiency, raised comfort and better safety in many areas. % TODO find some citations
+Applications of the \acrshort{iot} include household devices (``Smart Home''), infrastructure, manufacturing, healthcare and many other fields.
+
+The increasing ubiquity of connected sensors and actuators in the ``things'' around us raises serious concerns about privacy and security.
+For example, an insecure ``Smart Home'' might reveal to burglars that its owners are on vacation (e.g. if they can see that the heating is turned off and no windows have been opened for a few days).
+Even worse, the ``Smart Door Lock'' might even be exploited to let them right in.
+
+Cryptography provides the tools suited to protect the data flowing through the \acrshort{iot}.
+
+Despite the very real threats if security in \acrshort{iot} is not implemented properly, many applications are insecure. 
+One reason for this is that, due to large numbers of connected devices, \acrshort{iot} hardware must be cheap.
+Therefore, most of the ``things'' participating in the \acrshort{iot} are severely constrained in terms of computational power, memory and storage size and power consumption. 
+This limits the applicability of many modern cryptographic concepts (e.g. signatures and, sometimes, even public-key encryption) because the devices involved are simply too slow and small.
+
+In recent years, small microcontrollers have become much cheaper and more powerful: 
+Increasingly, 8-bit architectures are replaced by embedded 32-bit architectures such as ARM Cortex even for simple applications. % TODO find citation and check that this is true
+This brings a large increase in computational performance, storage and memory size.
+For the first time, even more advanced cryptographic constructions such as those based on bilinear pairings become feasible even on the smallest of connected sensors.
+
+The feasibility of one such relatively new type of cryptosystems shall be examined in this thesis: 
+\acrfull{abe} allows very intuitive and fine-grained access control by means of expressive access policies specified at the time of encryption or key issuing.
+With a few exceptions, \acrshort{abe} is based on bilinear pairings, which are quite computationally expensive.
+The feasibility of \acrshort{abe} on constrained devices such as Smartphones, powerful \acrshort{iot} nodes (e.g. Raspberry Pi) and small sensor nodes is disputed in literature~\cite{wang_performance_2014,ambrosin_feasibility_2016,ambrosin_feasibility_2015,girgenti_feasibility_2019,borgh_attribute-based_2016}.
+
+The goal of this thesis is to evaluate the feasibility of an \acrshort{abe} library for a small 32-bit MCU.
+More specifically, the target system is an nRF52840 SoC with a 64MHz ARM Cortex M4 CPU and 256KB of RAM.
+To this end, such a library is implemented using the Rust programming language and the performance of two \acrshortpl{abes} on the SoC is evaluated.
 
 For an example use case of such a library, see Figure~\ref{fig:system-architecture}.
-The patient receives the medical sensor from their doctor (e.g. embedded in a T-shirt). 
+The patient receives a medical sensor from their doctor (e.g. embedded in a T-shirt). 
 Because the sensor must have a small footprint and run on battery for an extended time period, it is not able to communicate via the internet directly.
 Instead, the user installs an app on their smartphone which acts as a gateway.
 This app receives the data from the sensor via \acrfull{ble} and uses the phone's internet connection to upload it to the cloud.
@@ -19,7 +46,7 @@ Given the strong security requirements regarding medical data, we require end-to
 The data is encrypted during transmission (both via \acrshort{ble} and over the internet) and storage on the cloud server.
 Neither the gateway nor the cloud provider must be trusted.
 
-
+Using \acrshort{ABE} 
 ~\\
 ~\\
 If the gateway is simply a smartphone, it may be compromised by malicious actors
