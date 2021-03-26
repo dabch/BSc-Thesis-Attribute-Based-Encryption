@@ -252,26 +252,58 @@ From a performance point of view, the pairing-free YCT scheme is to be preferred
 It also doesn't suffer from the RAM size issues with key generation and decryption as GPSW does.
 This clearly results from the lack of pairing computations, which already take up about one quarter of the total RAM on the SoC (c.f. Section~\ref{sec:rabebn-evaluation}).
 
-However, as the security of pairing-free \acrshort{abes} is questioned (\cite{herranz_attacking_2020}), a pairing-based scheme might be preferable.
+However, as the security of pairing-free \acrshort{abes} is questioned (see \cite{herranz_attacking_2020}), a pairing-based scheme might be preferable.
 Even though decryption with GPSW is limited to small policies by the RAM size issues and long run times, it is feasible for small policies (max. 5-10 attributes).
 For encryption, even larger number of attributes are viable: The additional time per attributes is the same as with YCT and even for 30 attributes there were no RAM size issues.
 Thus, the relative advantage of YCT over GPSW becomes smaller with larger policies.
-Even for 
 % TODO section on why only encryption is really relevant and that especially keygen and setup should only run on a proper computer
-% TODO write about splitting up encryption like for medisec, and why then up to 10seconds encryption time are okay (?)
 
+As already outlined in the introduction, running encryption on the SoC is more relevant for our use case than decryption. 
+The other two algorithms, Setup and KeyGen, are run only by the \acrshort{kgc}.
+Therefore, I think it is reasonable to assume that these don't need to be run on a constrained node in real-world scenarios.
+The \acrshort{kgc} would probably be a specially protected PC or at least a powerful \acrshort{iot} node (e.g. Raspberry Pi).
+% TODO write about splitting up encryption like for medisec, and why then up to 10seconds encryption time are okay (?)
 
 \section{Further Improvements / Future Work}
 
-For embedded applications, computation time is not the only important factor. 
-The large size of \acrshort{abe} ciphertexts can be a problem, e.g. when transmitting data via low-power wireless protocols (such as Bluetooth LE).
-In addition to the hybrid encryption approach taken in this thesis (key encapsulation, i.e. choosing a random symmetric key to encrypt the payload and then encrypting this key using \acrshort{abe}), measures such as point compression can be taken.
+The implementations evaluated in this thesis offer room for improvement in many ways.
+For one, interoperability between the ``light'' pairing library presented here and a potential ``full'' counterpart (e.g. for the \acrshort{kgc}) was not a priority.
 
-Another option to reduce both message sizes and encryption times would be to re-use the ABE-encapsulated symmetric key: 
-Instead of encrypting each message with a new random symmetric key that is encapsulated with \acrshort{abe}, the same symmetric key can be used for many messages. 
-For example, an embedded sensor could choose a new symmetric key once per day, encrypt it using ABE and transmit it to the cloud. 
-Then it could use this key to encrypt all messages for the next 24 hours, requiring very short encryption times and little overhead for the message size. 
-This construction was already implemented for the \emph{Medisec} application, but not evaluated for this thesis because it is not a ``true'' \acrlong{abes}.
+Regarding the results on the SoC, large improvements could be made by improving the underlying pairing and elliptic curve implementation of the \texttt{rabe-bn} library.
+Even though the operations remain computationally expensive, other implementations do significantly better:
+In \cite{scott_deployment_2020}, the \emph{MIRACL Core} library was evaluated on the same SoC as ours using the same type of curve (256-bit BN curve).
+This library evaluates a pairing in about 600ms; our library takes 1600ms. 
+Exponentiation in $\mathbb{G}_T$ takes about 300ms with their library and about 1400ms with ours. 
+Both libraries are high-level implementations (i.e. no optimized assembly code), and thus it is likely that the optimizations from \emph{MIRACL Core} could be carried over to Rust.
+As the runtime of \acrshort{abe} is dominated by these expensive curve operations, an improved pairing and curve implementation offers great potential for speedup.
+
+The runtimes in the order of several seconds might still be too long, even if improved by a better pairing library.
+To aid this, the symmetric key used to encrypt the actual payload may be reused:
+In both implemented schemes, the data is not encrypted directly but rather using a hybrid approach, i.e. a random key is generated and encrypted under \acrshort{abe} (key encapsulation).
+This key is then used to encrypt the actual payload using AES (data encapsulation).
+Usually, a new key is generated and encrypted for every message.
+
+Instead, the encapsulated key could be re-used:
+By caching both the symmetric key and its \acrshort{abe}-encrypted version, more than one message can be encrypted with the same symmetric key.
+This approach requires only a single encryption of \acrshort{abe} for potentially very many messages.
+The encyptor may then periodically generate and encrypt a new symmetric key (e.g. once per day).
+If the messages should be decryptable on their own, the \acrshort{abe}-encrypted symmetric key can be copied into each encrypted message.
+The downside is that all messages encrypted with the same symmetric key naturally have the same attributes or access policy attached (i.e. reduced granularity).
+Also, if the symmetric key is compromised (possibly while it is stored to encrypt the next message), all messages encrypted with that key will be compromised.
+
+This approach does not reduce the ciphertext size because the \acrshort{abe}-encrypted key is copied into each ciphertext.
+If this is an issue (e.g. due to low-power wireless transmission), the \acrshort{abe}-encrypted key may be transmitted separately from the symmetrically encrypted messages.
+Then, both the symmetric ciphertext of and the respective \acrshort{abe}-encrypted key must be present to decrypt a message.
+
+This symmetric key-caching approach was implemented for use in a system similar to that presented in Figure~\ref{fig:system-architecture}.
+However, it was not evaluated for this thesis, because it doesn't represent ``true'' \acrlong{abes}.
+
+
+% Another option to reduce both message sizes and encryption times would be to re-use the ABE-encapsulated symmetric key: 
+% Instead of encrypting each message with a new random symmetric key that is encapsulated with \acrshort{abe}, the same symmetric key can be used for many messages. 
+% For example, an embedded sensor could choose a new symmetric key once per day, encrypt it using ABE and transmit it to the cloud. 
+% Then it could use this key to encrypt all messages for the next 24 hours, requiring very short encryption times and little overhead for the message size. 
+% This construction was already implemented for the \emph{Medisec} application, but not evaluated for this thesis because it is not a ``true'' \acrlong{abes}.
 % TODO check that this section is in line with the introduction / medisec overview
 
 
