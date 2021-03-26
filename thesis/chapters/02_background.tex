@@ -77,7 +77,7 @@ Even worse, what if we want to encrypt data for any student of said university, 
 In this case, our only option using classic asymmetric cryptography would be to have some trusted instance keep a plaintext copy and re-encrypt the data for any new student when they join the university.
 Attribute-Based encryption solves this problem.
 
-\section{Attribute-Based Encryption}
+\section{Attribute-Based Encryption}\label{sec:background-abe}
 \acrfull{abe} uses a combination of attributes to define a \emph{group} of private keys that should be able to read encrypted data, instead of encrypting it for one specific private key only (as in \glspl{pkes}).
 In Figure~\ref{fig:keys-abe}, this is represented by a tree.
 

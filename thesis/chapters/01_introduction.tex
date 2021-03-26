@@ -11,9 +11,9 @@ The increasing ubiquity of connected sensors and actuators in the ``things'' aro
 For example, an insecure ``Smart Home'' might reveal to burglars that its owners are on vacation (e.g. if they can see that the heating is turned off and no windows have been opened for a few days).
 Even worse, the ``Smart Door Lock'' might even be exploited to let them right in.
 
-Cryptography provides the tools suited to protect the data flowing through the \acrshort{iot}.
+The tools to secure even the largest networks exists; cryptography and related protocols (e.g. TLS) exist and are quite widespread.
 
-Despite the very real threats if security in \acrshort{iot} is not implemented properly, many applications are insecure. 
+Despite the very real threats if security in \acrshort{iot} is not implemented properly, many applications are still not secure. 
 One reason for this is that, due to large numbers of connected devices, \acrshort{iot} hardware must be cheap.
 Therefore, most of the ``things'' participating in the \acrshort{iot} are severely constrained in terms of computational power, memory and storage size and power consumption. 
 This limits the applicability of many modern cryptographic concepts (e.g. signatures and, sometimes, even public-key encryption) because the devices involved are simply too slow and small.
@@ -32,36 +32,11 @@ The goal of this thesis is to evaluate the feasibility of an \acrshort{abe} libr
 More specifically, the target system is an nRF52840 SoC with a 64MHz ARM Cortex M4 CPU and 256KB of RAM.
 To this end, such a library is implemented using the Rust programming language and the performance of two \acrshortpl{abes} on the SoC is evaluated.
 
-For an example use case of such a library, see Figure~\ref{fig:system-architecture}.
-The patient receives a medical sensor from their doctor (e.g. embedded in a T-shirt). 
-Because the sensor must have a small footprint and run on battery for an extended time period, it is not able to communicate via the internet directly.
-Instead, the user installs an app on their smartphone which acts as a gateway.
-This app receives the data from the sensor via \acrfull{ble} and uses the phone's internet connection to upload it to the cloud.
-Authorized users (e.g. the patient themselves or their doctor) can then download the data from the cloud.
-
-Since the collected data in this system (e.g. the ECG) is related to the patient's health, it must be protected with particular care:
-For example, the \acrshort{gdpr} lists health data as a \emph{special category} of data that enjoys extra protections compared to regular personal data. % TODO cite this from somewhere
-This is why simple transport encryption (e.g. by \acrshort{ble} between the sensor and gateway and TLS between the gateway and cloud) is not sufficient: It does not protect the data from a malicious gateway or cloud provider.
-Given the strong security requirements regarding medical data, we require end-to-end encryption, i.e. the data is encrypted at the point of origin (the sensor) and decrypted only locally when accessed by an authorized user (e.g. on the attending doctor's computer).
-The data is encrypted during transmission (both via \acrshort{ble} and over the internet) and storage on the cloud server.
-Neither the gateway nor the cloud provider must be trusted.
-
-Using \acrshort{ABE} 
-~\\
-~\\
-If the gateway is simply a smartphone, it may be compromised by malicious actors
-
-% section: motivation
-The sensor might for example measure an ECG (electrocardiogram), the heart rate or the blood sugar of the wearer.
-This information is highly sensitive and requires careful protection.
-To eliminate trust in the 
-
-
-\begin{figure}[t]
+\begin{figure}[h]
     \centering
     \begin{tikzpicture}[fullnode/.style={draw, minimum width=3.75cm, minimum height=1.5cm, align=center}]
         % \draw (0, 0) node (soc) {Sensor\\(nRF52840 SoC)} |- ++(5, 0) node (gateway) {Gateway\\(Smartphone or Raspberry Pi)};
-        \node[fullnode] (soc) {Sensor \\(nRF52840 SoC)};
+        \node[fullnode, violet] (soc) {Sensor \\(nRF52840 SoC)};
         \node[fullnode] (gateway) [right=4cm of soc] {Gateway\\(e.g. Smartphone)};
         \node[fullnode] (cloud) [below=2.5cm of gateway] {Cloud\\(e.g. AWS instance)};
         \node[fullnode] (kgc) [below=2.5cm of soc] {Key Generation\\Center};
@@ -82,20 +57,67 @@ To eliminate trust in the
         \node [draw, dashed, fit=(soc) (gateway), inner sep=3mm, label={[anchor=south west]north west:Carried by the patient}] {};
         \node [red, draw, dashed, fit=(gateway) (cloud), inner sep=5mm, label={[red,anchor=south]above:Not trusted}] {};
     \end{tikzpicture}
-    \caption{Simplified system architecture for end-to-end Attribute Based Encryption}
+    \caption[Simplified use case for our ABE library]{Simplified use case for end-to-end Attribute Based Encryption with encryption on a constrained sensor MCU. The ABE library developed for this thesis runs on the sensor.}
     \label{fig:system-architecture}
 \end{figure}
 
-\emph{Martin: }
-hier wünsche ich mir vor allem die Motivation und eine Einordnung ins große Ganze. Du kannst gern den Medisec Anwendungsfall als Beispiel hernehmen, an dem du das diskutierst, musst du aber nicht
+For an example use case of such a library, see Figure~\ref{fig:system-architecture}.
+The patient receives a medical sensor from their doctor (e.g. embedded in a T-shirt). 
+Because the sensor must have a small footprint and run on battery for an extended time period, it is not able to communicate via the internet directly.
+Instead, the user installs an app on their smartphone which acts as a gateway.
+This app receives the data from the sensor via \acrfull{ble} and uses the phone's internet connection to upload it to the cloud.
+Authorized users (e.g. the patient themselves or their doctor) can then download the data from the cloud.
 
-- Warum sollte ich ABE hernehmen?\\ 
-- Welche Probleme löst es, die ich sonst nicht elegant lösen kann? (Update nach dem Lesen von 2.1: da erklärst du es super. Dann hier halt in kurz "gut für Verschlüsselung an mehrere Empfänger") \\
-- Welche Alternativen zu ABE gäbe es denn überhaupt? Was ist nervig an ABE (z.B. dass man ein KGC braucht?)\\
-- Ist das sinnvoll, das auf Mikrocontrollern zu machen? \\
+Since the collected data in this system (e.g. the ECG) is related to the patient's health, it must be protected with particular care:
+For example, the \acrshort{gdpr} lists health data as a \emph{special category} of data that enjoys extra protections compared to regular personal data. % TODO cite this from somewhere
+This is why simple transport encryption (e.g. by \acrshort{ble} between the sensor and gateway and TLS between the gateway and cloud) is not sufficient: It does not protect the data from a malicious gateway or cloud provider.
+Given the strong security requirements regarding medical data, we require end-to-end encryption, i.e. the data is encrypted at the point of origin (the sensor) and decrypted only locally when accessed by an authorized user (e.g. on the attending doctor's computer).
+The data is encrypted during transmission (both via \acrshort{ble} and over the internet) and storage on the cloud server.
+Neither the gateway nor the cloud provider need to be trusted. 
+To achieve this, the encryption must be performed on the constrained MCU running the sensor.
 
-In der BA ist es noch nicht so wichtig wie in der MA, dass du eine zentrale Forschungsfrage hinschreibst. Wenn du es aber kannst, macht es den Rest leichter weil du die ganze Arbeit dran strukturieren kannst. Vor allem beim Related Work zusammenstellen hilft es, siehe meine Anmerkungen da. 
-Nach meinem Verständnis behandelst du die Frage "kann man ABE gescheit auf Mikrocontrollern machen?". Ggf. kann man den Titel der BA noch dahingehend anpassen, dass er mehr sciency klingt ("Implementierung" ist "Ingenieurs-Handwerk" und das findet der Academia Mensch unter seiner Würde. Ist Quatsch, aber leider ticken die so). Also wenn du mehr sciency klingen willst etwa "Evaluating the feasibility of a Rust-based ABE Library on MCUs" --> Evaluation ist wieder die ureigenste Aufgabe des Scientisten, also alles gut.
+In this use case, the fine-granular access control enabled by \acrshort{abe} is particularly interesting:
+If the system were using a regular \gls{privkes}, when seeing a new doctor, the patient would have to securely share with them their private key.
+This would allow the new doctor to see all the patient's medical information (assuming there is only one key) and provide no access control.
+
+With a regular \gls{pkes}, securely sharing the key would no longer be a problem. 
+However, the system would have to know the public keys of all present and future doctors when encrypting the data. 
+Again, all data encrypted with a doctor's public key will be visible to them; there are no further access control mechanisms.
+
+Through the mechanisms more closely described in Section~\ref{sec:background-abe}, KP-\acrshort{abe} allows much more fine-grained access control:
+At the time of encryption, data is described using certain \glspl{attribute}.
+The participants are then issued keys by the \acrfull{kgc}, which allow them to decrypt a piece of data if and only if their key matches the attributes specified during encryption.
+
+In this use case, only the encryption operation needs to be performed on the constrained MCU.
+As it will turn out, decryption requires much higher performance than encryption.
+Thus, implementing only encryption on the MCU is probably sufficient for many use cases:
+Oftentimes, devices that need to receive (i.e. decrypt) data are connected to some kind of actuator or user interface. 
+In most networks, there are fewer of these nodes than there are sensor nodes, and thus these tend to be more powerful. % TODO nachschauen ob das totaler Stuss ist
+
+As such, I will be evaluating both encryption and decryption, but focus on the former.
+The thesis is considered a success if decryption can be performed reasonably quickly on the MCU, even if decryption is much more constrained.
+% Using \acrshort{abe} -
+% ~\\
+% ~\\
+% If the gateway is simply a smartphone, it may be compromised by malicious actors
+
+% % section: motivation
+% The sensor might for example measure an ECG (electrocardiogram), the heart rate or the blood sugar of the wearer.
+% This information is highly sensitive and requires careful protection.
+% To eliminate trust in the 
+
+
+
+% \emph{Martin: }
+% hier wünsche ich mir vor allem die Motivation und eine Einordnung ins große Ganze. Du kannst gern den Medisec Anwendungsfall als Beispiel hernehmen, an dem du das diskutierst, musst du aber nicht
+
+% - Warum sollte ich ABE hernehmen?\\ 
+% - Welche Probleme löst es, die ich sonst nicht elegant lösen kann? (Update nach dem Lesen von 2.1: da erklärst du es super. Dann hier halt in kurz "gut für Verschlüsselung an mehrere Empfänger") \\
+% - Welche Alternativen zu ABE gäbe es denn überhaupt? Was ist nervig an ABE (z.B. dass man ein KGC braucht?)\\
+% - Ist das sinnvoll, das auf Mikrocontrollern zu machen? \\
+
+% In der BA ist es noch nicht so wichtig wie in der MA, dass du eine zentrale Forschungsfrage hinschreibst. Wenn du es aber kannst, macht es den Rest leichter weil du die ganze Arbeit dran strukturieren kannst. Vor allem beim Related Work zusammenstellen hilft es, siehe meine Anmerkungen da. 
+% Nach meinem Verständnis behandelst du die Frage "kann man ABE gescheit auf Mikrocontrollern machen?". Ggf. kann man den Titel der BA noch dahingehend anpassen, dass er mehr sciency klingt ("Implementierung" ist "Ingenieurs-Handwerk" und das findet der Academia Mensch unter seiner Würde. Ist Quatsch, aber leider ticken die so). Also wenn du mehr sciency klingen willst etwa "Evaluating the feasibility of a Rust-based ABE Library on MCUs" --> Evaluation ist wieder die ureigenste Aufgabe des Scientisten, also alles gut.
 
 
 % \section{Section}
