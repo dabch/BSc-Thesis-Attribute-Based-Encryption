@@ -5,7 +5,6 @@
 
 % TODO starting sentence
 
-
 For an example use case of such a library, see Figure~\ref{fig:system-architecture}.
 The patient receives the medical sensor from their doctor (e.g. embedded in a T-shirt). 
 Because the sensor must have a small footprint and run on battery for an extended time period, it is not able to communicate via the internet directly.
@@ -13,9 +12,16 @@ Instead, the user installs an app on their smartphone which acts as a gateway.
 This app receives the data from the sensor via \acrfull{ble} and uses the phone's internet connection to upload it to the cloud.
 Authorized users (e.g. the patient themselves or their doctor) can then download the data from the cloud.
 
-Because the collected data is highly sensitive and is transmitted via possibly insecure channels, encryption is vital.
-However, simple transport encryption (e.g. by \acrshort{ble} between the sensor and gateway and TLS between the gateway and cloud) is not sufficient because it requires the gateway and the cloud provider to be trusted.
-This is not necessarily a reasonable assumption:
+Since the collected data in this system (e.g. the ECG) is related to the patient's health, it must be protected with particular care:
+For example, the \acrshort{gdpr} lists health data as a \emph{special category} of data that enjoys extra protections compared to regular personal data. % TODO cite this from somewhere
+This is why simple transport encryption (e.g. by \acrshort{ble} between the sensor and gateway and TLS between the gateway and cloud) is not sufficient: It does not protect the data from a malicious gateway or cloud provider.
+Given the strong security requirements regarding medical data, we require end-to-end encryption, i.e. the data is encrypted at the point of origin (the sensor) and decrypted only locally when accessed by an authorized user (e.g. on the attending doctor's computer).
+The data is encrypted during transmission (both via \acrshort{ble} and over the internet) and storage on the cloud server.
+Neither the gateway nor the cloud provider must be trusted.
+
+
+~\\
+~\\
 If the gateway is simply a smartphone, it may be compromised by malicious actors
 
 % section: motivation
