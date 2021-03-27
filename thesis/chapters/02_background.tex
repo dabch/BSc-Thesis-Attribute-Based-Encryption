@@ -22,7 +22,7 @@ This chapter introduces \acrlong{abe} and the relevant mathematical background f
             \path (decrypt.north) -- +(0, 0.3) pic [anchor=west, scale=0.1, red, fill=red] {key};
             \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m'};
         \end{tikzpicture}
-        \caption{Asymmetric Encryption: Different keys for encryption and decryption.} \label{fig:keys-asymmetric}
+        \caption{Asymmetric Encryption: Different keys for encryption and decryption. Decryption succeeds if and only if the decryption key is exactly the counterpart to the encryption key.} \label{fig:keys-asymmetric}
     \end{subfigure}
     \\ 
     \vspace{0.5cm}
@@ -39,7 +39,7 @@ This chapter introduces \acrlong{abe} and the relevant mathematical background f
             \path (encrypt.north) -- +(0, 0.3) node [olive] {$\{A, B, C\}$};
             \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m'};
         \end{tikzpicture}
-        \caption{\glslink{gls-kp-abe}{Key-Policy Attribute-Based Encryption}: Attributes for encryption, access structure for decryption. Note that the access structure of the decryption key may be public; the actual key consists of secret shares that allow the user to decrypt a ciphertext if the correct attributes are present.} \label{fig:keys-abe}
+        \caption{\glslink{gls-kp-abe}{Key-Policy Attribute-Based Encryption}: Attributes for encryption, access structure for decryption. Decryption succeeds if and only if the attributes of the ciphertext satisfy the policy embedded in the key.} \label{fig:keys-abe}
     \end{subfigure}
     \\ 
     \vspace{0.5cm}
@@ -56,7 +56,7 @@ This chapter introduces \acrlong{abe} and the relevant mathematical background f
             \path (decrypt.north) -- +(0, 0.3) node [red] {$\{A, B, C\}$};
             \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m'};
         \end{tikzpicture}
-        \caption{\glslink{gls-cp-abe}{Ciphertex-Policy Attribute-Based Encryption}: \Gls{access-policy} for encryption, attributes for decryption. Note that the attributes associated with the decryption key may be public; the actual key consists of corresponding secret shares.} \label{fig:keys-abe}
+        \caption{\glslink{gls-cp-abe}{Ciphertex-Policy Attribute-Based Encryption}: \Gls{access-policy} for encryption, attributes for decryption. Decryption succeeds if and only if the attributes of the key match the policy embedded in the ciphertext.} \label{fig:keys-abe}
     \end{subfigure}
     \caption[Keys in different classes of encryption schemes]{Keys used for encryption and decryption in different classes of encryption schemes. Red information has to be kept secret, green information may be made publicly available. For the differences between the two types of \acrshort{abe}, see Section~\ref{sec:cp-vs-kp}.}
     \label{fig:key-use}
@@ -134,7 +134,7 @@ Figure~\ref{fig:abe-system} shows a small \acrshort{abe} system with the \acrsho
         \caption{If $\textcolor{olive}{S_A}$ and $\textcolor{blue}{S_B}$ are allowed access policies for Alice and Bob, respectively, the \acrshort{kgc} creates their private keys and transmits them via a secure channel.}
     \end{subfigure}
     \par\bigskip
-    \begin{subfigure}[t]{0.6\textwidth}
+    \begin{subfigure}[t]{0.55\textwidth}
         \centering
         \begin{tikzpicture}[actor/.style={draw, minimum width=1.5cm}]
             \node[actor] (a) at (-2,0) {Alice};
@@ -154,17 +154,33 @@ Figure~\ref{fig:abe-system} shows a small \acrshort{abe} system with the \acrsho
         \end{tikzpicture}
         \caption{Alice can now use the public parameters $PK$ and $\omega$ to encrypt a message for Bob, which he can decrypt only if his access policy $\textcolor{blue}{S_B}$ is satisfied by $\omega$. Note that the \acrshort{kgc} plays no role in this step}
     \end{subfigure}
-    % \begin{subfigure}[t]{0.6\textwidth}
-    %     \centering
-    %     \begin{tikzpicture}
-    %         \matrix [draw] at (0,0) {
-    %             % \node [label=right:Public Key (system parameters)] {$PK$};\\
-    %             % \node [label=right:Access Structures for Alice and Bob] {$S_A$, $S_B$}; \\
-    %             % \node [label=right:Plaintext message] {$m$}; \\
-    %             % \node [label=right:Set of attributes] {$\omega$}; \\
-    %         };
-    %     \end{tikzpicture}
-    % \end{subfigure}
+    \begin{subfigure}[b]{0.4\textwidth}
+        \centering
+        \begin{tikzpicture}[matrixstyle/.style={
+            matrix of nodes,
+            nodes in empty cells,
+            column sep      = 0mm,
+            row sep         = 2mm,
+            draw,
+            nodes={
+                inner sep=1mm,outer sep=1mm,
+                minimum size=5mm,
+                anchor=center,
+                text centered,
+                text width=1cm,
+                execute at begin node={\small\setlength{\baselineskip}{1em}} % WTF.. see https://tex.stackexchange.com/questions/223065/how-to-increase-line-spacing-in-tikz-node
+            }
+        }]
+            \matrix (m) [matrixstyle] at (0,0) {
+                $PK$ & \node[align=left, text width=3.5cm] {Public Key (same\\for all participants)};\\
+                $MK$ & \node[align=left, text width=3.5cm] {Master Secret (known\\only to the \acrshort{kgc})};\\
+                $k_A, k_B$ & \node[align=left, text width=3.5cm] {Private\\Decryption Keys};\\
+                $S_A, S_B$ & \node[align=left, text width=3.5cm] {Access Structures};\\
+                $m$ & \node[align=left, text width=3.5cm] {Plaintext message};\\
+                $\omega$ & \node[align=left, text width=3.5cm] {Set of attributes};\\
+            };
+        \end{tikzpicture}
+    \end{subfigure}
     \caption[Interaction of Alice, Bob and KGC in an \acrshort{abes}]{
         Alice wants to send an \acrshort{kp-abe} encrypted message $m$ to Bob. She wants to encrypt the message under a set of attributes $\omega$.
         Both Alice and Bob create a desired \gls{access-policy}, $\textcolor{olive}{S_A}$ and $\textcolor{blue}{S_B}$, respectively.
