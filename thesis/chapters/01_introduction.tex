@@ -4,16 +4,14 @@
 \chapter{Introduction}\label{chapter:introduction}
 
 % TODO starting sentence
-The \acrfull{iot} offers great potential for improved efficiency, raised comfort and better safety in many areas. % TODO find some citations
+The \acrfull{iot} offers great potential for improved efficiency, comfort and safety in many areas. % TODO find some citations
 Applications of the \acrshort{iot} include household devices (``Smart Home''), infrastructure, manufacturing, healthcare and many other fields.
 
 The increasing ubiquity of connected sensors and actuators in the ``things'' around us raises serious concerns about privacy and security.
 For example, an insecure ``Smart Home'' might reveal to burglars that its owners are on vacation (e.g. if they can see that the heating is turned off and no windows have been opened for a few days).
 Even worse, the ``Smart Door Lock'' might even be exploited to let them right in.
 
-The tools to secure even the largest networks exists; cryptography and related protocols (e.g. TLS) exist and are quite widespread.
-
-Despite the very real threats if security in \acrshort{iot} is not implemented properly, many applications are still not secure. 
+Protecting these networks by means of cryptographic protocols is possible, but despite the possible negative consequences, many \acrshort{iot} applications are still insecure.
 One reason for this is that, due to large numbers of connected devices, \acrshort{iot} hardware must be cheap.
 Therefore, most of the ``things'' participating in the \acrshort{iot} are severely constrained in terms of computational power, memory and storage size and power consumption. 
 This limits the applicability of many modern cryptographic concepts (e.g. signatures and, sometimes, even public-key encryption) because the devices involved are simply too slow and small.
@@ -36,7 +34,7 @@ To this end, such a library is implemented using the Rust programming language a
     \centering
     \begin{tikzpicture}[fullnode/.style={draw, minimum width=3.75cm, minimum height=1.5cm, align=center}]
         % \draw (0, 0) node (soc) {Sensor\\(nRF52840 SoC)} |- ++(5, 0) node (gateway) {Gateway\\(Smartphone or Raspberry Pi)};
-        \node[fullnode, violet] (soc) {Sensor \\(nRF52840 SoC)};
+        \node[fullnode] (soc) {Sensor \\(nRF52840 SoC)};
         \node[fullnode] (gateway) [right=4cm of soc] {Gateway\\(e.g. Smartphone)};
         \node[fullnode] (cloud) [below=2.5cm of gateway] {Cloud\\(e.g. AWS instance)};
         \node[fullnode] (kgc) [below=2.5cm of soc] {Key Generation\\Center};
@@ -107,17 +105,18 @@ The thesis is considered a success if decryption can be performed reasonably qui
 % To eliminate trust in the 
 
 
+~\\
 
-% \emph{Martin: }
-% hier wünsche ich mir vor allem die Motivation und eine Einordnung ins große Ganze. Du kannst gern den Medisec Anwendungsfall als Beispiel hernehmen, an dem du das diskutierst, musst du aber nicht
+\emph{Martin: }
+hier wünsche ich mir vor allem die Motivation und eine Einordnung ins große Ganze. Du kannst gern den Medisec Anwendungsfall als Beispiel hernehmen, an dem du das diskutierst, musst du aber nicht
 
-% - Warum sollte ich ABE hernehmen?\\ 
-% - Welche Probleme löst es, die ich sonst nicht elegant lösen kann? (Update nach dem Lesen von 2.1: da erklärst du es super. Dann hier halt in kurz "gut für Verschlüsselung an mehrere Empfänger") \\
-% - Welche Alternativen zu ABE gäbe es denn überhaupt? Was ist nervig an ABE (z.B. dass man ein KGC braucht?)\\
-% - Ist das sinnvoll, das auf Mikrocontrollern zu machen? \\
+- Warum sollte ich ABE hernehmen?\\ 
+- Welche Probleme löst es, die ich sonst nicht elegant lösen kann? (Update nach dem Lesen von 2.1: da erklärst du es super. Dann hier halt in kurz "gut für Verschlüsselung an mehrere Empfänger") \\
+- Welche Alternativen zu ABE gäbe es denn überhaupt? Was ist nervig an ABE (z.B. dass man ein KGC braucht?)\\
+- Ist das sinnvoll, das auf Mikrocontrollern zu machen? \\
 
-% In der BA ist es noch nicht so wichtig wie in der MA, dass du eine zentrale Forschungsfrage hinschreibst. Wenn du es aber kannst, macht es den Rest leichter weil du die ganze Arbeit dran strukturieren kannst. Vor allem beim Related Work zusammenstellen hilft es, siehe meine Anmerkungen da. 
-% Nach meinem Verständnis behandelst du die Frage "kann man ABE gescheit auf Mikrocontrollern machen?". Ggf. kann man den Titel der BA noch dahingehend anpassen, dass er mehr sciency klingt ("Implementierung" ist "Ingenieurs-Handwerk" und das findet der Academia Mensch unter seiner Würde. Ist Quatsch, aber leider ticken die so). Also wenn du mehr sciency klingen willst etwa "Evaluating the feasibility of a Rust-based ABE Library on MCUs" --> Evaluation ist wieder die ureigenste Aufgabe des Scientisten, also alles gut.
+In der BA ist es noch nicht so wichtig wie in der MA, dass du eine zentrale Forschungsfrage hinschreibst. Wenn du es aber kannst, macht es den Rest leichter weil du die ganze Arbeit dran strukturieren kannst. Vor allem beim Related Work zusammenstellen hilft es, siehe meine Anmerkungen da. 
+Nach meinem Verständnis behandelst du die Frage "kann man ABE gescheit auf Mikrocontrollern machen?". Ggf. kann man den Titel der BA noch dahingehend anpassen, dass er mehr sciency klingt ("Implementierung" ist "Ingenieurs-Handwerk" und das findet der Academia Mensch unter seiner Würde. Ist Quatsch, aber leider ticken die so). Also wenn du mehr sciency klingen willst etwa "Evaluating the feasibility of a Rust-based ABE Library on MCUs" --> Evaluation ist wieder die ureigenste Aufgabe des Scientisten, also alles gut.
 
 
 % \section{Section}
