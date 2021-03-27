@@ -137,7 +137,7 @@ The timings for the laptop are purely there to give some context; the evaluation
     \begin{subfigure}[h]{0.448\textwidth}
         \begin{tikzpicture}
             \begin{axis}[
-                title={Timing of YCT \cite{yang_lightweight_2020} on the laptop},
+                title={Timing of YCT \cite{yao_lightweight_2015} on the laptop},
                 xlabel={attributes / leaf nodes},
                 ylabel={milliseconds},
                 xmin=0, xmax=32,
@@ -255,7 +255,7 @@ The \acrshort{kgc} would probably be a specially protected PC or at least a powe
 \section{Further Improvements / Future Work}
 
 The implementations evaluated in this thesis offer room for improvement in many ways.
-For one, interoperability between the ``light'' pairing library presented here and a potential ``full'' counterpart (e.g. for the \acrshort{kgc}) was not a priority.
+For one, interoperability between the ``light'' \acrshort{abe} library presented here and a potential ``full'' counterpart (e.g. for the \acrshort{kgc}) was not a priority.
 
 Regarding the results on the SoC, large improvements could be made by improving the underlying pairing and elliptic curve implementation of the \texttt{rabe-bn} library.
 Even though the operations remain computationally expensive, other implementations do significantly better:
@@ -299,3 +299,5 @@ However, it was not evaluated for this thesis, because it doesn't represent ``tr
 \chapter{Conclusion}
 
 ABE is feasible, but only for encryption, only when a few seconds wait time is ok and for small policy sizes / attribute numbers.
+
+(*TODO move some stuff from the chapter before in here and / or summarize)
