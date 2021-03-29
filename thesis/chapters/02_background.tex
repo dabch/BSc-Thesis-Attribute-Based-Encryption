@@ -85,7 +85,7 @@ The combination of attributes may be as restrictive or permissive as needed.
 It is possible to create ciphertexts that can be read by almost all members of an \acrshort{abes}, and ciphertexts that can be read by nobody except a few selected participants.
 
 Figure~\ref{fig:abe-system} shows a small \acrshort{abe} system with the \acrshort{kgc} initializing the system and issuing keys, and two users sharing an encrypted message.
-\subsection{Attributes and the Key Generation Center}
+\subsection{Attributes and the Key Generation Center}\label{sec:kgc}
 
 \begin{figure}
     \centering
@@ -104,8 +104,9 @@ Figure~\ref{fig:abe-system} shows a small \acrshort{abe} system with the \acrsho
             % \draw[->] (a) edge node[left] {\{$S_A$\}} (kgc);
             % \draw[->] (b) edge node [right] {\{$S_B$\}} (kgc);
             % \draw[->] (a) edge pic [left=0.5cm, scale=0.05] {key} node [left=.5cm] {k} (kgc);
-            \draw[->] (b) edge pic [right=0.5cm, scale=0.5, blue] {tree} node [right=.75cm, blue] {$S_B$} (kgc);
-            \draw[->] (a) edge pic [left=0.5cm, scale=0.5, olive] {tree} node [left=.75cm, olive] {$S_A$} (kgc);
+            \draw[-] (b) edge pic [right=0.5cm, scale=0.5, blue] {tree} node [right=.75cm, blue] {$S_B$} (kgc);
+            % TODO fix arrows
+            \draw (a) edge pic [left=0.5cm, scale=0.5, olive] {tree} node [left=.75cm, olive] {$S_A$} (kgc);
             % \draw[->] (b) edge node [right] {\{$S_B$\}} (kgc);
 
         \end{tikzpicture}
