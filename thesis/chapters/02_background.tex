@@ -259,6 +259,7 @@ With \acrshort{kp-abe}, on the other hand, the encryptor doesn't have direct con
 In the hospital setting from above, \acrshort{kp-abe} could be employed in a different use case: For encrypted storage of a patient's medical record, the patient's name could be used as an attribute in \acrshort{kp-abe}.
 If the patient sees a new doctor, they could simply have their key policy extended to include the patient's attribute.
 With \acrshort{cp-abe}, seeing a new doctor would require re-encrypting the entire data under a new access policy.
+Note that this scenario is very close to our use case from Figure~\ref{fig:system-architecture}.
 
 With \acrshort{kp-abe}, instead of the encryptor, the \acrlong{kgc} must be trusted with intelligently deciding which key to give to the decrypting party~\cite{bethencourt_ciphertext-policy_2007}.
 This property can be desirable: Consider a constrained IoT device as an encryptor, which can reliably transmit data, but not receive.

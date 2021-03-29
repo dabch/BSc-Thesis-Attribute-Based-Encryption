@@ -3,8 +3,11 @@
 This chapter will describe two \acrshort{abe} schemes in detail; those were implemented in this thesis.
 In addition to a detailed description of the schemes, any modifications from the original papers are made clear.
 
-The GPSW scheme was chosen because it was the first expressive \acrshort{abes}. It is also considered a rather efficient scheme, compared to others that use bilinear pairings~\cite{girgenti_feasibility_2019}.
+Both implemented schemes are \acrshort{kp-abe}.
+This choice was made because \acrshort{kp-abe} is better suited to our use case from Figure~\ref{fig:system-architecture} (see Section~\ref{fig:cp-kp-abe}).
+Also, encryption tends to be more efficient than with \acrshort{cp-abe}.
 
+The GPSW scheme was chosen because it was the first expressive \acrshort{kp-abe} scheme. It is also considered a rather efficient scheme, compared to others that use bilinear pairings~\cite{girgenti_feasibility_2019}.
 The YCT scheme was chosen for its unique approach without bilinear pairings. Because pairings are computationally expensive, this promises better efficiency.
 
 \section{Goyal, Pandey, Sahai and Waters, 2006}
