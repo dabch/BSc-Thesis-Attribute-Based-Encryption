@@ -259,7 +259,7 @@ For one, interoperability between the ``light'' \acrshort{abe} library presented
 
 Regarding the results on the SoC, large improvements could be made by improving the underlying pairing and elliptic curve implementation of the \texttt{rabe-bn} library.
 Even though the operations remain computationally expensive, other implementations do significantly better:
-In \cite{scott_deployment_2020}, the \emph{MIRACL Core} library was evaluated on the same SoC as ours using the same type of curve (256-bit BN curve).
+In \cite{scott_deployment_2020}, the \emph{MIRACL Core} library was tested on the same SoC as ours using the same type of curve (256-bit BN curve).
 This library evaluates a pairing in about 600ms; our library takes 1600ms. 
 Exponentiation in $\mathbb{G}_T$ takes about 300ms with their library and about 1400ms with ours. 
 Both libraries are high-level implementations (i.e. no optimized assembly code), and thus it is likely that the optimizations from \emph{MIRACL Core} could be carried over to Rust.
@@ -273,7 +273,7 @@ Usually, a new key is generated and encrypted for every message.
 
 Instead, the encapsulated key could be re-used:
 By caching both the symmetric key and its \acrshort{abe}-encrypted version, more than one message can be encrypted with the same symmetric key.
-This approach requires only a single encryption of \acrshort{abe} for potentially very many messages.
+This approach requires only a single encryption of \acrshort{abe} for many messages.
 The encyptor may then periodically generate and encrypt a new symmetric key (e.g. once per day).
 If the messages should be decryptable on their own, the \acrshort{abe}-encrypted symmetric key can be copied into each encrypted message.
 The downside is that all messages encrypted with the same symmetric key naturally have the same attributes or access policy attached (i.e. reduced granularity).
@@ -284,8 +284,10 @@ If this is an issue (e.g. due to low-power wireless transmission), the \acrshort
 Then, both the symmetric ciphertext of and the respective \acrshort{abe}-encrypted key must be present to decrypt a message.
 
 This symmetric key-caching approach was implemented for use in a system similar to that presented in Figure~\ref{fig:system-architecture}.
-However, it was not evaluated for this thesis, because it doesn't represent ``true'' \acrlong{abes}.
+However, it was not evaluated for this thesis, because it doesn't represent ``true'' \acrlong{abe}.
 
+The current library also does not implement efficient revocation. 
+Implementation and evaluation of a scheme with efficient revocation is left as a future project.
 
 % Another option to reduce both message sizes and encryption times would be to re-use the ABE-encapsulated symmetric key: 
 % Instead of encrypting each message with a new random symmetric key that is encapsulated with \acrshort{abe}, the same symmetric key can be used for many messages. 
