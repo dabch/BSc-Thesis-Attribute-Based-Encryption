@@ -16,13 +16,13 @@
 
 
 \acrfull{abe} promises to provide security while improving flexibility over standard cryptosystems.
-Its approach of combining \glspl{attribute} and \gls{access-policy}{policies} describing admissible attribute combinations is closer to traditional notions of access control (e.g. RBAC)~\cite{bethencourt_ciphertext-policy_2007}. % TODO find citation
+Its approach of combining \glspl{attribute} and \glslink{access-policy}{policies} describing admissible attribute combinations is closer to traditional notions of access control (e.g. RBAC)~\cite{bethencourt_ciphertext-policy_2007}. % TODO find citation
 
 This increased flexibility is also desirable for \acrshort{iot} applications.
 However, the \acrfull{iot} is especially affected by the trade-off between cost and security:
 Because hardware must be cheap and has to run on batteries, it is often highly constrained.
 Many traditional security measures, even some standard cryptographic schemes, are not practical on \acrshort{iot} devices.
-Compared to standard cryptgraphy, most \acrshortpl{abes} demand even more resources.
+Compared to standard cryptgraphy, most \acrshortpl{abes} demand even more resources~\cite{wang_performance_2014}.
 Thus, the feasibility of \acrshort{abe} on constrained \acrshort{iot} nodes is disputed~\cite{wang_performance_2014,ambrosin_feasibility_2016,ambrosin_feasibility_2015,girgenti_feasibility_2019,borgh_attribute-based_2016}.
 
 The objective of this thesis is to assess to what extent \acrshort{abe} can be practically applied on ARM Cortex M4 processors.
@@ -60,14 +60,14 @@ In addition, this thesis aims to give an easy-to-understand explanation of \acrs
         % \draw (0, 0) node (soc) {Sensor\\(nRF52840 SoC)} |- ++(5, 0) node (gateway) {Gateway\\(Smartphone or Raspberry Pi)};
         \node[fullnode] (soc) {Sensor \\(nRF52840 SoC)};
         \node[fullnode] (gateway) [right=4cm of soc] {Gateway\\(e.g. Smartphone)};
-        \node[fullnode] (cloud) [below=2.5cm of gateway] {Cloud\\(e.g. AWS instance)};
-        \node[fullnode] (kgc) [below=2.5cm of soc] {Key Generation\\Center};
+        \node[fullnode] (cloud) [below=1.5cm of gateway] {Cloud\\(e.g. AWS instance)};
+        \node[fullnode] (kgc) [below=1.5cm of soc] {Key Generation\\Center};
 
         \draw[->] (soc) -- (gateway) node [pos=0.5, align=center] {Bluetooth\\Low Energy};
         \draw[<->] (gateway) -- (cloud) node [pos=0.5, align=center] {Internet\\(TCP/IP)};
 
-        \node[fullnode] (user1) [below=2.5cm of kgc] {User 1\\(e.g. Patient)};
-        \node[fullnode] (user2) [below=2.5cm of cloud] {User 2\\(e.g. Doctor)};
+        \node[fullnode] (user1) [below=1.5cm of kgc] {User 1\\(e.g. Patient)};
+        \node[fullnode] (user2) [below=1.5cm of cloud] {User 2\\(e.g. Doctor)};
 
         % \draw[->] (kgc) -- (gateway) node [pos=0.5] {Internet};
         \draw[->, dotted] (kgc) -- (soc);% node [pos=0.5, align=center] {Key exchanged\\before deployment};
@@ -76,8 +76,8 @@ In addition, this thesis aims to give an easy-to-understand explanation of \acrs
         \draw[<->] (user1) -- (cloud) node [pos=0.25, sloped, above] {Internet};
         \draw[<->] (user2) -- (cloud) node [pos=0.5] {Internet};
 
-        \node [draw, dashed, fit=(soc) (gateway), inner sep=3mm, label={[anchor=south west]north west:Carried by the patient}] {};
-        \node [red, draw, dashed, fit=(gateway) (cloud), inner sep=5mm, label={[red,anchor=south]above:Not trusted}] {};
+        \node [draw, dashed, fit=(soc) (gateway), inner sep=1mm, label={[anchor=south west]north west:Carried by the patient}] {};
+        \node [red, draw, dashed, fit=(gateway) (cloud), inner sep=2mm, label={[red,anchor=south]above:Not trusted}] {};
     \end{tikzpicture}
     \caption[Simplified use case for our ABE library]{Simplified use case for end-to-end Attribute Based Encryption with encryption on a constrained sensor MCU. The ABE library developed for this thesis runs on the sensor.}
     \label{fig:system-architecture}
@@ -89,6 +89,7 @@ Therefore, the data is sent to a gateway by \acrfull{ble} and then uploaded to t
 
 The goal of this project is to enable end-to-end \acrlong{abe}:
 Measurements are encrypted on the sensor before they are transmitted over \acrshort{ble} and only decrypted when read by an authorized client (e.g. the attending doctor).
+In this system, the sensor exclusively needs to encrypt data; decryption, key generation and setup are not required on the constrained node.
 This approach does not require trust in the gateway or cloud provider.
 I believe that trusting the gateway or cloud provider would be an unreasonable assumption in many scenarios.
 
@@ -99,7 +100,7 @@ This approach does not require \acrshort{abe} on the sensor, but only on the gat
 The latter is assumed to be much more powerful than the sensor.
 However, the gateway must be trusted in this scenario.
 
-An alternative to \acrshort{abe} would be to let the cloud server enforce access control:
+An alternative to \acrshort{abe} itself would be to let the cloud server enforce access control:
 All participants exchange secret keys with the cloud server.
 The sensor then uses this key to encrypt the data, which only the cloud server can read.
 When a user wants to read some data, they request it at the cloud server.
@@ -112,7 +113,7 @@ A malicious \acrfull{kgc} could issue keys that allow decryption of arbitrary da
 However, the \acrfull{kgc} is only required once to setup the \acrshort{abe} system and issue the participant's keys.
 It is not involved in any encryption or decryption operations.
 The \acrshort{kgc} does not need to be online during the use of the system and could e.g. be located on an air-gapped network. 
-This would greatly reduce the attack surface.
+This greatly reduces the attack surface.
 ~\\
 
 % For an example use case of such a library, see Figure~\ref{fig:system-architecture}.
