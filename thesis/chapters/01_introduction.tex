@@ -90,7 +90,9 @@ Therefore, the data is sent to a gateway by \acrfull{ble} and then uploaded to t
 The goal of this project is to enable end-to-end \acrlong{abe}:
 Measurements are encrypted on the sensor before they are transmitted over \acrshort{ble} and only decrypted when read by an authorized client (e.g. the attending doctor).
 In this system, the sensor exclusively needs to encrypt data; decryption, key generation and setup are not required on the constrained node.
-This approach does not require trust in the gateway or cloud provider.
+I believe that this is the case in many \acrshort{iot} applications.
+
+The end-to-end \acrshort{abe} approach does not require trust in the gateway or cloud provider.
 I believe that trusting the gateway or cloud provider would be an unreasonable assumption in many scenarios.
 
 An alternative to encryption with \acrshort{abe} on the sensor would be outsourcing the \acrshort{abe} operations to the gateway:

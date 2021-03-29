@@ -264,8 +264,9 @@ This library evaluates a pairing in about 600ms; our library takes 1600ms.
 Exponentiation in $\mathbb{G}_T$ takes about 300ms with their library and about 1400ms with ours. 
 Both libraries are high-level implementations (i.e. no optimized assembly code), and thus it is likely that the optimizations from \emph{MIRACL Core} could be carried over to Rust.
 As the runtime of \acrshort{abe} is dominated by these expensive curve operations, an improved pairing and curve implementation offers great potential for speedup.
+These improvements, however, are clearly outside the scope of this thesis.
 
-The runtimes in the order of several seconds might still be too long, even if improved by a better pairing library.
+Runtimes in the order of several seconds might still be too long, even if improved by a better pairing library.
 To aid this, the symmetric key used to encrypt the actual payload may be reused:
 In both implemented schemes, the data is not encrypted directly but rather using a hybrid approach, i.e. a random key is generated and encrypted under \acrshort{abe} (key encapsulation).
 This key is then used to encrypt the actual payload using AES (data encapsulation).
