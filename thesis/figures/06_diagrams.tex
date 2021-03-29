@@ -1,0 +1,118 @@
+\begin{figure}[h]\centering
+    \begin{subfigure}[h]{0.45\textwidth}
+        \begin{tikzpicture}
+            \begin{axis}[
+                title={Timing of GPSW \cite{goyal_attribute-based_2006} on the SoC},
+                xlabel={attributes / leaf nodes},
+                ylabel={seconds},
+                xmin=0, xmax=32,
+                ymin=0, ymax=25500000,
+                scaled y ticks=base 10:-6,
+                ytick scale label code/.code={}, % removes the '\cdot 10^3' label 
+                legend pos=north west,
+                grid=major,
+                grid style=dashed,
+                legend style={nodes={scale=0.65, transform shape}}
+            ]
+            \addlegendentry{Setup};
+            \addplot [color=orange, mark=square] table [x=atts,y=setup,col sep=comma] {data/gpsw06-soc.csv};
+            \addlegendentry{Encrypt};
+            \addplot [color=blue, mark=triangle] table [x=atts,y=enc,col sep=comma] {data/gpsw06-soc.csv};
+            \addlegendentry{KeyGen};
+            \addplot [color=green, mark=o] table [x=atts,y=keygen,col sep=comma] {data/gpsw06-soc.csv};
+            \addlegendentry{Decrypt};
+            \addplot [color=red, mark=+] table [x=atts,y=dec,col sep=comma] {data/gpsw06-soc.csv};
+            \end{axis}
+        \end{tikzpicture}
+    \end{subfigure}%
+    \hspace{0.09\textwidth}
+    \begin{subfigure}[h]{0.45\textwidth}
+        \begin{tikzpicture}
+            \begin{axis}[
+                title={Timing of YCT \cite{yao_lightweight_2015} on the SoC},
+                xlabel={attributes / leaf nodes},
+                ylabel={seconds},
+                xmin=0, xmax=32,
+                ymin=0, ymax=25500000,
+                scaled y ticks=base 10:-6,
+                ytick scale label code/.code={}, % removes the '\cdot 10^3' label 
+                legend pos=north west,
+                grid=major,
+                grid style=dashed,
+                legend style={nodes={scale=0.65, transform shape}}
+            ]
+            \addlegendentry{Setup};
+            \addplot [color=orange, mark=square] table [x=atts,y=setup,col sep=comma] {data/yct14-soc.csv};
+            \addlegendentry{Encrypt};
+            \addplot [color=blue, mark=triangle] table [x=atts,y=enc,col sep=comma] {data/yct14-soc.csv};
+            \addlegendentry{KeyGen};
+            \addplot [color=green, mark=o] table [x=atts,y=keygen,col sep=comma] {data/yct14-soc.csv};
+            \addlegendentry{Decrypt};
+            \addplot [color=red, mark=+] table [x=atts,y=dec,col sep=comma] {data/yct14-soc.csv};
+            \end{axis}
+        \end{tikzpicture}
+    \end{subfigure}%
+    % \caption{Performance of GPSW and YCT on the SoC.}
+    \vspace{1cm}
+    \begin{subfigure}[h]{0.448\textwidth}
+        \begin{tikzpicture}
+            \begin{axis}[
+                title={Timing of GPSW \cite{goyal_attribute-based_2006} on the laptop},
+                xlabel={attributes / leaf nodes},
+                ylabel={milliseconds},
+                xmin=0, xmax=32,
+                ymin=0, ymax=110000,
+                scaled y ticks=base 10:-3,
+                ytick scale label code/.code={}, % removes the '\cdot 10^3' label 
+                legend pos=north west,
+                grid=major,
+                grid style=dashed,
+                legend style={nodes={scale=0.65, transform shape}}
+            ]
+            \addlegendentry{Setup};
+            \addplot [color=orange, mark=square] table [x=atts,y=setup,col sep=comma] {data/gpsw06-laptop.csv};
+            \addlegendentry{Encrypt};
+            \addplot [color=blue, mark=triangle] table [x=atts,y=enc,col sep=comma] {data/gpsw06-laptop.csv};
+            \addlegendentry{KeyGen};
+            \addplot [color=green, mark=o] table [x=atts,y=keygen,col sep=comma] {data/gpsw06-laptop.csv};
+            \addlegendentry{Decrypt};
+            \addplot [color=red, mark=+] table [x=atts,y=dec,col sep=comma] {data/gpsw06-laptop.csv};
+            % \addplot [color=black, mark=+] table [x=atts,y=dec2,col sep=comma] {data/gpsw06-laptop.csv};
+            % \addplot [color=olive, mark=+] table [x=atts,y=dec3,col sep=comma] {data/gpsw06-laptop.csv};
+            \end{axis}
+        \end{tikzpicture}
+    \end{subfigure}
+    \hspace{0.09\textwidth}
+    \begin{subfigure}[h]{0.448\textwidth}
+        \begin{tikzpicture}
+            \begin{axis}[
+                title={Timing of YCT \cite{yao_lightweight_2015} on the laptop},
+                xlabel={attributes / leaf nodes},
+                ylabel={milliseconds},
+                xmin=0, xmax=32,
+                ymin=0, ymax=110000,
+                scaled y ticks=base 10:-3,
+                ytick scale label code/.code={}, % removes the '\cdot 10^3' label 
+                legend pos=north west, 
+                grid=major,
+                grid style=dashed,
+                legend style={nodes={scale=0.65, transform shape}}
+            ]
+            \addlegendentry{Setup};
+            \addplot [color=orange, mark=square] table [x=atts,y=setup,col sep=comma] {data/yct14-laptop.csv};
+            \addlegendentry{Encrypt};
+            \addplot [color=blue, mark=triangle] table [x=atts,y=enc,col sep=comma] {data/yct14-laptop.csv};
+            \addlegendentry{KeyGen};
+            \addplot [color=green, mark=o] table [x=atts,y=keygen,col sep=comma] {data/yct14-laptop.csv};
+            \addlegendentry{Decrypt};
+            \addplot [color=red, mark=+] table [x=atts,y=dec,col sep=comma] {data/yct14-laptop.csv};
+            % \addlegendentry{Decrypt};
+            % \addplot [color=black, mark=+] table [x=atts,y=dec2,col sep=comma] {data/yct14-laptop.csv};
+            % \addplot [color=olive, mark=+] table [x=atts,y=dec3,col sep=comma] {data/yct14-laptop.csv};
+            % \addplot [color=green, mark=+] table [x=atts,y=dec4,col sep=comma] {data/yct14-laptop.csv};
+            \end{axis}
+        \end{tikzpicture}
+    \end{subfigure} 
+    \caption[Performance of ABE schemes on the SoC and laptop]{Performance of GPSW and YCT on the SoC and on the laptop. Note the different scales between the SoC and the laptop (seconds vs. milliseconds!)}
+    \label{fig:abe-performance-diagrams}
+\end{figure}

@@ -1,66 +1,7 @@
 \chapter{Preliminaries}\label{chapter:background}
 This chapter introduces \acrlong{abe} and the relevant mathematical background for implementing it.
 
-\begin{figure} \centering
-    \begin{subfigure}{.8\textwidth}
-        \begin{tikzpicture}
-            \draw[->] (0, 0) node [anchor=east] {m} -- ++(1, 0) node (encrypt) [anchor=west, draw] {Encrypt};
-            \path (encrypt.north) -- +(0, 0.3) pic [anchor=west, scale=0.1, red, fill=red] {key};
-            \draw[->] (encrypt.east) -- ++(2, 0) node [anchor=south] {c} -- ++(2,0) node (decrypt) [anchor=west, draw] {Decrypt};
-            \path (decrypt.north) -- +(0, 0.3) pic [anchor=west, scale=0.1, red, fill=red] {key};
-            \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m'};
-        \end{tikzpicture}
-        \caption{Symmetric Encryption: Both keys are identical.} \label{fig:keys-symmetric}
-    \end{subfigure}
-    \\
-    \vspace{0.5cm}
-    \begin{subfigure}{.8\textwidth}
-        \begin{tikzpicture}
-            \draw[->] (0, 0) node [anchor=east] {m} -- ++(1, 0) node (encrypt) [anchor=west, draw] {Encrypt};
-            \path (encrypt.north) -- +(0, 0.3) pic [anchor=west, scale=0.1, olive, fill=olive] {key};
-            \draw[->] (encrypt.east) -- ++(2, 0) node [anchor=south] {c} -- ++(2,0) node (decrypt) [anchor=west, draw] {Decrypt};
-            \path (decrypt.north) -- +(0, 0.3) pic [anchor=west, scale=0.1, red, fill=red] {key};
-            \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m'};
-        \end{tikzpicture}
-        \caption{Asymmetric Encryption: Different keys for encryption and decryption. Decryption succeeds if and only if the decryption key is exactly the counterpart to the encryption key.} \label{fig:keys-asymmetric}
-    \end{subfigure}
-    \\ 
-    \vspace{0.5cm}
-    \begin{subfigure}{.8\textwidth}
-        \begin{tikzpicture}[sibling distance=4mm, level distance=3mm]
-            \draw[->] (0, 0) node [anchor=east] {m} -- ++(1, 0) node (encrypt) [anchor=west, draw] {Encrypt};
-            
-            \scoped{
-                \tikzstyle{every node}=[fill, circle, draw, inner sep=0.5mm];
-                \tikzstyle{level 2}=[sibling distance=1.5mm];
-                \fill[red] (decrypt.north) -- ++(0, 0.7) node [anchor=south] {} child {node {} child {node {}} child {node {}} child {node {}}} child { node {} child {node {}}};
-            };
-            \draw[->] (encrypt.east) -- ++(2, 0) node [anchor=south] {c} -- ++(2,0) node (decrypt) [anchor=west, draw] {Decrypt};
-            \path (encrypt.north) -- +(0, 0.3) node [olive] {$\{A, B, C\}$};
-            \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m'};
-        \end{tikzpicture}
-        \caption{\glslink{gls-kp-abe}{Key-Policy Attribute-Based Encryption}: Attributes for encryption, access structure for decryption. Decryption succeeds if and only if the attributes of the ciphertext satisfy the policy embedded in the key.} \label{fig:keys-abe}
-    \end{subfigure}
-    \\ 
-    \vspace{0.5cm}
-    \begin{subfigure}{.8\textwidth}
-        \begin{tikzpicture}[sibling distance=4mm, level distance=3mm]
-            \draw[->] (0, 0) node [anchor=east] {m} -- ++(1, 0) node (encrypt) [anchor=west, draw] {Encrypt};
-            
-            \scoped{
-                \tikzstyle{every node}=[fill, circle, draw, inner sep=0.5mm];
-                \tikzstyle{level 2}=[sibling distance=1.5mm];
-                \fill[olive] (encrypt.north) -- ++(0, 0.7) node [anchor=south] {} child {node {} child {node {}} child {node {}} child {node {}}} child { node {} child {node {}}};
-            };
-            \draw[->] (encrypt.east) -- ++(2, 0) node [anchor=south] {c} -- ++(2,0) node (decrypt) [anchor=west, draw] {Decrypt};
-            \path (decrypt.north) -- +(0, 0.3) node [red] {$\{A, B, C\}$};
-            \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m'};
-        \end{tikzpicture}
-        \caption{\glslink{gls-cp-abe}{Ciphertex-Policy Attribute-Based Encryption}: \Gls{access-policy} for encryption, attributes for decryption. Decryption succeeds if and only if the attributes of the key match the policy embedded in the ciphertext.} \label{fig:keys-abe}
-    \end{subfigure}
-    \caption[Keys in different classes of encryption schemes]{Keys used for encryption and decryption in different classes of encryption schemes. Red information has to be kept secret, green information may be made publicly available. For the differences between the two types of \acrshort{abe}, see Section~\ref{sec:cp-vs-kp}.}
-    \label{fig:key-use}
-\end{figure}
+\input{figures/02_key_use_comparison}
 
 \section{Confidentiality with Classic Symmetric and Asymmetric Cryptography} % TODO maybe this better goes into the introduction
 Today's conventional cryptography knows two main classes of cryptosystems: \glspl{privkes} and \glspl{pkes}. See Figure~\ref{fig:key-use} for an illustration of the differences.
@@ -87,117 +28,8 @@ It is possible to create ciphertexts that can be read by almost all members of a
 Figure~\ref{fig:abe-system} shows a small \acrshort{abe} system with the \acrshort{kgc} initializing the system and issuing keys, and two users sharing an encrypted message.
 \subsection{Attributes and the Key Generation Center}\label{sec:kgc}
 
-\begin{figure}
-    \centering
-    \begin{subfigure}[t]{0.45\textwidth}
-        \centering
-        \begin{tikzpicture}[actor/.style={draw, minimum width=1.5cm}]
-            \node[actor] (a) at (-1,0) {Alice};
-            \node[actor] (b) at (1,0) {Bob};
-            \node[actor] (kgc) at (0,1.5) {KGC};
-        
-            \node[above, align=center] at (kgc.north) {$\{PK, MK\}:=\text{Setup}()$};
+\input{figures/02_abe_system_overview}
 
-            \node[below, align=center] at (a.south) {$\{m, \omega\}$\\};
-            \node[below, align=center] at (b.south) {$\{\}$};
-
-            % \draw[->] (a) edge node[left] {\{$S_A$\}} (kgc);
-            % \draw[->] (b) edge node [right] {\{$S_B$\}} (kgc);
-            % \draw[->] (a) edge pic [left=0.5cm, scale=0.05] {key} node [left=.5cm] {k} (kgc);
-            \draw[-] (b) edge pic [right=0.5cm, scale=0.5, blue] {tree} node [right=.75cm, blue] {$S_B$} (kgc);
-            % TODO fix arrows
-            \draw (a) edge pic [left=0.5cm, scale=0.5, olive] {tree} node [left=.75cm, olive] {$S_A$} (kgc);
-            % \draw[->] (b) edge node [right] {\{$S_B$\}} (kgc);
-
-        \end{tikzpicture}
-        \caption{The \acrshort{kgc} sets up the system and obtains Alice's and Bob's desired access policies.}
-    \end{subfigure}
-    ~~
-    \begin{subfigure}[t]{0.45\textwidth}
-        \centering
-        \begin{tikzpicture}[actor/.style={draw, minimum width=1.5cm}]
-            \node[actor] (a) at (-1,0) {Alice};
-            \node[actor] (b) at (1,0) {Bob};
-            \node[actor] (kgc) at (0,1.5) {KGC};
-
-            \node[above, align=center] at (kgc.north) {$\{PK, MK\}$\\$\textcolor{olive}{k_A} := \text{KeyGen}(PK, MK, \textcolor{olive}{S_A})$\\$\textcolor{blue}{k_B} := \text{KeyGen}(PK, MK, \textcolor{blue}{S_B})$};
-
-            \node[below, align=center] at (a.south) {{\{$PK$, $\textcolor{olive}{k_A}$\}}\\$\{m, \omega\}$};
-            \node[below, align=center] at (b.south) {\{$PK$, $\textcolor{blue}{k_B}$\}};
-
-            \draw[->] (kgc) edge pic [left=0.55cm, above=0.3cm, scale=0.05, olive] {key} node [left] {\{$PK$, $\textcolor{olive}{k_A}$\}} (a);
-            \draw[->] (kgc) edge pic [right=1.1cm, above=0.3cm, scale=0.05, blue] {key} node [right] {\{$PK$, $\textcolor{blue}{k_B}$\}} (b);
-
-            % \draw[->] (kgc) edge node [left] {\{$PK$, $\textcolor{olive}{k_A}$\}} (a);
-            % \draw[->] (kgc) edge node [right] {\{$PK$, $\textcolor{blue}{k_B}$\}} (b);
-
-        \end{tikzpicture}
-        \caption{If $\textcolor{olive}{S_A}$ and $\textcolor{blue}{S_B}$ are allowed access policies for Alice and Bob, respectively, the \acrshort{kgc} creates their private keys and transmits them via a secure channel.}
-    \end{subfigure}
-    \par\bigskip
-    \begin{subfigure}[t]{0.55\textwidth}
-        \centering
-        \begin{tikzpicture}[actor/.style={draw, minimum width=1.5cm}]
-            \node[actor] (a) at (-2,0) {Alice};
-            \node[actor] (b) at (2,0) {Bob};
-            \node[actor] (kgc) at (0,1.5) {KGC};
-        
-            \node[above, align=center] at (kgc.north) {$\{PK, MK\}$};
-
-            \node[below, align=center] at (a.south) {{\{$PK$, $\textcolor{olive}{k_A}$\}}\\$\{m, \omega\}$\\$\textcolor{red}{c}:=\text{Encrypt}(PK, m, \omega)$};
-            \node[below, align=center] at (b.south) {\{$PK$, $\textcolor{blue}{k_B}$\}\\$m:=\text{Decrypt}(\textcolor{red}{c},\textcolor{blue}{k_B})$};
-            % \node[below, align=center] at (a.south) {$\{PK, k_{A}\}$\\$\{m, \omega\}$};;
-            % \node[below, align=center] at (b.south) {$\{PK, k_{B}\}$\\$m:=\text{Decrypt}(c,k_B)$};
-
-            \draw[->] (a) edge node (c) [above] {$\textcolor{red}{c}$} (b);
-
-            % \draw[->] (c.north) -- ++(0,.2) node [anchor=south] {\small $\omega$};
-        \end{tikzpicture}
-        \caption{Alice can now use the public parameters $PK$ and $\omega$ to encrypt a message for Bob, which he can decrypt only if his access policy $\textcolor{blue}{S_B}$ is satisfied by $\omega$. Note that the \acrshort{kgc} plays no role in this step}
-    \end{subfigure}
-    \begin{subfigure}[b]{0.4\textwidth}
-        \centering
-        \begin{tikzpicture}[matrixstyle/.style={
-            matrix of nodes,
-            nodes in empty cells,
-            column sep      = 0mm,
-            row sep         = 2mm,
-            draw,
-            nodes={
-                inner sep=1mm,outer sep=1mm,
-                minimum size=5mm,
-                anchor=center,
-                text centered,
-                text width=1cm,
-                execute at begin node={\small\setlength{\baselineskip}{1em}} % WTF.. see https://tex.stackexchange.com/questions/223065/how-to-increase-line-spacing-in-tikz-node
-            }
-        }]
-            \matrix (m) [matrixstyle] at (0,0) {
-                $PK$ & \node[align=left, text width=3.5cm] {Public Key (same\\for all participants)};\\
-                $MK$ & \node[align=left, text width=3.5cm] {Master Secret (known\\only to the \acrshort{kgc})};\\
-                $k_A, k_B$ & \node[align=left, text width=3.5cm] {Private\\Decryption Keys};\\
-                $S_A, S_B$ & \node[align=left, text width=3.5cm] {Access Structures};\\
-                $m$ & \node[align=left, text width=3.5cm] {Plaintext message};\\
-                $\omega$ & \node[align=left, text width=3.5cm] {Set of attributes};\\
-            };
-        \end{tikzpicture}
-    \end{subfigure}
-    \caption[Interaction of Alice, Bob and KGC in an \acrshort{abes}]{
-        Alice wants to send an \acrshort{kp-abe} encrypted message $m$ to Bob. She wants to encrypt the message under a set of attributes $\omega$.
-        Both Alice and Bob create a desired \gls{access-policy}, $\textcolor{olive}{S_A}$ and $\textcolor{blue}{S_B}$, respectively.
-        Note that the \acrshort{kgc} will only issue a corresponding key if it deems that they should be allowed to obtain a key under the given access policy.
-
-        % \begin{itemize}
-        %     \item test
-        % %     \item $PK$: Public Key (system parameters, equal for all participants)
-        % %     \item $S_A, S_B$: Alice's and Bob's Access policies
-        % %     \item $k_A, k_B$: Alice's and Bob's private keys (corresponding to $S_A$ and $S_B$)
-        % %     \item $m$: Plaintext message
-        % %     \item $\omega$: Set of attributes
-        % \end{itemize}
-    }
-    \label{fig:abe-system}
-\end{figure}
 In essence, attributes are strings describing certain characteristics or features of actors and objects.
 For example, a typical freshman student of informatics at TUM could be described by the attributes \texttt{"semester count 1", "computer science", "tum", "is young", "started degree in 2017"}.
 
@@ -271,50 +103,7 @@ With \acrshort{kp-abe}, policies are handled by the \acrshort{kgc}, which is in 
 % If the \acrshort{kgc} were to give out a key containing a monotone \gls{access-structure} satisfied by just a single attribute corresponding to a commonly-used version of this software, this key could be used to decrypt any ciphertext - completely disregarding any other attributes that might be associated with it.
 
 
-
-
-\begin{figure}
-    \centering
-    \begin{subfigure}[t]{0.4\textwidth}
-        \begin{tikzpicture}
-            % \fill (0, 0) -- +(0,0) arc (180:0:2) -- +(-0.5,0) arc (0:180:1.5) -- cycle;           
-            % \fill[even odd rule] (0, 0) -- ++(0,3) -- ++(0.5,0) -- ++(0,1) arc (180:0:2) -- ++(0,-1) -- ++(0.5,0) -- ++(0,-3) -- cycle -- ++(1, 3) -- ++(0,1) arc (180:0:1.5) -- ++(0,-1) -- ++(-3,0);
-            \path (0,0) node (ciphertext) {Ciphertext};
-            \scoped[sibling distance=20, level distance=12, inner sep=2]{
-                \tikzstyle{every node}=[fill, circle, draw];
-                \tikzstyle{level 2}=[sibling distance=6];
-                \fill[olive] (ciphertext.north) -- ++(0, 3) node (root) [anchor=south] {} child {node (b) {} child {node {}} child {node {}} child {node {}}} child { node {} child {node {}}};
-            };  
-            \path (ciphertext.north) ++(0, 0.5) pic [fill=olive, scale = 0.2] {lock};
-            
-            \path (2.5,0) node (key) {Key};
-            \path (key.north) -- ++(0,2.5) node (atts) {\LARGE$\{A, B, C\}$};
-            \path (key.north) -- ++(0,1) pic [scale=0.15] {key};
-        \end{tikzpicture}
-        \caption{CP-ABE}
-    \end{subfigure}
-    \begin{subfigure}[t]{0.4\textwidth}
-        \begin{tikzpicture}
-            % \fill (0, 0) -- +(0,0) arc (180:0:2) -- +(-0.5,0) arc (0:180:1.5) -- cycle;           
-            % \fill[even odd rule] (0, 0) -- ++(0,3) -- ++(0.5,0) -- ++(0,1) arc (180:0:2) -- ++(0,-1) -- ++(0.5,0) -- ++(0,-3) -- cycle -- ++(1, 3) -- ++(0,1) arc (180:0:1.5) -- ++(0,-1) -- ++(-3,0);
-
-            \path (2.5,0) node (key) {Key};
-            \scoped[sibling distance=20, level distance=12, inner sep=2]{
-                \tikzstyle{every node}=[fill, circle, draw];
-                \tikzstyle{level 2}=[sibling distance=6];
-                \fill (key.north) -- ++(0, 3) node (root) [anchor=south] {} child {node (b) {} child {node {}} child {node {}} child {node {}}} child { node {} child {node {}}};
-            };  
-            \path (key.north) -- ++(0,1) pic [scale=0.15] {key};
-            
-            \path (0,0) node (ciphertext) {Ciphertext};
-            \path (ciphertext.north) -- ++(0,2.5) node (atts) [olive] {\LARGE$\{A, B, C\}$};
-            \path (ciphertext.north) ++(0, 0.5) pic [fill=olive, scale = 0.2] {lock};
-        \end{tikzpicture}
-        \caption{KP-ABE}
-    \end{subfigure}
-    \caption[\acrshort{cp-abe} vs. \acrshort{kp-abe}]{\acrshort{cp-abe} vs. \acrshort{kp-abe}: Association of key and ciphertext with Access Policy and set of attributes.}
-    \label{fig:cp-kp-abe}
-\end{figure}
+\input{figures/02_cp_kp_abe}
 
 \subsection{Access Structures}\label{sec:access-structures}
 Access structures formally determine which sets of attributes are required to reconstruct the ciphertext under \acrshort{abe}.
@@ -330,19 +119,8 @@ Intuitively, the monotonicity of an access structure means that adding an attrib
 
 \subsection{Access Trees}\label{sec:access-trees}
 
-\begin{figure}
-    \centering
-    \begin{tikzpicture}
-        \scoped{
-                \tikzstyle{every node}=[circle, draw];
-                \draw (0,0) node (root) [anchor=south] {2} child {node (a) {A}} child {node (b) {B}} child  {node (subroot) {1} child  {node (c) {C}} child  {node (d) {D}}};
-            };
-    \end{tikzpicture}
-    \caption[Sample Access Tree]{
-        Sample Access Tree over the attributes \texttt{A}, \texttt{B}, \texttt{C}, \texttt{D}.
-    }
-    \label{fig:sample-access-tree}
-\end{figure}
+\input{figures/02_sample_access_tree}
+
 Explicitly specifying an \gls{access-structure} is not feasible, as its size may be exponential in the size of the attribute universe.
 Therefore, we will use the construction of \emph{Access Trees} from Goyal~et~al. in~\cite{goyal_attribute-based_2006}.
 Each leaf of this tree is labelled with an attribute, and each interior node is labelled with an integer, the threshold for it to be satisfied~\cite{goyal_attribute-based_2006}.
@@ -450,26 +228,7 @@ On the other hand, if there are less than $d+1$ points of a $d$-degree polynomia
 To share our secret, we now hide it in a polynomial and give out points on this polynomial as secret shares.
 Using the lagrange basis polynomials, we can then reconstruct $p(x)$ and thus the secret if we know enough shares~\cite{shamir_how_1979}.
 
-\begin{figure}
-    \centering
-    \begin{tikzpicture}
-        \begin{axis} [axis lines=center, xlabel=$x$, ylabel=$p(x)$, ymin=0]
-            \addplot [domain=-0.1:5.05, smooth, thick, color=red] { \PolynomialSSS(x)};
-            \fill (axis cs:0,\PolynomialSSS(0)) circle [radius=2pt] node [right] {(0,~s)};
-            \fill[color=ForestGreen] (axis cs:1,\PolynomialSSS(1)) circle [radius=2pt] node [right] {(1,~10)};
-            \fill[color=ForestGreen] (axis cs:2,\PolynomialSSS(2)) circle [radius=2pt] node [right] {(2,~6)};
-            \fill[color=ForestGreen] (axis cs:3,\PolynomialSSS(3)) circle [radius=2pt] node [above] {(3,~2)};
-            \fill[color=ForestGreen] (axis cs:4,\PolynomialSSS(4)) circle [radius=2pt] node [right] {(4,~4)};
-            \fill[color=ForestGreen] (axis cs:5,\PolynomialSSS(5)) circle [radius=2pt] node [left] {(5,~18)};
-          \end{axis}
-    \end{tikzpicture}
-    \caption[Plot of $(5,4)$-threshold secret sharing scheme]{
-        Example for a $(5, 4)$-threshold scheme with $s=8$ and $p(x) = 8 + 7x - 6x^2 + x^3$.
-        The five green-colored points are distributed as the secret shares.
-        As $p(x)$ has degree three, at least four shares are required to reconstruct $s$.
-    }
-    \label{fig:sss}
-\end{figure}
+\input{figures/02_sss}
 
 \begin{definition}
     Shamir's $(k, n)$-threshold secret sharing scheme~\cite{shamir_how_1979}.
@@ -488,29 +247,7 @@ In practice, the numbers would be far bigger and calculations wouldn't be perfor
 \subsection{Secret Sharing in Attribute Based Encryption}\label{sec:lss-in-access-trees}
 To realize an Access Tree that ,,gives away'' a secret if and only if it is satsified by a set of attributes, we can recursively use Shamir's Secret Sharing scheme:
 
-\begin{figure}
-    \centering
-    \begin{tikzpicture}
-        \scoped{
-                \tikzstyle{every node}=[circle, draw];
-                \draw (0,0) node (root) [anchor=south] {2} child [red] {node (a) {A}} child [red] {node (b) {B}} child [red] {node (subroot) {1} child [blue] {node (c) {C}} child [blue] {node (d) {D}}};
-            };
-            \path[red] (root) -- +(0, -0.75) node {$p_1(x)$};
-            \path[red] (a) -- +(0, -0.5) node {\tiny$p_1(1)$};
-            \path[red] (b) -- +(0, -0.5) node {\tiny$p_1(1)$};
-            \path[red] (subroot) -- +(0, 0.5) node {\tiny$p_2(3)$};
-
-            \path[blue] (subroot) -- +(0, -0.75) node {$p_2(x)$};
-            \path[blue] (c) -- +(0, -0.5) node {\tiny$p_2(1)$};
-            \path[blue] (d) -- +(0, -0.5) node {\tiny$p_2(2)$};
-    \end{tikzpicture}
-    \caption[Shamir's Secret sharing in Access Trees]{
-        Access Tree from Figure~\ref{fig:sample-access-tree} showing how Shamir's Secret Sharing is employed recursively.
-        $p_1(x)$ is a the polynomial of a $(2,3)$-threshold scheme, $p_2(x)$ of a $(1,2)$-threshold scheme.
-        Shown in small are the secret shares embedded into each node.
-    }
-    \label{fig:sample-access-tree-shamir}
-\end{figure}
+\input{figures/02_access_tree_shamir}
 
 We use a secret-sharing polynomial on each internal node of the Access Tree:
 For a node $x$ with threshold $d_x$ and $\text{num}_x$ children, we define a $(d_x, \text{num}_x)$-threshold scheme and embed one share of the secret in each child.
