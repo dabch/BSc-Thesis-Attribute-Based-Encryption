@@ -42,6 +42,8 @@
 \date[\Datum]{Munich, April 7th, 2021}
 \subject{Implementation of Attribute-Based Encryption in Rust on ARM Cortex M Processors}
 
+\def\PolynomialSSS(#1){8 + 7 * #1 - 6 * #1^2 + #1 ^ 3}%
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Ressourcen/Praesentation/Anfang.tex} % !!! NICHT ENTFERNEN !!!
@@ -71,7 +73,7 @@
             \draw[brace, color=TUMOrange] (-2.6,1) -- (2.5, 1) node [lbl, yshift=0.5cm] {e.g. for a student:\\``is freshman''\\``has passed itsec''};
             \draw[brace, color=TUMGruen] (2.75,1) -- (6, 1) node [lbl, yshift=0.5cm] {alternatives: standard\\symmetric and\\asymmetric crypto?!};
             \draw[brace] (6.5, 1) -- (8.75, 1) node [lbl, yshift=0.5cm, xshift=0.5cm] {memory-safety\\guarantees\\built-in!};
-            \draw[brace, decoration={mirror}, color=TUMBlauDunkel] (-4.75, -1) -- (4.75, -1) node [lbl, yshift=-0.5cm, anchor=north] {Constrained MCUs!\\our SoC: 64MHz Cortex M4 with 256KB RAM};
+            \draw[brace, decoration={mirror}, color=TUMBlauDunkel] (-4.75, -1) -- (4.75, -1) node [lbl, yshift=-0.5cm, anchor=north] {Constrained MCUs!\\our SoC: 64MHz Cortex M4 with 256KB RAM} ++(0,1) node {test};;
         \end{tikzpicture}
     \end{center}
 \end{frame}
@@ -83,7 +85,29 @@
 
 \begin{frame}[c]
     \frametitle{ABE vs. standard encryption}
-    % \input{../thesis/figures/02_key_use_comparison.tex}
+    \begin{center}
+        \input{figures/02_key_use_comparison.tex}
+    \end{center}
+\end{frame}
+
+\begin{frame}[c]
+    \frametitle{ABE interaction overview}
+    \input{figures/02_abe_system_overview.tex}
+\end{frame}
+
+\begin{frame}[c]
+    \frametitle{ABE interaction overview}
+    \input{figures/02_abe_system_overview-2.tex}
+\end{frame}
+
+\begin{frame}[c]
+    \frametitle{How to specify Access Policies?}
+    \input{../thesis/figures/02_sample_access_tree.tex}
+\end{frame}
+
+\begin{frame}[c]
+    \frametitle{Shamir's threshold Secret Sharing}
+    % \input{figures/02_sss.tex}
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
