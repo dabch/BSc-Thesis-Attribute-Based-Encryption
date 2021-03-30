@@ -183,6 +183,25 @@
 
 \section{Implementation}
 
+\begin{frame}
+    \frametitle{Hard- and Software}
+    \begin{columns}[c]
+        \column{0.5\textwidth}
+        \begin{itemize}
+            \item nRF52840 SoC: \textcolor{TUMBlau}{64MHz} ARM Cortex M4, \textcolor{TUMBlau}{256KB RAM}
+            \item Rust programming language: Memory safety guarantees built in!
+            \item Pairing and Elliptic Curve Library: \texttt{rabe-bn}\footnotemark
+        \end{itemize}
+        
+        \column{0.45\textwidth}
+        \begin{figure}
+            \includegraphics[width=\textwidth]{figures/nrf52840-dk.png}
+            \caption{nRF52840 Development Kit, image: \url{https://www.nordicsemi.com/-/media/Images/Products/DevKits/nRF52-Series/nRF52840-DK/nRF52840-DK-promo.png}}
+        \end{figure}
+    \end{columns}
+    \footnotetext[1]{\url{https://github.com/georgbramm/rabe-bn}}
+\end{frame}
+
 \section{Results}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
