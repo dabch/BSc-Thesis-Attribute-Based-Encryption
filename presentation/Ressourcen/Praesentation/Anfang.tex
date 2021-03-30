@@ -55,7 +55,7 @@
     \begin{textblock*}{\paperwidth}[0,0](0cm,-\PraesentationSeitenrand - 6.5mm + \PraesentationPositionKorrekturOben)%
         \color{PraesentationTextfarbe}%
         \frametitle{\inserttitle}
-        \vspace*{49.4mm}
+        \vspace*{75mm}
         \usebeamerfont{author}\selectfont\insertauthor\\
         \insertinstitute\\
         \insertdate%
@@ -213,8 +213,8 @@
 % PDF-Einstellungen:
 \hypersetup{
     pdfstartview={Fit},
-    pdfproducer={\AllgemeinErsteller},
-    pdfcreator={\AllgemeinGestalter}
+    % pdfproducer={\AllgemeinErsteller},
+    % pdfcreator={\AllgemeinGestalter}
 }
 
 \textblockorigin{\PraesentationSeitenrand}{\PraesentationSeitenrand} % Ursprung für Positionierung
@@ -226,7 +226,7 @@
         \usebeamerfont{footnote}%
         \begin{beamercolorbox}[wd=.9\paperwidth]{}%
             \hspace*{\PraesentationSeitenrand}%
-            \PersonTitel{} \PersonVorname~\PersonNachname~(\UniversitaetAbkuerzung) \PraesentationFusszeileZusatz{}%
+            \PersonTitel{} \PersonVorname~\PersonNachname~\PraesentationFusszeileZusatz{}%
         \end{beamercolorbox}%
         \begin{beamercolorbox}[wd=.1\paperwidth]{}%
             \insertframenumber{}%

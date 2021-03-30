@@ -30,16 +30,16 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-\renewcommand{\PersonTitel}{Dr. rer. nat.}
+\renewcommand{\PersonTitel}{}
 \newcommand{\Datum}{\today}
 
-\renewcommand{\PraesentationFusszeileZusatz}{| kann beliebig erweitert werden | Infos mit Strich trennen}
+\renewcommand{\PraesentationFusszeileZusatz}{| Bachelor's Thesis | Implementation of ABE in Rust on ARM Cortex M Processors}
 
-\title{Titel der Präsentation bearbeiten}
+\title{Implementation of Attribute-Based Encryption in Rust on ARM Cortex M Processors}
 \author{\PersonTitel{} \PersonVorname{} \PersonNachname}
 \institute[]{\UniversitaetName \\ \FakultaetName \\ \LehrstuhlName}
-\date[\Datum]{München, 27. März 2015}
-\subject{Thema der Präsentation}
+\date[\Datum]{Munich, April 7th, 2021}
+\subject{Implementation of Attribute-Based Encryption in Rust on ARM Cortex M Processors}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -53,7 +53,12 @@
 
 \PraesentationTitelseite % Fügt die Startseite ein
 
+\begin{frame}
+    \frametitle{Table of Contents}
+    \tableofcontents
+\end{frame}
 
+\section{Beispielpräsentation}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Beispielfolien                                  %%
 \input{./PraesentationBeispiele.tex}
@@ -63,8 +68,11 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % FOLIENSTIL: Standard mit Lehrstuhl-, Fakultäts- und Universitätsnamen im
 % Kopfbereich links
+\section{Weitere Beispiele}
+\subsection{Masterfolie Dreizeiler}
 \PraesentationMasterKopfzeileDreizeiler
 
+\subsection{Alternative Titelseite}
 \PraesentationTitelseite
 
 
