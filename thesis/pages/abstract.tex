@@ -2,4 +2,17 @@
 
 %TODO: Abstract
 
+Attribute-Based Encryption is an attractive and very flexible type of encryption.
+Ciphertexts and users are described by attributes, and decryption is possible only if they match according to a policy.
+Because ABE is computationally expensive, its feasibility on constrained devices is questionable.
+
+This thesis gives an overview of ABE and evaluates its applicability on ARM Cortex M4 processors.
+Two KP-ABE schemes are implemented in a library for embedded systems; one of the schemes is a pairing-free scheme.
+% This library is then evaluated on an ARM Cortex M4-based SoC.
+The result is that the pairing-free scheme performs significantly better than the pairing-based scheme.
+Encryption is feasible on the SoC if the number of attributes is not too large and a runtime of a few seconds is acceptable.
+Decryption is similarly feasible with the pairing-free scheme for all tested policy sizes.
+With the pairing-based scheme, it is only feasible for small policies and fails entirely for large policies.
+
+
 
