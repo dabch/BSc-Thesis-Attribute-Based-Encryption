@@ -146,13 +146,40 @@
 
 \section{Related Research}
 \begin{frame}[c]
-    \frametitle{Related Work Overview}
+    \frametitle{Overview of Related Research}
     \begin{center}
         \input{figures/related_work_timeline}
     \end{center}
 \end{frame}
 
 \section{Implemented ABE Schemes}
+\begin{frame}[c]
+    \frametitle{Implemented ABE schemes}
+    \begin{columns}[c]\centering
+        \column{.45\textwidth}
+        \begin{block}{\centering GPSW}
+            \centering
+            \begin{itemize}
+                \item Proposed by Goyal, Pandey, Sahai and Waters in 2006
+                \item First expressive ABE scheme
+                \item Thoroughly analyzed and often implemented / benchmarked
+            \end{itemize}
+        \end{block}
+
+        \column{.45\textwidth}
+        \begin{block}{\centering YCT}
+            \centering
+            \begin{itemize}
+                \item Proposed by Yao, Chen and Tian in 2015 especially for IoT
+                \item Does not use bilinear pairing, only single cyclic group
+                \item Security of pairing-free ABE is questioned
+            \end{itemize}
+        \end{block}
+        
+    \end{columns}
+    \center{$\rightarrow$ Both were implemented for analysis on the SoC}
+\end{frame}
+
 
 \section{Implementation}
 
