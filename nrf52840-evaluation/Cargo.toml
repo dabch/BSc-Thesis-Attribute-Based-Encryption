@@ -10,6 +10,7 @@ edition = "2018"
 cortex-m = "0.6.2"
 cortex-m-rt = "0.6.12"
 rtt-target = { version = "0.1.1", features = ["cortex-m"] }
+r0 = "0.2.2"
 nrf52840-hal = "0.10.0"
 
 rand = { version = "0.7.3", default-features = false }

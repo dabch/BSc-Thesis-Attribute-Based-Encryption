@@ -343,6 +343,7 @@ dependencies = [
  "gpsw06_abe",
  "heapless",
  "nrf52840-hal",
+ "r0",
  "rabe-bn",
  "rand",
  "rand_chacha",
