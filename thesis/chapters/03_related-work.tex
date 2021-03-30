@@ -130,6 +130,9 @@ The author again concludes that \acrshort{abe} encryption on the sensor is feasi
 In this case, the encryption time is over 10s already for just six attributes~\cite{borgh_attribute-based_2016}.
 
 \cite{girgenti_feasibility_2019} provides a similar analysis for the slightly faster ESP32 board (240MHz Xtensa LX6 processor).
-They also test the pairing-free YCT14 scheme \cite{yao_lightweight_2015} and evaluate the energy consumption of \acrshort{abe} operations.
+They also test the pairing-free YCT scheme \cite{yao_lightweight_2015} and evaluate the energy consumption of \acrshort{abe} operations.
+The authors port existing \acrshort{abe} libraries to the ESP32 platform.
+Due to a bug in the library for the YCT scheme, their evaluation only considers its performance with up to 10 attributes (the other schemes are evaluated with up to 50 attributes).
+The conclusion of \cite{girgenti_feasibility_2019} is similar to that of \cite{borgh_attribute-based_2016}. 
 
 % TODO for the last few paragraphs, specify whether only encryption or also keygen/decryption is tested on the microcontrollers!
