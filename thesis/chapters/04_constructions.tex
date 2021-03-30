@@ -106,7 +106,7 @@ Correct decryption of $K \in \mathbb{G}_T$ then allows a receiver to decrypt the
 \section{Yao, Chen and Tian 2015}
 
 This scheme was described by Yao, Chen and Tian \cite{yao_lightweight_2015} in 2015.
-In 2019, Tan, Yeow and Hwang \cite{tan_enhancement_2019} proposed an enhancement, fixing a flaw in the scheme and extending it to be a hierarchical KP-ABE scheme. %TODO explain what that is.
+In 2019, Tan, Yeow and Hwang \cite{tan_enhancement_2019} proposed an enhancement, fixing a flaw in the scheme and extending it to be a hierarchical KP-ABE scheme.
 
 Yao, Chen and Tian's ABE scheme (hereafter written just YCT) is a KP-ABE scheme that does not use any bilinear pairing operations.
 Instead, the only operation performed on Elliptic Curves are point-scalar multiplication~\cite{yao_lightweight_2015}.
@@ -130,7 +130,7 @@ The four algorithms of the YCT scheme are defined as follows: \\
 \emph{Setup}~\cite{yao_lightweight_2015}.
 The attribute universe is defined as $\text{U} = \{1, 2, \dots, n\}$ and is fixed.
 
-For every attribute $i \in U$, choose uniformly at random a secret number $s_i \in \mathbb{Z}_q^*$. % TODO define Zq* somewhere
+For every attribute $i \in U$, choose uniformly at random a secret number $s_i \in \mathbb{Z}_q^*$.
 Then the public key of attribute $i$ is $P_i = s_i \cdot G$ (i.e. a curve point).
 
 Also, choose uniformly at random the master private key $s \in \mathbb{Z}_q^*$, from which the master public key $PK = s \cdot G$ is derived.
@@ -168,7 +168,7 @@ Return the ciphertext $CM = (\omega, c, \text{mac}_m, \{C_i | i \in \omega\})$\\
 
 Decryption is split into two phases: Reconstructing the curve point $C'$ to get the encryption and integrity keys, and actual decryption of the ciphertext.
 
-First, define a recursive decryption procedure for a node $u$: $\text{DecryptNode}(CM, D, u)$. \\ % TODO fix this weird latex problem
+First, define a recursive decryption procedure for a node $u$: $\text{DecryptNode}(CM, D, u)$. \\
 For leaf nodes with $i = \text{attr}(u)$:
 \begin{equation*}
     \text{DecryptNode}(CM, D, u) = \begin{cases}

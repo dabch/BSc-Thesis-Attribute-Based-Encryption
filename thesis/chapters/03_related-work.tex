@@ -13,7 +13,6 @@ The third section is then most closely related to the topic of this thesis and d
 %     \item Revocation
 % \end{itemize}
 
-% TODO
 % a) intro attribute-based stuff (Sahai & Waters etc.)
 %    - basics (fuzzy IBE, Goyal, Bethencourt) 
 %    - multi-authority
@@ -45,11 +44,11 @@ In \cite{goyal_attribute-based_2006}, an inefficient realization of general (non
 This is inefficient because it doubles the total number of attributes in the system~\cite{goyal_attribute-based_2006}. 
 Non-monotonic access structures over a universe of $n$ attributes are represented by monotonic access structures over a universe of $2n$ attributes.
 It also requires every ciphertext to be associated with $n$ attributes (i.e. either with their positive or negated of a corresponding attribute).
-Note that the size of ciphertexts or keys is linear in the number of attributes in all expressive \acrshortpl{abes}. % TODO make sure that this is true
+Note that the size of ciphertexts or keys is usually linear in the number of attributes in expressive \acrshortpl{abes}.
 
 The first efficient construction for non-monotonic \glspl{access-structure} was given in~\cite{ostrovsky_attribute-based_2007}. 
 However, this construction leads to large private keys.
-More specifically, the size is $\mathcal{O}(t \log(n))$, where $t$ is the number of leaf nodes in the key's \gls{access-tree} and $n$ a system-wide bound on the number of attributes a ciphertext may have~\cite{lewko_revocation_2008}. % TODO be more explicit about the size
+More specifically, the size is $\mathcal{O}(t \log(n))$, where $t$ is the number of leaf nodes in the key's \gls{access-tree} and $n$ a system-wide bound on the number of attributes a ciphertext may have~\cite{lewko_revocation_2008}.
 
 In \cite{lewko_revocation_2008} direct revocation is related to the realization non-monotone \glspl{access-structure} and a scheme with efficient direct revocation is presented.
 The authors also present an efficient construction for non-monotone access structures with keys of size $\mathcal{O}(t)$~\cite{lewko_revocation_2008}, where $t$ is again the number of leaf nodes in the key's \gls{access-tree}.
@@ -58,7 +57,6 @@ The difference between direct and indirect revocation is introduced in \cite{att
 It allows the encryptor to choose the revocation mode separately for every message~\cite{attrapadung_attribute-based_2009}.
 
 All of these schemes are built using a bilinear pairing as introduced in Section~\ref{sec:bilinear-pairings}.
-% TODO add some stuff on server-aided IoT ABE and conventional constructions for ABE
 A pairing-free \acrshort{kp-abe} scheme was proposed by Yao, Chen and Tian \cite{yao_lightweight_2015} in 2015.
 Their scheme only uses a single group and no bilinear pairing.
 Instead of encrypting a group element that encodes a message, their scheme yields a random group element which is then used as a key for a symmetric encryption algorithm~\cite{yao_lightweight_2015}.
@@ -77,7 +75,6 @@ For this reason, the security of pairing-free schemes like \cite{yao_lightweight
 ~
 
 \section{Evaluation on unconstrained hardware}
-% TODO open topics: implementation of lattice-based ABE on microcontrollers / in Rust / at all (?)
 One of the major factors for the performance of the implementation of an \acrshort{abes} is the underlying pairing computation (except for \cite{yao_lightweight_2015} and its derivatives, of course).
 Not only \acrshort{abe} is based on bilinear pairings, but a large variety of cryptographic schemes, e.g. a three-party \gls{dh}~\cite{joux_one_2000} or short \glspl{dss}~\cite{boneh_short_2001}).
 
@@ -85,7 +82,7 @@ Therefore, a fast implementation of the bilinear pairing is vital.
 Comparing different pairing implementations is difficult because the performance greatly depends on the \gls{security-level}, the concrete pairing implemented, the choice of elliptic curves and of course the speed of the hardware and architecture used. 
 Furthermore, many implementations are not portable due to hand-optimized assembly code or the use of architecture-specific instructions.
 
-One of the first notable implementations was the \emph{Pairing-Based Cryptography Library (PBC)}\footnote{\label{footnotepbc}\url{https://crypto.stanford.edu/pbc/}}~\cite{lynn_implementation_2007}. % TODO verify that this was the first!
+One of the first notable implementations was the \emph{Pairing-Based Cryptography Library (PBC)}\footnote{\label{footnotepbc}\url{https://crypto.stanford.edu/pbc/}}~\cite{lynn_implementation_2007}.
 The efficiency improvements implemented by the PBC library were first described by its author, Ben Lynn, in~\cite{lynn_implementation_2007}.
 This implementation runs sufficiently fast on standard PC hardware, e.g. it takes 20.5ms to compute a pairing on a 224-bit MNT curve on a 2.4GHz Intel Core i5 processor~\cite{akinyele_self-protecting_2010}.
 
@@ -101,12 +98,12 @@ They conclude that for policies with less than 30 leaves, decryption on a smartp
 In \cite{sanchez_neon_2013}, a pairing library and \acrshort{abes} is implemented using the NEON instructions, a set of \acrshort{simd} vector instructions for ARM processors.
 They evaluate their implementations on several ARM Cortex A9 and A15 processors with clock frequencies between 1GHz and 1.7GHz.
 The use of NEON improves performance by 20-50\%, depending on the chip.
-Note that the NEON instruction set is not available on our SoC. % TODO security level 127bit
+Note that the NEON instruction set is not available on our SoC. 
 
-In \cite{wang_performance_2014}, \glslink{gls-cp-abe}{CP-} and \acrshort{kp-abe} are evaluated for different security levels on an Intel Atom-based smartphone using a Java implementation.
+In \cite{wang_performance_2014}, \glslink{gls-cp-abe}{CP-} and \acrshort{kp-abe} are evaluated for different \glspl{security-level} on an Intel Atom-based smartphone using a Java implementation.
 They conclude that \acrshort{abe} on smartphones is not fast enough to be practical.
 This is subsequently challenged in \cite{ambrosin_feasibility_2015}, where a C implementation also using the PBC library from~\cite{lynn_implementation_2007} is evaluated on another smartphone with a 1.2GHz ARM Cortex A9 CPU.
-This implementation is significantly faster than the one in \cite{wang_performance_2014} at comparable security levels.
+This implementation is significantly faster than the one in \cite{wang_performance_2014} at comparable \glspl{security-level}.
 As such, the authors conclude that \acrshort{abe} is indeed feasible on smartphones.
 
 \section{Evaluation on constrained devices}
@@ -114,7 +111,7 @@ As such, the authors conclude that \acrshort{abe} is indeed feasible on smartpho
 Despite pairing computation being very computationally demanding, there exist libraries even for the smalles microcontrollers:
 For example, the \emph{TinyPBC} library\footnote{\url{https://sites.google.com/site/tinypbc/}}.
 It takes a minimum of 1.9s to compute a pairing on a 7MHz ATmega128L processor with optimized assembly code~\cite{oliveira_tinypbc_2011}. 
-Their choice of elliptic curves, however, only provides a security level of 80 bit (the 224-bit MNT curve from the PBC library is closer to a 128-bit security level~\cite{akinyele_self-protecting_2010}).
+Their choice of elliptic curves, however, only provides a security level of 80 bits (the 224-bit MNT curve from the PBC library is closer to a 128-bit \gls{security-level}~\cite{akinyele_self-protecting_2010}).
 
 Scott~\cite{scott_deployment_2020} provides a fast implementation of the 254-bit BN curve (the same as used in \texttt{rabe-bn}) in the \emph{MIRACL Core Cryptographic Library}\footnote{\url{https://github.com/miracl/core}}.
 They also evaluate their library on the same SoC as used in this thesis (nRF52840, 64MHz ARM Cortex M4 CPU) and compute a pairing of the 254-bit BN curve in 439ms \cite[Table~4]{scott_deployment_2020}.
@@ -125,14 +122,13 @@ They evaluate the performance of the same library on, among others, a Raspberry 
 However, they note that especially lower security levels are suitable and that the penalty for increasing the security level is very high (e.g. increasing the security level from 80 to 128 bits without increasing the encryption time requires reduction of the number of attributes by a factor of 10)~\cite{ambrosin_feasibility_2016}.
 
 The setting in \cite{borgh_attribute-based_2016} is much closer to ours: \acrshort{abe} is implemented bare-metal (i.e. without operating system) on a sensor equipped with an STM32L151VCT6 SoC with a maximum clock frequency of 32MHz.
-They use the pairing library \emph{RELIC Toolkit}\footnote{\url{https://github.com/relic-toolkit/relic}} and evaluate a C implementation of the \acrshort{cp-abe} scheme in \cite{waters_ciphertext-policy_2011}.
+They use the pairing library \emph{RELIC Toolkit}\footnote{\url{https://github.com/relic-toolkit/relic}} at a security level of 128 bits and evaluate a C implementation of the \acrshort{cp-abe} scheme in \cite{waters_ciphertext-policy_2011}.
+Only decryption is evaluated; decryption is not implemented on the SoC.
 The author again concludes that \acrshort{abe} encryption on the sensor is feasible if the policy size is rather small and the runtime of several seconds is acceptable~\cite{borgh_attribute-based_2016}.
 In this case, the encryption time is over 10s already for just six attributes~\cite{borgh_attribute-based_2016}.
 
 \cite{girgenti_feasibility_2019} provides a similar analysis for the slightly faster ESP32 board (240MHz Xtensa LX6 processor).
 They also test the pairing-free YCT scheme \cite{yao_lightweight_2015} and evaluate the energy consumption of \acrshort{abe} operations.
-The authors port existing \acrshort{abe} libraries to the ESP32 platform.
-Due to a bug in the library for the YCT scheme, their evaluation only considers its performance with up to 10 attributes (the other schemes are evaluated with up to 50 attributes).
+The authors port existing \acrshort{abe} libraries to the ESP32 platform and use curves with a security level of 80 bits.
+Due to a bug in the library for the YCT scheme, their evaluation only considers its performance with five and ten attributes (the other schemes are evaluated with up to 50 attributes).
 The conclusion of \cite{girgenti_feasibility_2019} is similar to that of \cite{borgh_attribute-based_2016}. 
-
-% TODO for the last few paragraphs, specify whether only encryption or also keygen/decryption is tested on the microcontrollers!

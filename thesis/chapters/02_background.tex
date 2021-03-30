@@ -3,7 +3,7 @@ This chapter introduces \acrlong{abe} and the relevant mathematical background f
 
 \input{figures/02_key_use_comparison}
 
-\section{Confidentiality with Classic Symmetric and Asymmetric Cryptography} % TODO maybe this better goes into the introduction
+\section{Confidentiality with Classic Symmetric and Asymmetric Cryptography}
 Today's conventional cryptography knows two main classes of cryptosystems: \glspl{privkes} and \glspl{pkes}. See Figure~\ref{fig:key-use} for an illustration of the differences.
 
 Consider $n$ participants wanting to communicate securely (i.e. no user can read encrypted messages between two other users).
@@ -85,7 +85,7 @@ In both cases, a ciphertext can be decrypted if and only if the set of attribute
 \acrshort{cp-abe} tends to be more intuitive because, when encrypting a plaintext, the encryptor controls rather explicitly who can decrypt their ciphertext:
 They set the \gls{access-policy} that defines which combinations of attributes are required from the users to successfully decrypt the ciphertext~\cite{bethencourt_ciphertext-policy_2007}.
 An example use case for \acrshort{cp-abe} in a hospital setting would be sending an encrypted note about problems with a specific treatment to all doctors, patients that received that treatment and nurses of the department that administered the treatment.
-This could be specified by an \gls{access-policy} as (\texttt{hospital-name} AND (\texttt{doctor} OR (\texttt{patient} AND \texttt{received-treatment-x}) OR (\texttt{nurse} AND \texttt{department-y})). % TODO maybe add a picture here
+This could be specified by an \gls{access-policy} as (\texttt{hospital-name} AND (\texttt{doctor} OR (\texttt{patient} AND \texttt{received-treatment-x}) OR (\texttt{nurse} AND \texttt{department-y})).
 
 With \acrshort{kp-abe}, on the other hand, the encryptor doesn't have direct control over who will be able to access the data, except for the choice of attributes under which they encrypt the plaintext~\cite{bethencourt_ciphertext-policy_2007}.
 In the hospital setting from above, \acrshort{kp-abe} could be employed in a different use case: For encrypted storage of a patient's medical record, the patient's name could be used as an attribute in \acrshort{kp-abe}.
@@ -152,7 +152,7 @@ Note that $\mathcal{A}$ has to be monotone. It is not possible to specify that t
 
 Using the threshold-gate construction, we can express \emph{A AND B} as a node with two children $A$ and $B$ and threshold $2$, and express \emph{A OR B} as a node with two children $A$ and $B$ and threshold $1$~\cite{yao_lightweight_2015}.
 
-% \subsection{Linear Secret Sharing Schemes and Span Programs}\label{sec:lsss} % TODO reference Shamirs Secret Sharing as an example for LSSS (or the oother way round)
+% \subsection{Linear Secret Sharing Schemes and Span Programs}\label{sec:lsss} % reference Shamirs Secret Sharing as an example for LSSS (or the oother way round)
 % Instead of the \gls{access-tree} construction, nowadays most \acrshortpl{abes} use monotone \acrfullpl{msp} to describe any \gls{access-structure} realizable by \acrfull{lsss}.
 % For a definition of \acrshort{lsss} see~\cite{beimel_secure_1996}.
 % Also see there for a proof of the equivalence of \acrshort{lsss} and \acrshort{msp}.
@@ -300,7 +300,7 @@ Because \Glspl{ec} allow for shorter key lengths than, e.g. groups modulo a prim
 Exact definitions and notations differ, these are taken from the textbook \emph{Introduction to Modern Cryptography} by Katz and Lindell~\cite{katz_introduction_2015}.
 
 \subsection{Group Axioms}\label{sec:group}
-\begin{definition}~\cite{katz_introduction_2015}. A \emph{Group} consists of a set $\mathbb{G}$ together with a binary operation $\circ$ for which these four conditions hold:
+\begin{definition}~\cite{katz_introduction_2015}. A \emph{Group} $\langle \mathbb{G}, \circ, e \rangle$ consists of a set $\mathbb{G}$ together with a binary operation $\circ$ for which these four conditions hold:
     \begin{itemize}
         \item Closure: For all $g, h \in \mathbb{G}$, $g \circ h \in \mathbb{G}$.
         \item Existence of identity: There is an element $e \in \mathbb{G}$, called the \emph{identity}, such that for all $g \in \mathbb{G}$, $g \circ e = g = e \circ g$.
@@ -319,10 +319,15 @@ Exact definitions and notations differ, these are taken from the textbook \emph{
     We also define \emph{Group Exponentiation}: $g \in \mathbb{G}, m \in \mathbb{N}^+$, then $mg = \underbrace{g \circ \cdots \circ g}_{m \text{ times}}$.
 \end{definition}
 
+
 Usually, the symbol used to denote the group operation is not the $\circ$ from above, but either $+$ or $\cdot$. These are called \emph{additive} and \emph{multiplicative} notation, respectively.
 It is important to remember, though, that the group operation might be defined completely differently!
 
 In multiplicative notation, the group exponentiation of $g \in \mathbb{G}$ with $m \in \mathbb{N}^+$ is written as $g^m$, in additive groups it is written as $m \cdot g$.
+
+An example for an additive group is $\langle \mathbb{Z}_N, +_N, 0 \rangle$ with $\mathbb{Z}_N = \{0, 1, \dots, N-1\}$ and $+_N$ the normal addition modulo $N$.
+This group is cyclic with generator $1$.
+If $p$ is prime, then $\langle \mathbb{Z}^*_p, \cdot_p, 1 \rangle$ is a group with $\mathbb{Z}^*_p = \{k \in \mathbb{Z}_p | \text{gcd}(k,p) = 1\}$ and $\cdot_p$ the normal multiplication modulo $p$.
 
 \subsection{Elliptic Curves}
 
@@ -434,7 +439,7 @@ These cyclic elliptic curve groups (or, cyclic subgroups of non-cyclic elliptic 
 % If, in a certain group $\mathbb{G}$, the DLP problem is easy, so is CDHP: Just compute $a$ and $b$, and then use them to calculate $abP$.
 % And if CDHP is easy w.r.t some $\mathbb{G}$, so is DDHP: Just compute $abP$, and compare the third element of each tuple.
 % The inverse is not generally true, i.e. there are groups in which DLP and CDHP are hard to solve, even though DDHP is easy to solve.
-% In that sense, DLP is the hardest and DDHP the easiest of the three. \cite{katz_introduction_2015} (TODO find out if this is true. \cite{menezes_introduction_2009})
+% In that sense, DLP is the hardest and DDHP the easiest of the three. \cite{katz_introduction_2015} (find out if this is true. \cite{menezes_introduction_2009})
 
 \subsection{Bilinear Pairings}\label{sec:bilinear-pairings}
 

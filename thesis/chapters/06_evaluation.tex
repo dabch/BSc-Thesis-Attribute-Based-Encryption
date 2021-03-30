@@ -131,13 +131,11 @@ However, as the security of pairing-free \acrshort{abes} is questioned (see \cit
 Even though decryption with GPSW is limited to small policies by the RAM size issues and long run times, it is feasible for small policies (max. 5-10 attributes).
 For encryption, even larger number of attributes are viable: The additional time per attributes is the same as with YCT and even for 30 attributes there were no RAM size issues.
 Thus, the relative advantage of YCT over GPSW becomes smaller with larger policies.
-% TODO section on why only encryption is really relevant and that especially keygen and setup should only run on a proper computer
 
 As already outlined in the introduction, running encryption on the SoC is more relevant for our use case than decryption. 
 The other two algorithms, Setup and KeyGen, are run only by the \acrshort{kgc}.
 Therefore, I think it is reasonable to assume that these don't need to be run on a constrained node in real-world scenarios.
 The \acrshort{kgc} would probably be a specially protected PC or at least a powerful \acrshort{iot} node (e.g. Raspberry Pi).
-% TODO write about splitting up encryption like for medisec, and why then up to 10seconds encryption time are okay (?)
 
 \section{Further Improvements / Future Work}
 
@@ -176,10 +174,3 @@ However, it was not evaluated for this thesis, because it doesn't represent ``tr
 
 The current library also does not implement efficient revocation. 
 Implementation and evaluation of a scheme with efficient revocation is left as a future project.
-
-% Another option to reduce both message sizes and encryption times would be to re-use the ABE-encapsulated symmetric key: 
-% Instead of encrypting each message with a new random symmetric key that is encapsulated with \acrshort{abe}, the same symmetric key can be used for many messages. 
-% For example, an embedded sensor could choose a new symmetric key once per day, encrypt it using ABE and transmit it to the cloud. 
-% Then it could use this key to encrypt all messages for the next 24 hours, requiring very short encryption times and little overhead for the message size. 
-% This construction was already implemented for the \emph{Medisec} application, but not evaluated for this thesis because it is not a ``true'' \acrlong{abes}.
-% TODO check that this section is in line with the introduction / medisec overview
