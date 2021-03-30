@@ -1,0 +1,8 @@
+\begin{tikzpicture}[grp/.style={draw, ellipse}, align=center]
+    \node[grp] (g1) at (0,  2) {\Large$\mathbb{G}_1 = \langle P\rangle$ \\(subgroup of\\elliptic curve)};
+    \node[grp] (g2) at (0, -2) {\Large$\mathbb{G}_2 = \langle Q\rangle$\\(subgroup of\\elliptic curve)};
+    \node[grp] (gt) at (8, 0) {\Large$\mathbb{G}_T$\\(pairing target group,\\not an elliptic curve)};
+
+    \draw[->] (g1.east) to[out=0, in=180] (gt.west);
+    \draw[->] (g2.east) to[out=0, in=180] (gt.west);
+\end{tikzpicture}

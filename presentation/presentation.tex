@@ -83,6 +83,8 @@
     \input{../thesis/figures/01_system_architecture}
 \end{frame}
 
+\section{Background}
+\subsection{Attribute-Based Encryption}
 \begin{frame}[c]
     \frametitle{ABE vs. standard encryption}
     \begin{center}
@@ -105,21 +107,41 @@
     \input{../thesis/figures/02_sample_access_tree.tex}
 \end{frame}
 
+\subsection{Secret Sharing}
 \begin{frame}[c]
     \frametitle{Shamir's threshold Secret Sharing}
-    % \input{figures/02_sss.tex}
+    \input{figures/02_sss.tex}
 \end{frame}
 
+\begin{frame}
+    \frametitle{Secret Sharing down the Access Tree}
+    \input{figures/02_access_tree_shamir.tex}
+\end{frame}
+
+
+\subsection{Elliptic Curves}
+
+\begin{frame}[c]
+    \frametitle{Elliptic Curves}
+    \begin{center}
+        \Large
+        $E(\mathbb{Z}_p) := \{(x, y)~|~x,y \in \mathbb{Z}_p \text{ and } y^2 = x^3 + a x + b \bmod{p}\} \cup \{\mathcal{O}\}$
+    \end{center}
+    \includegraphics[width=\textwidth]{../thesis/figures/ecc_point_addition.pdf}
+\end{frame}
+
+\begin{frame}[c]
+    \frametitle{Bilinear pairings}
+    \begin{center}
+        \input{figures/pairings.tex}        
+    \end{center}
+\end{frame}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % FOLIENSTIL: Standard mit Lehrstuhl-, Fakultäts- und Universitätsnamen im
 % Kopfbereich links
-\section{Background}
-\subsection{Attribute-Based Encryption}
 % \PraesentationMasterKopfzeileDreizeiler
 
-\subsection{Secret Sharing}
 
-\subsection{Elliptic Curves}
 % \PraesentationTitelseite
 
 \section{Related Research}
