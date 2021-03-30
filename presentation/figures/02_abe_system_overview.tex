@@ -1,0 +1,50 @@
+\begin{figure}
+    \centering
+    \begin{subfigure}[t]{0.45\textwidth}
+        \centering
+        \begin{tikzpicture}[actor/.style={draw, minimum width=1.5cm}]
+            \node[actor] (a) at (-1,0) {Alice};
+            \node[actor] (b) at (1,0) {Bob};
+            \node[actor] (kgc) at (0,1.5) {KGC};
+        
+            \node[above, align=center] at (kgc.north) {$\{PK, MK\}:=\text{Setup}()$};
+
+            \node[below, align=center] at (a.south) {$\{m, \omega\}$\\};
+            \node[below, align=center] at (b.south) {$\{\}$};
+
+            % \draw[->] (a) edge node[left] {\{$S_A$\}} (kgc);
+            % \draw[->] (b) edge node [right] {\{$S_B$\}} (kgc);
+            % \draw[->] (a) edge pic [left=0.5cm, scale=0.05] {key} node [left=.5cm] {k} (kgc);
+            \draw[->] (b) edge pic [right=0.5cm, scale=0.5, blue] {tree} node [right=.75cm, blue] {$S_B$} (kgc);
+            % TODO fix arrows
+            \draw[->] (a) edge pic [left=0.5cm, scale=0.5, olive] {tree} node [left=.75cm, olive] {$S_A$} (kgc);
+            % \draw[->] (b) edge node [right] {\{$S_B$\}} (kgc);
+
+        \end{tikzpicture}
+        \caption{Setup phase I: Generation of Parameters}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[t]{0.45\textwidth}
+        \centering
+        \begin{tikzpicture}[actor/.style={draw, minimum width=1.5cm}]
+            \node[actor] (a) at (-1,0) {Alice};
+            \node[actor] (b) at (1,0) {Bob};
+            \node[actor] (kgc) at (0,1.5) {KGC};
+
+            \node[above, align=center] at (kgc.north) {$\{PK, MK\}$\\$\textcolor{olive}{k_A} := \text{KeyGen}(PK, MK, \textcolor{olive}{S_A})$\\$\textcolor{blue}{k_B} := \text{KeyGen}(PK, MK, \textcolor{blue}{S_B})$};
+
+            \node[below, align=center] at (a.south) {{\{$PK$, $\textcolor{olive}{k_A}$\}}\\$\{m, \omega\}$};
+            \node[below, align=center] at (b.south) {\{$PK$, $\textcolor{blue}{k_B}$\}};
+
+            \draw[->] (kgc) edge pic [left=0.55cm, above=0.3cm, scale=0.05, olive] {key} node [left] {\{$PK$, $\textcolor{olive}{k_A}$\}} (a);
+            \draw[->] (kgc) edge pic [right=1.1cm, above=0.3cm, scale=0.05, blue] {key} node [right] {\{$PK$, $\textcolor{blue}{k_B}$\}} (b);
+
+            % \draw[->] (kgc) edge node [left] {\{$PK$, $\textcolor{olive}{k_A}$\}} (a);
+            % \draw[->] (kgc) edge node [right] {\{$PK$, $\textcolor{blue}{k_B}$\}} (b);
+
+        \end{tikzpicture}
+        \caption{Setup phase II: Key issuing}
+    \end{subfigure}
+    % \par\bigskip
+    %
+\end{figure}

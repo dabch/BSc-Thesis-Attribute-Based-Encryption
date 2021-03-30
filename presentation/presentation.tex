@@ -1,0 +1,265 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% TUM-Vorlage: Präsentation
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Rechteinhaber:
+%     Technische Universität München
+%     https://www.tum.de
+% 
+% Gestaltung:
+%     ediundsepp Gestaltungsgesellschaft, München
+%     http://www.ediundsepp.de
+% 
+% Technische Umsetzung:
+%     eWorks GmbH, Frankfurt am Main
+%     http://www.eworks.de
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Zur Wahl des Seitenverhältnisses bitte einen der beiden folgenden Befehle
+% auskommentieren und den ausführen lassen:
+% \input{./Ressourcen/Praesentation/Praeambel4zu3.tex} % Seitenverhältnis 4:3
+\input{./Ressourcen/Praesentation/Praeambel16zu9.tex} % Seitenverhältnis 16:9
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{./_Einstellungen.tex}                    % !!! DATEI ANPASSEN !!!
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\input{../thesis/figures/tikzpics.tex}
+
+\renewcommand{\PersonTitel}{}
+\newcommand{\Datum}{\today}
+
+\renewcommand{\PraesentationFusszeileZusatz}{| Bachelor's Thesis | Implementation of ABE in Rust on ARM Cortex M Processors}
+
+\title{Implementation of Attribute-Based Encryption in Rust on ARM Cortex M Processors}
+\author{\PersonTitel{} \PersonVorname{} \PersonNachname}
+\institute[]{\UniversitaetName \\ \FakultaetName \\ \LehrstuhlName}
+\date[\Datum]{Munich, April 7th, 2021}
+\subject{Implementation of Attribute-Based Encryption in Rust on ARM Cortex M Processors}
+
+\def\PolynomialSSS(#1){8 + 7 * #1 - 6 * #1^2 + #1 ^ 3}%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{./Ressourcen/Praesentation/Anfang.tex} % !!! NICHT ENTFERNEN !!!
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% FOLIENSTIL: Standard
+\PraesentationMasterStandard
+
+\PraesentationTitelseite % Fügt die Startseite ein
+
+\begin{frame}
+    \frametitle{Table of Contents}
+    \tableofcontents[hideallsubsections]
+\end{frame}
+
+\section{Introduction}
+
+\begin{frame}[c]
+    \frametitle{What did I do?}
+
+    \begin{center}
+        \begin{tikzpicture}[brace/.style={decorate, decoration={brace, amplitude=10pt}}, lbl/.style={midway, anchor=south, align=center}]
+            \node[align=center, font=\LARGE] (name) at (0, 0) {\textcolor{TUMBlauDunkel}{Implementation} of \textcolor{TUMOrange}{Attribute-Based} \textcolor{TUMGruen}{Encryption} in Rust\\\textcolor{TUMBlauDunkel}{on ARM Cortex M Processors}};
+            \draw[brace, color=TUMBlauDunkel] (-8.25,1) -- (-3,1) node [lbl, yshift=0.5cm] {Implementation of embedded\\ABE library + Evaluation:\\Does this even make\\sense on a small MCU?};
+            \draw[brace, color=TUMOrange] (-2.6,1) -- (2.5, 1) node [lbl, yshift=0.5cm] {e.g. for a student:\\``is freshman''\\``has passed itsec''};
+            \draw[brace, color=TUMGruen] (2.75,1) -- (6, 1) node [lbl, yshift=0.5cm] {alternatives: standard\\symmetric and\\asymmetric crypto?!};
+            \draw[brace] (6.5, 1) -- (8.75, 1) node [lbl, yshift=0.5cm, xshift=0.5cm] {memory-safety\\guarantees\\built-in!};
+            \draw[brace, decoration={mirror}, color=TUMBlauDunkel] (-4.75, -1) -- (4.75, -1) node [lbl, yshift=-0.5cm, anchor=north] {Constrained MCUs!\\our SoC: 64MHz Cortex M4 with 256KB RAM} ++(0,1) node {test};;
+        \end{tikzpicture}
+    \end{center}
+\end{frame}
+
+\begin{frame}[c]
+    \frametitle{What for?}
+    \input{../thesis/figures/01_system_architecture}
+\end{frame}
+
+\section{Background}
+\subsection{Attribute-Based Encryption}
+\begin{frame}[c]
+    \frametitle{ABE vs. standard encryption}
+    \begin{center}
+        \input{figures/02_key_use_comparison.tex}
+    \end{center}
+\end{frame}
+
+\begin{frame}[c]
+    \frametitle{ABE interaction overview}
+    \input{figures/02_abe_system_overview.tex}
+\end{frame}
+
+\begin{frame}[c]
+    \frametitle{ABE interaction overview}
+    \input{figures/02_abe_system_overview-2.tex}
+\end{frame}
+
+\begin{frame}[c]
+    \frametitle{How to specify Access Policies?}
+    \input{../thesis/figures/02_sample_access_tree.tex}
+\end{frame}
+
+\subsection{Secret Sharing}
+\begin{frame}[c]
+    \frametitle{Shamir's threshold Secret Sharing}
+    \input{figures/02_sss.tex}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Secret Sharing down the Access Tree}
+    \input{figures/02_access_tree_shamir.tex}
+\end{frame}
+
+
+\subsection{Elliptic Curves}
+
+\begin{frame}[c]
+    \frametitle{Elliptic Curves}
+    \begin{center}
+        \Large
+        $E(\mathbb{Z}_p) := \{(x, y)~|~x,y \in \mathbb{Z}_p \text{ and } y^2 = x^3 + a x + b \bmod{p}\} \cup \{\mathcal{O}\}$
+    \end{center}
+    \includegraphics[width=\textwidth]{../thesis/figures/ecc_point_addition.pdf}
+\end{frame}
+
+\begin{frame}[c]
+    \frametitle{Bilinear pairings}
+    \begin{center}
+        \input{figures/pairings.tex}        
+    \end{center}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% FOLIENSTIL: Standard mit Lehrstuhl-, Fakultäts- und Universitätsnamen im
+% Kopfbereich links
+% \PraesentationMasterKopfzeileDreizeiler
+
+
+% \PraesentationTitelseite
+
+\section{Related Research}
+\begin{frame}[c]
+    \frametitle{Overview of Related Research}
+    \begin{center}
+        \input{figures/related_work_timeline}
+    \end{center}
+\end{frame}
+
+\section{Implemented ABE Schemes}
+\begin{frame}[c]
+    \frametitle{Implemented ABE schemes}
+    \begin{columns}[c]\centering
+        \column{.45\textwidth}
+        \begin{block}{\centering GPSW}
+            \centering
+            \begin{itemize}
+                \item Proposed by Goyal, Pandey, Sahai and Waters in 2006
+                \item First expressive ABE scheme
+                \item Thoroughly analyzed and often implemented / benchmarked
+            \end{itemize}
+        \end{block}
+
+        \column{.45\textwidth}
+        \begin{block}{\centering YCT}
+            \centering
+            \begin{itemize}
+                \item Proposed by Yao, Chen and Tian in 2015 especially for IoT
+                \item Does not use bilinear pairing, only single cyclic group
+                \item Security of pairing-free ABE is questioned
+            \end{itemize}
+        \end{block}
+        
+    \end{columns}
+    \center{$\rightarrow$ Both were implemented for analysis on the SoC}
+\end{frame}
+
+
+\section{Implementation}
+
+\begin{frame}
+    \frametitle{Hard- and Software}
+    \begin{columns}[c]
+        \column{0.5\textwidth}
+        \begin{itemize}
+            \item nRF52840 SoC: \textcolor{TUMBlau}{64MHz} ARM Cortex M4, \textcolor{TUMBlau}{256KB RAM}
+            \item Rust programming language: Memory safety guarantees built in!
+            \item Pairing and Elliptic Curve Library: \texttt{rabe-bn}\footnotemark
+        \end{itemize}
+        
+        \column{0.45\textwidth}
+        \begin{figure}
+            \includegraphics[width=\textwidth]{figures/nrf52840-dk.png}
+            \caption{nRF52840 Development Kit, image: \url{https://www.nordicsemi.com/-/media/Images/Products/DevKits/nRF52-Series/nRF52840-DK/nRF52840-DK-promo.png}}
+        \end{figure}
+    \end{columns}
+    \footnotetext[1]{\url{https://github.com/georgbramm/rabe-bn}}
+\end{frame}
+
+\section{Results}
+
+\begin{frame}[c]
+    \frametitle{How to evaluate?}
+    \begin{columns}[c]
+        \column{0.5\textwidth}
+        \begin{itemize}
+            \item \texttt{Setup}: Number of attributes in the system
+            \item \texttt{Encrypt}: Number of attributes associated with ciphertext
+            \item \texttt{KeyGen}: Number of leafs in Access Tree
+            \item \texttt{Decrypt}: Number of leafs in Access Tree; Ciphertext encrypted with all attributes
+        \end{itemize}
+
+        \column{.45\textwidth}
+        Test
+    \end{columns}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Evaluation of the library}
+    \input{figures/06_diagrams.tex}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% FOLIENSTIL: Weisse Schrift auf blauem Grund
+% \PraesentationMasterWeissBlau
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Startseiten                                     %%
+
+% Setzt die Startseite auf eine mit Flaggen als Hintergrund:
+\PraesentationStartseiteFlaggen
+
+% Setzt die Startseite auf eine mit mit einer Zeichnung des TUM-Uhrenturms:
+%\PraesentationStartseiteUhrenturm
+
+% Setzt die Startseite auf eine ohne Hintergrund:
+%\PraesentationStartseiteLeer
+
+\PraesentationTitelseite % Fügt die Startseite ein
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{frame}
+    \PraesentationUeberschriftZweizeilig{Präsentationsmuster}{%
+        kann auch als Kapiteltrenner verwendet werden}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% FOLIENSTIL: Weisse Schrift auf schwarzem Grund
+\PraesentationMasterWeissSchwarz
+
+\begin{frame}
+    \frametitle{Präsentationsmuster}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\end{document} % !!! NICHT ENTFERNEN !!!
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
