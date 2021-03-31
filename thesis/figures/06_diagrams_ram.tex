@@ -17,10 +17,10 @@
             grid style=dashed,
             legend style={nodes={scale=1, transform shape}}
         ]
-        \addlegendentry{YCT};
-        \addplot [color=orange, mark=square] table [x=layers,y=yct,col sep=comma] {data/ram.csv};
         \addlegendentry{GPSW};
-        \addplot [color=blue, mark=triangle] table [x=layers,y=gpsw,col sep=comma] {data/ram.csv};
+        \addplot [color=blue, mark=square] table [x=layers,y=gpsw,col sep=comma] {data/ram.csv};
+        \addlegendentry{YCT};
+        \addplot [color=orange, mark=triangle] table [x=layers,y=yct,col sep=comma] {data/ram.csv};
         % \addlegendentry{SoC RAM size};
         % \addplot [color=black, mark=none] {262144};
         \end{axis}

@@ -3,12 +3,13 @@
     \begin{tikzpicture}
         \begin{axis}[
             ybar,
+            bar shift=0pt,
             ylabel={kilobytes},
             title={Size of executable},
             width=0.7\textwidth,
             height=0.4\textheight,
-            symbolic x coords={GPSW, YCT},
-            xtick=data,
+            symbolic x coords={GPSW,YCT},
+            xtick={GPSW,YCT},
             ymin=0, ymax=175,
             bar width=2cm,
             enlarge x limits = 0.75,
@@ -17,10 +18,11 @@
                 /pgf/number format/precision=2
             },
         ]
-        \addplot coordinates {
+        \addplot[blue, fill=blue!30] coordinates {
             (GPSW, 148.824)
+        };
+        \addplot[orange, fill=orange!30] coordinates {
             (YCT,	88.288)
-            % (CCCC, 20000)
         };
         % \addlegendentry{SoC RAM size};
         % \addplot [color=black, mark=none] {262144};
