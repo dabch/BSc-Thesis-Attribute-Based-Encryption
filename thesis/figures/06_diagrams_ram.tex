@@ -1,10 +1,10 @@
 \begin{figure}[h]\centering
     \begin{tikzpicture}
         \begin{axis}[
-            title={RAM use on the laptop},
-            width=0.5\textwidth,
-            height=0.35\textheight,
-            xlabel={layers of the \gls{access-tree}},
+            title={RAM use during decryption},
+            width=0.7\textwidth,
+            height=0.4\textheight,
+            xlabel={depth of the \gls{access-tree}},
             ylabel={kilobytes},
             xmin=0.75, xmax=4.25,
             ymin=0, ymax=360000,
@@ -25,6 +25,6 @@
         % \addplot [color=black, mark=none] {262144};
         \end{axis}
     \end{tikzpicture}
-    \caption[RAM use of ABE decryption]{RAM use of \acrshort{abe} decryption on the laptop. The \glspl{access-tree} used for key geneneration are \glspl{perfect-binary-tree} of the given depth.}
+    \caption[RAM use of ABE decryption]{RAM use of \acrshort{abe} decryption on the laptop. The \glspl{access-tree} used for key geneneration are \glspl{perfect-binary-tree} of the given depth. A depth of one means that the tree consists of one root with two children.}
     \label{fig:abe-performance-diagrams-ram}
 \end{figure}
