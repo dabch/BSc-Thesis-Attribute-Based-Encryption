@@ -1,18 +1,19 @@
 \chapter{\abstractname}
 
 %TODO: Abstract
+% ABE allows flexible specification of the characteristics of who should be able to decrypt a given ciphertext
 
-Attribute-Based Encryption is a type of encryption that enforces flexible access control policies on the encrypted data.
-Ciphertexts and users are described by attributes, and decryption is possible only if they match according to the specified policy.
-Because ABE is computationally expensive, its feasibility on constrained devices is questionable.
+Attribute-Based Encryption enforces flexible access control by means of implicit specification of a group of intended recipients.
+Ciphertexts and users are described by attributes, and decryption is possible only if they match according to a specified policy.
+The flexibility of ABE and expressiveness of its policies make it very useful for many scenarios, e.g. encrypted communication with multiple recipients, especially if the group of recipients is not predetermined.
+
+Most ABE schemes are based on bilinear pairings of elliptic curves.
+These are computationally very expensive, and thus ABE has found limited use in IoT applications.
 
 This thesis gives an overview of ABE and evaluates its applicability on ARM Cortex M4 processors.
-Two KP-ABE schemes are implemented in a library for embedded systems; one of the schemes is a pairing-free scheme.
+Two Key-Policy ABE schemes are implemented in a library for embedded systems; one of the schemes is a pairing-free scheme.
 % This library is then evaluated on an ARM Cortex M4-based SoC.
-The result is that the pairing-free scheme performs significantly better than the pairing-based scheme.
-Encryption is feasible on the SoC with both schemes if the number of attributes is not too large and a runtime of a few seconds is acceptable.
-Decryption is similarly feasible with the pairing-free scheme for all tested policy sizes.
-With the pairing-based scheme, it is only feasible for small policies and fails entirely for large policies.
-
-
-
+While the security of pairing-based schemes is better, pairing-free schemes provide significantly better performance.
+If a delay of a few seconds is acceptable and the number of attributes is not too large, encryption is feasible with both schemes.
+However, it is more expensive with the pairing-based scheme.
+Decryption is only practical with the pairing-free scheme.
