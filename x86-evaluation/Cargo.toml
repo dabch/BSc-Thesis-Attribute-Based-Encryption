@@ -9,7 +9,7 @@ edition = "2018"
 
 [dependencies]
 rabe-bn = { path = "../../rabe-bn-own", default-features=false }
-yao-abe-rust = { path = "../yao-abe-rust/" }
+yct14-abe = { path = "../yct14-abe/" }
 gpsw06_abe = { path = "../gpsw06-abe/" }
 abe-utils = { path = "../abe-utils" }
 rand = "0.7.0"

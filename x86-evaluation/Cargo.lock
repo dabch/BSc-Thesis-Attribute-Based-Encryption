@@ -393,11 +393,11 @@ dependencies = [
  "heapless",
  "rabe-bn",
  "rand",
- "yao-abe-rust",
+ "yct14-abe",
 ]
 
 [[package]]
-name = "yao-abe-rust"
+name = "yct14-abe"
 version = "0.1.0"
 dependencies = [
  "abe-utils",
