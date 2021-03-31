@@ -235,20 +235,6 @@ impl<'data, 'key, 'es, 'attr> GpswAbePublic<'attr, 'es> {
       Ok(GpswAbeCiphertext(key_encapsulation, payload_ciphertext))
     }
 
-    fn setup_kem(
-      &self,
-      atts: &[&'attr str],
-      rng: &mut dyn RngCore,
-    ) -> Result<(GpswAbeGroupCiphertext<'attr>, Gt), ()>
-    where 'attr: 'es, 'es: 'key, 'key: 'data
-    {
-      let gt: Gt = rng.gen();
-      match self.encrypt_group_element(atts, gt, rng) {
-        Ok(ct) => return Ok((ct, gt)),
-        Err(_) => return Err(()),
-      }
-    }
-
     fn encrypt_group_element(
         &self,
         atts: &[&'attr str],
@@ -356,7 +342,7 @@ impl<'data, 'key, 'es, 'attr> GpswAbePublic<'attr, 'es> {
       Ok(gt) => gt,
       Err(_) => return Err(ciphertext),
     };
-    let data = match kem::decrypt(&gt, ciphertext.1) {
+    match kem::decrypt(&gt, ciphertext.1) {
       Ok(data) => return Ok(data),
       Err(ct) => return Err(GpswAbeCiphertext(ciphertext.0, ct)), // reconstruct the same ciphertext again
     };
@@ -401,7 +387,7 @@ mod tests {
     let mut plaintext = plaintext_original.clone();
 
     let ciphertext = public.encrypt(&attributes_2, &mut plaintext, &mut rng).unwrap();
-    let res = GpswAbePublic::decrypt(ciphertext, &priv_key).unwrap_err();
+    let _res = GpswAbePublic::decrypt(ciphertext, &priv_key).unwrap_err();
     // assert_ne!(res.1.data, plaintext_original);
   }
 
@@ -453,7 +439,7 @@ mod tests {
     // failing decryption
     let mut plaintext = plaintext_original.clone();
     let ciphertext = public.encrypt(&attributes_2, &mut plaintext, &mut rng).unwrap();
-    let res = GpswAbePublic::decrypt(ciphertext, &priv_key).unwrap_err();
+    let _res = GpswAbePublic::decrypt(ciphertext, &priv_key).unwrap_err();
     // assert_eq!(Err(()), res);
   }
 
@@ -472,7 +458,6 @@ mod tests {
     let (es, public) = GpswAbePrivate::setup(&system_atts, &mut public_map, &mut private_map, &mut rng);
     
     let attributes = &["student", "tum"][..];
-    let gt: Gt = rng.gen();
     let mut plaintext = plaintext_original.clone();
     let ciphertext = public.encrypt(&attributes, &mut plaintext, &mut rng).unwrap();
 
@@ -514,7 +499,7 @@ mod tests {
     let mut plaintext = plaintext_original.clone();
     let attributes = &["student", "cs", "over21"][..];
     let ciphertext = public.encrypt(&attributes, &mut plaintext, &mut rng).unwrap();
-    let res = GpswAbePublic::decrypt(ciphertext, &priv_key).unwrap_err();
+    let _res = GpswAbePublic::decrypt(ciphertext, &priv_key).unwrap_err();
     // assert_eq!(Err(()), res);
     // let ciphertext = public.encrypt(&attributes, &data);
     // let decrypted = public.decrypt(&ciphertext, &priv_key);
