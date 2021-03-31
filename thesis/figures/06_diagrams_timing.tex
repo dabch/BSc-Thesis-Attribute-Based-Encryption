@@ -1,8 +1,10 @@
-\begin{figure}[h]\centering
-    \begin{subfigure}[h]{0.45\textwidth}
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}[h]{0.49\textwidth}
         \begin{tikzpicture}
             \begin{axis}[
-                title={Timing of GPSW \cite{goyal_attribute-based_2006} on the SoC},
+                title={Timing of GPSW on the SoC},
+                width=\textwidth,
                 xlabel={attributes / leaf nodes},
                 ylabel={seconds},
                 xmin=0, xmax=32,
@@ -25,11 +27,12 @@
             \end{axis}
         \end{tikzpicture}
     \end{subfigure}%
-    \hspace{0.09\textwidth}
-    \begin{subfigure}[h]{0.45\textwidth}
+    % \hspace{0.09\textwidth}
+    \begin{subfigure}[h]{0.49\textwidth}
         \begin{tikzpicture}
             \begin{axis}[
-                title={Timing of YCT \cite{yao_lightweight_2015} on the SoC},
+                title={Timing of YCT on the SoC},
+                width=\textwidth,
                 xlabel={attributes / leaf nodes},
                 ylabel={seconds},
                 xmin=0, xmax=32,
@@ -54,10 +57,11 @@
     \end{subfigure}%
     % \caption{Performance of GPSW and YCT on the SoC.}
     \vspace{1cm}
-    \begin{subfigure}[h]{0.448\textwidth}
+    \begin{subfigure}[h]{0.49\textwidth}
         \begin{tikzpicture}
             \begin{axis}[
-                title={Timing of GPSW \cite{goyal_attribute-based_2006} on the laptop},
+                title={Timing of GPSW on the laptop},
+                width=\textwidth,
                 xlabel={attributes / leaf nodes},
                 ylabel={milliseconds},
                 xmin=0, xmax=32,
@@ -82,11 +86,12 @@
             \end{axis}
         \end{tikzpicture}
     \end{subfigure}
-    \hspace{0.09\textwidth}
-    \begin{subfigure}[h]{0.448\textwidth}
+    % \hspace{0.09\textwidth}
+    \begin{subfigure}[h]{0.49\textwidth}
         \begin{tikzpicture}
             \begin{axis}[
-                title={Timing of YCT \cite{yao_lightweight_2015} on the laptop},
+                title={Timing of YCT on the laptop},
+                width=\textwidth,
                 xlabel={attributes / leaf nodes},
                 ylabel={milliseconds},
                 xmin=0, xmax=32,
@@ -113,6 +118,6 @@
             \end{axis}
         \end{tikzpicture}
     \end{subfigure} 
-    \caption[Performance of ABE schemes on the SoC and laptop]{Performance of GPSW and YCT on the SoC and on the laptop. Note the different scales between the SoC and the laptop (seconds vs. milliseconds!)}
+    \caption[Timings of the ABE schemes on the SoC and laptop]{Timings of ABE operations on the SoC and on the laptop. Note the different scales between the SoC and the laptop (seconds vs. milliseconds!)}
     \label{fig:abe-performance-diagrams}
 \end{figure}
