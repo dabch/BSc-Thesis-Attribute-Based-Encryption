@@ -6,7 +6,7 @@ use std::time::Instant;
 use gpsw06_abe::{GpswAbeCiphertext, GpswAbePrivate, GpswAbePublic, AccessNode, AccessStructure, G1, G2, F, S};
 use heapless::{consts, FnvIndexMap, Vec};
 
-use abe_utils::policies as policy;
+use abe_utils::{policies_deep_ternary, policies_deep_binary};
 
 const SMPL_CNT: u128 = 10;
 
@@ -65,15 +65,16 @@ fn main() {
 
     println!("KeyGen");
 
-    let ciphertext = public.encrypt(&atts, &mut data, &mut rng).unwrap();
+    let ciphertext = public.encrypt(&system_atts, &mut data, &mut rng).unwrap();
 
-    let policies: &[&[AccessNode]] = policy!();
+    let policies_3: &[&[AccessNode]] = policies_deep_ternary!();
+    let policies_2: &[&[AccessNode]] = policies_deep_binary!();
 
-    let i = 9;
+    let i = 3;
 
-    let key = private.keygen(&public, policies[i], &mut rng);
+    let key = private.keygen(&public, policies_2[i], &mut rng);
 
-    let plain = PUBLIC::decrypt(ciphertext, &key);
+    // let plain = PUBLIC::decrypt(ciphertext, &key);
 
     // rng.fill_bytes(&mut data);
     // println!("keygen;dec");

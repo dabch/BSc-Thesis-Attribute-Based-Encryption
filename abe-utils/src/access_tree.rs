@@ -1,6 +1,8 @@
 use heapless::{self, Vec, consts, FnvIndexMap};
 
-type S = consts::U32;
+pub type S = consts::U8;
+
+pub type SSystem = consts::U32;
 
 /// represents an access structure that defines the powers of a key.
 /// This is passed to keygen() by the KGC, and then embedded in the private key issued to the user.
@@ -20,8 +22,8 @@ pub type AccessStructure<'attr, 'own> = &'own [AccessNode<'attr>];
 pub fn prune_dec<'attr, 'key, T> (
     tree_arr: AccessStructure<'attr, 'key>,
     tree_ptr: u8,
-    att_es: &FnvIndexMap<& 'attr str, T, S>,
-  ) -> Option<(u8, Vec<u8, S>)>
+    att_es: &FnvIndexMap<& 'attr str, T, SSystem>,
+  ) -> Option<(u8, Vec<u8, SSystem>)>
   where 'attr: 'key
   {
     let own_node = &tree_arr[tree_ptr as usize];

@@ -20,19 +20,19 @@ use rand_chacha::{
 // use aes;
 // use ccm;
 
-use abe_utils::policies;
+use abe_utils::policies_deep_binary as policies;
 
-use yao_abe_rust::{AccessNode, AccessStructure, YaoABEPrivate, YaoABEPublic, F, G, S};
-// use gpsw06_abe::{GpswAbeCiphertext, GpswAbePrivate, GpswAbePublic, AccessNode, AccessStructure, G1, G2, F, S};
+// use yao_abe_rust::{AccessNode, AccessStructure, YaoABEPrivate, YaoABEPublic, F, G, S};
+use gpsw06_abe::{GpswAbeCiphertext, GpswAbePrivate, GpswAbePublic, AccessNode, AccessStructure, G1, G2, F, S};
 use heapless::{consts, FnvIndexMap, Vec};
 
 
 
-type PUBLIC<'a, 'b> = YaoABEPublic<'a, 'b>;
-type PRIVATE<'a, 'b> = YaoABEPrivate<'a, 'b>;
+type PUBLIC<'a, 'b> = GpswAbePublic<'a, 'b>;
+type PRIVATE<'a, 'b> = GpswAbePrivate<'a, 'b>;
 type ACCESS_NODE<'a> = AccessNode<'a>;
 
-type PUBLIC_MAP = G;
+type PUBLIC_MAP = G2;
 type PRIVATE_MAP = F;
 
 #[entry]
@@ -117,7 +117,7 @@ fn main() -> ! {
         let ciphertext = public.encrypt(&atts, &mut data_cpy, &mut rng).unwrap();
 
         let start = _timer.read();
-        let key = private.keygen(policies[i], &mut rng).unwrap();
+        let key = private.keygen(&public, policies[i], &mut rng);
         keygen_us += (_timer.read() - start) as u64;
         // rprint!("keygendone,");
         let start = _timer.read();

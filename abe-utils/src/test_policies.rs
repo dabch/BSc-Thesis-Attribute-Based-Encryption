@@ -1,7 +1,152 @@
 use crate::access_tree::{AccessNode, AccessStructure};
 use heapless::Vec;
+
 #[macro_export]
-macro_rules! policies {
+macro_rules! policies_deep_binary {
+    () => {
+        &[
+            &[
+                AccessNode::Node(2, Vec::from_slice(&[1, 2]).unwrap()),
+                AccessNode::Leaf("att01"),
+                AccessNode::Leaf("att02"),
+            ],
+            &[
+                AccessNode::Node(2, Vec::from_slice(&[1, 2]).unwrap()),
+                AccessNode::Node(2, Vec::from_slice(&[3, 4]).unwrap()),
+                AccessNode::Node(2, Vec::from_slice(&[5, 6]).unwrap()),
+                AccessNode::Leaf("att01"),
+                AccessNode::Leaf("att02"),
+                AccessNode::Leaf("att03"),
+                AccessNode::Leaf("att04"),
+            ],
+            &[
+                AccessNode::Node(2, Vec::from_slice(&[1, 2]).unwrap()),
+                AccessNode::Node(2, Vec::from_slice(&[3, 4]).unwrap()),
+                AccessNode::Node(2, Vec::from_slice(&[5, 6]).unwrap()),
+                AccessNode::Node(2, Vec::from_slice(&[7, 8]).unwrap()),
+                AccessNode::Node(2, Vec::from_slice(&[9, 10]).unwrap()),
+                AccessNode::Node(2, Vec::from_slice(&[11, 12]).unwrap()),
+                AccessNode::Node(2, Vec::from_slice(&[13, 14]).unwrap()),
+                AccessNode::Leaf("att01"),
+                AccessNode::Leaf("att02"),
+                AccessNode::Leaf("att03"),
+                AccessNode::Leaf("att04"),
+                AccessNode::Leaf("att05"),
+                AccessNode::Leaf("att06"),
+                AccessNode::Leaf("att07"),
+                AccessNode::Leaf("att08"),
+            ],
+            &[
+                AccessNode::Node(2, Vec::from_slice(&[1, 2]).unwrap()),
+                AccessNode::Node(2, Vec::from_slice(&[3, 4]).unwrap()),
+                AccessNode::Node(2, Vec::from_slice(&[5, 6]).unwrap()),
+                AccessNode::Node(2, Vec::from_slice(&[7, 8]).unwrap()),
+                AccessNode::Node(2, Vec::from_slice(&[9, 10]).unwrap()),
+                AccessNode::Node(2, Vec::from_slice(&[11, 12]).unwrap()),
+                AccessNode::Node(2, Vec::from_slice(&[13, 14]).unwrap()),
+                AccessNode::Node(2, Vec::from_slice(&[15, 16]).unwrap()),
+                AccessNode::Node(2, Vec::from_slice(&[17, 18]).unwrap()),
+                AccessNode::Node(2, Vec::from_slice(&[19, 20]).unwrap()),
+                AccessNode::Node(2, Vec::from_slice(&[21, 22]).unwrap()),
+                AccessNode::Node(2, Vec::from_slice(&[23, 24]).unwrap()),
+                AccessNode::Node(2, Vec::from_slice(&[25, 26]).unwrap()),
+                AccessNode::Node(2, Vec::from_slice(&[27, 28]).unwrap()),
+                AccessNode::Node(2, Vec::from_slice(&[29, 30]).unwrap()),
+                AccessNode::Leaf("att01"),
+                AccessNode::Leaf("att02"),
+                AccessNode::Leaf("att03"),
+                AccessNode::Leaf("att04"),
+                AccessNode::Leaf("att05"),
+                AccessNode::Leaf("att06"),
+                AccessNode::Leaf("att07"),
+                AccessNode::Leaf("att08"),
+                AccessNode::Leaf("att09"),
+                AccessNode::Leaf("att10"),
+                AccessNode::Leaf("att11"),
+                AccessNode::Leaf("att12"),
+                AccessNode::Leaf("att13"),
+                AccessNode::Leaf("att14"),
+                AccessNode::Leaf("att15"),
+                AccessNode::Leaf("att16"),
+            ],
+        ]
+    };
+}
+
+#[macro_export]
+macro_rules! policies_deep_ternary {
+    () => {
+&[
+&[
+AccessNode::Node(3, Vec::from_slice(&[1,2,3]).unwrap()),
+AccessNode::Leaf("att01"),
+AccessNode::Leaf("att02"),
+AccessNode::Leaf("att03"),
+],
+&[
+AccessNode::Node(3, Vec::from_slice(&[1,2,3]).unwrap()),
+AccessNode::Node(3, Vec::from_slice(&[4,5,6]).unwrap()),
+AccessNode::Node(3, Vec::from_slice(&[7,8,9]).unwrap()),
+AccessNode::Node(3, Vec::from_slice(&[10,11,12]).unwrap()),
+AccessNode::Leaf("att01"),
+AccessNode::Leaf("att02"),
+AccessNode::Leaf("att03"),
+AccessNode::Leaf("att04"),
+AccessNode::Leaf("att05"),
+AccessNode::Leaf("att06"),
+AccessNode::Leaf("att07"),
+AccessNode::Leaf("att08"),
+AccessNode::Leaf("att09"),
+],
+&[
+AccessNode::Node(3, Vec::from_slice(&[1,2,3]).unwrap()),
+AccessNode::Node(3, Vec::from_slice(&[4,5,6]).unwrap()),
+AccessNode::Node(3, Vec::from_slice(&[7,8,9]).unwrap()),
+AccessNode::Node(3, Vec::from_slice(&[10,11,12]).unwrap()),
+AccessNode::Node(3, Vec::from_slice(&[13,14,15]).unwrap()),
+AccessNode::Node(3, Vec::from_slice(&[16,17,18]).unwrap()),
+AccessNode::Node(3, Vec::from_slice(&[19,20,21]).unwrap()),
+AccessNode::Node(3, Vec::from_slice(&[22,23,24]).unwrap()),
+AccessNode::Node(3, Vec::from_slice(&[25,26,27]).unwrap()),
+AccessNode::Node(3, Vec::from_slice(&[28,29,30]).unwrap()),
+AccessNode::Node(3, Vec::from_slice(&[31,32,33]).unwrap()),
+AccessNode::Node(3, Vec::from_slice(&[34,35,36]).unwrap()),
+AccessNode::Node(3, Vec::from_slice(&[37,38,39]).unwrap()),
+AccessNode::Leaf("att01"),
+AccessNode::Leaf("att02"),
+AccessNode::Leaf("att03"),
+AccessNode::Leaf("att04"),
+AccessNode::Leaf("att05"),
+AccessNode::Leaf("att06"),
+AccessNode::Leaf("att07"),
+AccessNode::Leaf("att08"),
+AccessNode::Leaf("att09"),
+AccessNode::Leaf("att10"),
+AccessNode::Leaf("att11"),
+AccessNode::Leaf("att12"),
+AccessNode::Leaf("att13"),
+AccessNode::Leaf("att14"),
+AccessNode::Leaf("att15"),
+AccessNode::Leaf("att16"),
+AccessNode::Leaf("att17"),
+AccessNode::Leaf("att18"),
+AccessNode::Leaf("att19"),
+AccessNode::Leaf("att20"),
+AccessNode::Leaf("att21"),
+AccessNode::Leaf("att22"),
+AccessNode::Leaf("att23"),
+AccessNode::Leaf("att24"),
+AccessNode::Leaf("att25"),
+AccessNode::Leaf("att26"),
+AccessNode::Leaf("att27"),
+],
+]
+};
+}
+
+
+#[macro_export]
+macro_rules! policies_flat {
     () => {
         &[
             &[AccessNode::Leaf("att01")],

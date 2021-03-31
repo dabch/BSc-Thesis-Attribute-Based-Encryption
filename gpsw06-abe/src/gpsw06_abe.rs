@@ -6,7 +6,7 @@ use rabe_bn::{self, Group};
 use heapless::{FnvIndexMap, Vec, consts};
 use rand::{Rng, RngCore};
 use abe_utils::kem;
-pub use abe_utils::access_tree::{AccessNode, AccessStructure};
+pub use abe_utils::access_tree::{AccessNode, AccessStructure, S as STree};
 
 pub use ccm::aead::Error;
 
