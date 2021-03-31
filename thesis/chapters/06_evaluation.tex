@@ -1,12 +1,11 @@
 \chapter{Evaluation}
 This chapter shall present the results of my study and discuss the implications of what was observed.
+The performance of \acrshort{abe} greatly depends on the underlying implementation of the elliptic curves and pairing because those are the most expensive operations performed by the schemes presented in Chapter~\ref{chapter:constructions}.
+Therefore, the performance of the ported \texttt{rabe-bn} library will be evaluated in Section~\ref{sec:rabebn-evaluation} before turning to the performance of the actual \acrshortpl{abes} in Section~\ref{sec:abe-performance}.
 
 \section{Performance of \texttt{rabe\_bn}}\label{sec:rabebn-evaluation}
 
-The performance of \acrshort{abe} greatly depends on the underlying implementation of the elliptic curves and pairing because those are the most expensive operations performed by the schemes presented in Chapter~\ref{chapter:constructions}.
-Therefore, the performance of the ported \texttt{rabe-bn} library will be evaluated before turning to the performance of the actual \acrshortpl{abes}.
-
-See Table~\ref{tbl:rabebn-performance} for performance measurements of random element sampling, group operations, group-scalar exponentiation and the pairing operation.
+See Table~\ref{tbl:rabebn-performance} for performance measurements of random element sampling, group-scalar exponentiation and the pairing operation.
 The times have been measured using randomly sampled elements and averaged over 100 calls each.
 
 % TODO maybe evaluate RAM usage of these operations?
@@ -16,10 +15,10 @@ The times have been measured using randomly sampled elements and averaged over 1
         \csvreader[late after line=\\]%
         {data/bn-smpl.csv}{op=\op,soc=\soc,laptop=\laptop}%
         {\op&\soc&\laptop}%
-        \hline
-        \csvreader[late after line=\\]%
-        {data/bn-groupop.csv}{op=\op,soc=\soc,laptop=\laptop}%
-        {\op&\soc&\laptop}%
+        % \hline
+        % \csvreader[late after line=\\]%
+        % {data/bn-groupop.csv}{op=\op,soc=\soc,laptop=\laptop}%
+        % {\op&\soc&\laptop}%
         \hline
         \csvreader[late after line=\\]%
         {data/bn-groupexp.csv}{op=\op,soc=\soc,laptop=\laptop}%
@@ -48,37 +47,56 @@ With debug symbols, there was not enough RAM available and the pairing computati
 This suggests that the memory use during pairing computation is close to 64\,KB, which would still be a quarter of the RAM on the nRF52840 SoC.
 While this memory is not consumed permanently, it still needs to be available when the pairing function is called.
 
-\section{Performance of the ABE schemes}
+Measurement of the RAM use with Valgrind on the laptop shows that one pairing computation needs 58,552\,KB of RAM.
+This is indeed close to the 64\,KB and thus supports our assumption that RAM use on the laptop is representative for RAM use on the SoC.
 
-For performance measurements of the GPSW and YCT \acrshortpl{abes}, see Figure~\ref{fig:abe-performance-diagrams}. 
-The diagrams show the time required to compute Setup, Encryption, Key Generation and Decryption on the nRF52840 SoC and the laptop.
-The timings for the laptop are purely there to give some context; the evaluation focuses on the performance on the SoC.
+\section{Evaluation of the ABE library}\label{sec:abe-performance}
 
-\input{figures/06_diagrams_timing}
-\input{figures/06_diagrams_ram}
-\vspace{1cm}
-\input{figures/06_diagrams_flash}
+In this section, the performance of the four algorithms Encrypt, Decrypt, Setup and KeyGen of the two \acrshort{abe} schemes GPSW and YCT will be evaluated.
+
+For the results of the runtime analysis, see Figures~\ref{fig:abe-performance-diagrams-gpsw} and \ref{fig:abe-performance-diagrams-yct}. 
+For the analysis of RAM use, see Figure~\ref{fig:abe-performance-diagrams-ram}; for flash use Figure~\ref{fig:abe-performance-diagrams-flash}. 
+
 
 \subsection{Methods of measurement}
+This section describes how the presented result were obtained.
 
-All times were measured using a hardware timer (on the SoC) and the operating system time (on the laptop) with microsecond resolution.
+\subsubsection{Time measurements}
+\input{figures/06_diagrams_timing}
+
+All times were measured using a hardware timer on the nRF52840 SoC.
 
 For Setup, the number of attributes refers to the total number of attributes in the system.
 For Encrypt, the number of attributes refers to the number of attributes under which a ciphertext is encrypted.
 
 For KeyGen, the number of attributes refers to the number of leaf nodes in the used access policy.
-The \glspl{access-tree} used for this evaluation were generated using a python script, starting with a single node and incrementally adding leaf nodes in random positions to the tree.
-To minimize the effects of specific \glspl{access-tree}, ten sets of policies with size 1 to 30 were generated.
-The timings for KeyGen and Decrypt represent the average for the policies of the respective size from each of the ten sets.
+The \glspl{access-tree} consists only of a root node and the given number of children, i.e. the root node has up to 30 children. 
+To ensure that all leaves have to be evaluated, the threshold is set to the number of children (the root acts as an \emph{AND} node).
+This approach might not represent real-world scenarios but is also found in literature~\cite{girgenti_feasibility_2019}.
 
 For Decrypt, the same access policies from KeyGen are used to decrypt a ciphertext encrypted with all system attributes.
 This ensures that the ciphertext can always be decrypted, and does not influence the decryption speed.
-The decryption algorithms perform a pre-calculation of a minimal subset of the \gls{access-tree} required to satisfy the policy to reduce the number of pairings (which are necessary only at the leafs).
-Therefore, the timing for decryption greatly depends on the specific structure of an \gls{access-tree} and the values given here must be understood as a rough heuristic.
 
-Due to the small RAM size, KeyGen and Decrypt failed for policies of larger size with GPSW on the SoC.
-This is why the KeyGen and Decrypt timings were omitted for policies of more than 25 attributes in the first diagram:
-For \glspl{access-tree} with 26 attributes, KeyGen and Decrypt succeeded only for two of the ten tested trees.
+\subsubsection{RAM use measurements}
+\input{figures/06_diagrams_ram}
+
+RAM use is not presented for encryption and key generation because those algorithms use a constant amount of RAM.
+
+The values for decryption were obtained by running key generation and decryption on the laptop and measuring the RAM use using Valgrind's \texttt{Massif} tool~\cite{nethercote_massif_nodate}.
+Valgrind is a tool suite for analyzing memory use and memory management of programs.
+Massif itself is originally a heap profiler, but can also be used to measure the stack's memory use with the option \verb+--stacks=yes+.
+Heap use is not profiled because our library is specifically written to work without the heap.
+
+Massif outputs a number of measurements for different instants during the runtime of the program. 
+The presented values represent the maximum stack memory use during the entire runtime.
+
+\subsubsection{Flash size measurements}
+\input{figures/06_diagrams_flash}
+
+The sizes of the executable binaries were measured by calling \verb+cargo size -- -A+ with optimizations on a binary crate that contains a minimal code snippet calling the respective \acrshort{abe} library.
+\verb+cargo size+ is part of \verb+cargo-binutils+~\cite{noauthor_cargo-binutils_nodate}, which provides access to the LLVM tools in the Rust toolchain.
+The presented sizes are the sum of the \texttt{text}, \texttt{rodata} and \texttt{bss} segments.
+
 
 \subsection{Results}
 Two results are immediately visible from the diagrams:
