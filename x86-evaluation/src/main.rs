@@ -2,19 +2,19 @@
 use rand::{self, Rng, RngCore};
 use std::time::Instant;
 
-use yao_abe_rust::{AccessNode, AccessStructure, YaoABEPrivate, YaoABEPublic, F, G, S};
-// use gpsw06_abe::{GpswAbeCiphertext, GpswAbePrivate, GpswAbePublic, AccessNode, AccessStructure, G1, G2, F, S};
+// use yao_abe_rust::{AccessNode, AccessStructure, YaoABEPrivate, YaoABEPublic, F, G, S};
+use gpsw06_abe::{GpswAbeCiphertext, GpswAbePrivate, GpswAbePublic, AccessNode, AccessStructure, G1, G2, F, S};
 use heapless::{consts, FnvIndexMap, Vec};
 
 use abe_utils::{policies_deep_ternary, policies_deep_binary};
 
 const SMPL_CNT: u128 = 10;
 
-type PUBLIC<'a, 'b> = YaoABEPublic<'a, 'b>;
-type PRIVATE<'a, 'b> = YaoABEPrivate<'a, 'b>;
+type PUBLIC<'a, 'b> = GpswAbePublic<'a, 'b>;
+type PRIVATE<'a, 'b> = GpswAbePrivate<'a, 'b>;
 type ACCESS_NODE<'a> = AccessNode<'a>;
 
-type PUBLIC_MAP = G;
+type PUBLIC_MAP = G2;
 type PRIVATE_MAP = F;
 
 fn main() {
@@ -70,11 +70,11 @@ fn main() {
     let policies_3: &[&[AccessNode]] = policies_deep_ternary!();
     let policies_2: &[&[AccessNode]] = policies_deep_binary!();
 
-    let i = 3;
+    let i = 0;
 
-    let key = private.keygen(policies_2[i], &mut rng).unwrap();
+    let key = private.keygen(&public, policies_2[i], &mut rng);
 
-    // let plain = PUBLIC::decrypt(ciphertext, &key);
+    let plain = PUBLIC::decrypt(ciphertext, &key);
 
     // rng.fill_bytes(&mut data);
     // println!("keygen;dec");
