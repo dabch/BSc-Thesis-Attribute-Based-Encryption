@@ -2,23 +2,29 @@
     \begin{tikzpicture}
         \begin{axis}[
             title={RAM use on the laptop},
+            width=0.5\textwidth,
+            height=0.35\textheight,
             xlabel={layers of the \gls{access-tree}},
             ylabel={kilobytes},
             xmin=0.75, xmax=4.25,
-            ymin=0, ymax=320000,
+            ymin=0, ymax=360000,
             xtick=data,
             scaled y ticks=base 10:-3,
             ytick scale label code/.code={}, % removes the '\cdot 10^3' label 
             legend pos=north west,
             grid=major,
+            minor y tick num=1,
             grid style=dashed,
-            legend style={nodes={scale=0.65, transform shape}}
+            legend style={nodes={scale=1, transform shape}}
         ]
         \addlegendentry{YCT};
         \addplot [color=orange, mark=square] table [x=layers,y=yct,col sep=comma] {data/ram.csv};
         \addlegendentry{GPSW};
         \addplot [color=blue, mark=triangle] table [x=layers,y=gpsw,col sep=comma] {data/ram.csv};
-        \addplot [color=black, mark=none] {262144} node [above, anchor=south west, pos=0.6] {SoC RAM size};
+        % \addlegendentry{SoC RAM size};
+        % \addplot [color=black, mark=none] {262144};
         \end{axis}
     \end{tikzpicture}
+    \caption[RAM use of ABE decryption]{RAM use of \acrshort{abe} decryption on the laptop. The \glspl{access-tree} used for key geneneration are \glspl{perfect-binary-tree} of the given depth.}
+    \label{fig:abe-performance-diagrams-ram}
 \end{figure}
