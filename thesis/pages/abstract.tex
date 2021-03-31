@@ -3,17 +3,17 @@
 %TODO: Abstract
 % ABE allows flexible specification of the characteristics of who should be able to decrypt a given ciphertext
 
-Attribute-Based Encryption enforces flexible access control by means of implicit specification of a group of intended recipients.
-Ciphertexts and users are described by attributes, and decryption is possible only if they match according to a specified policy.
-The flexibility of ABE and expressiveness of its policies make it very useful for many scenarios, e.g. encrypted communication with multiple recipients, especially if the group of recipients is not predetermined.
+Attribute-Based Encryption (ABE) enforces flexible access control by means of implicit specification of intended recipients.
+Ciphertexts and users are described by attributes, and decryption is possible only if they match according to a given policy.
+The flexibility of ABE and expressiveness of its policies make it very useful for many scenarios, e.g. encrypted communication with multiple addressees, especially if the group of recipients is not predetermined.
 
-Most ABE schemes are based on bilinear pairings of elliptic curves.
-These are computationally very expensive, and thus ABE has found limited use in IoT applications.
+Most ABE schemes are constructed with bilinear pairings of elliptic curves.
+These are computationally very expensive, and thus ABE has found limited use the IoT.
 
 This thesis gives an overview of ABE and evaluates its applicability on ARM Cortex M4 processors.
+The runtime, RAM usage and size of the executable are evaluated on a SoC with a 64\,MHz Cortex-M4 CPU and 256\,KB RAM.
 Two Key-Policy ABE schemes are implemented in a library for embedded systems; one of the schemes is a pairing-free scheme.
 % This library is then evaluated on an ARM Cortex M4-based SoC.
 While the security of pairing-based schemes is better, pairing-free schemes provide significantly better performance.
-If a delay of a few seconds is acceptable and the number of attributes is not too large, encryption is feasible with both schemes.
-However, it is more expensive with the pairing-based scheme.
+Encryption is much slower with the pairing-based scheme, but feasible with both schemes if if a delay of a few seconds is acceptable and the number of attributes is not too large.
 Decryption is only practical with the pairing-free scheme.
