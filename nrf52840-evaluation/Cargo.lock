@@ -255,17 +255,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "gpsw06_abe"
-version = "0.1.0"
-dependencies = [
- "abe-utils",
- "ccm",
- "heapless",
- "rabe-bn",
- "rand",
-]
-
-[[package]]
 name = "hash32"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -340,7 +329,6 @@ dependencies = [
  "abe-utils",
  "cortex-m 0.6.7",
  "cortex-m-rt",
- "gpsw06_abe",
  "heapless",
  "nrf52840-hal",
  "r0",
