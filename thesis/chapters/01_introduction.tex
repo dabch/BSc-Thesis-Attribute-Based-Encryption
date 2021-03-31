@@ -15,22 +15,21 @@ Thus, the feasibility of \acrshort{abe} on constrained \acrshort{iot} nodes is d
 
 The objective of this thesis is to assess to what extent \acrshort{abe} can be practically applied on ARM Cortex M4 processors.
 To this end, an \acrshort{abe} library is developed using the Rust programming language.
-This library is then tested and evaluated on the nRF52840 SoC with a 64MHz ARM Cortex M4 processor and 256KB of RAM.
+This library is then tested and evaluated on the nRF52840 SoC with a 64\,MHz ARM Cortex M4 processor and 256\,KB of RAM.
 In addition, this thesis aims to give an easy-to-understand explanation of \acrshort{abe} and how it can be implemented.
 
 \input{figures/01_system_architecture}
 
 For a real-world use-case of this library in the medical field, see Figure~\ref{fig:system-architecture}.
-It is assumed that the sensor (e.g. an ECG or blood glucose sensor) is unable communicate with the internet directly.
+It is assumed that the sensor (e.g. an ECG or blood glucose sensor) is unable to communicate with the internet directly.
 Therefore, the data is sent to a gateway by \acrfull{ble} and then uploaded to the cloud.
 
 The goal of this project is to enable end-to-end \acrlong{abe}:
 Measurements are encrypted on the sensor before they are transmitted over \acrshort{ble} and only decrypted when read by an authorized client (e.g. the attending doctor).
-In this system, the sensor exclusively needs to encrypt data; decryption, key generation and setup are not required on the constrained node.
-I believe that this is the case in many \acrshort{iot} applications.
+In this system, the sensor exclusively needs to encrypt data; decryption, key generation and setup are not required on the constrained node, which is the case in many \acrshort{iot} applications.
 
 The end-to-end \acrshort{abe} approach does not require trust in the gateway or cloud provider.
-I believe that trusting the gateway or cloud provider would be an unreasonable assumption in many scenarios.
+Trusting them would be an unreasonable assumption in many scenarios.
 
 An alternative to encryption with \acrshort{abe} on the sensor would be outsourcing the \acrshort{abe} operations to the gateway:
 The sensor and gateway share a secret key, which is used to secure the communication over \acrshort{ble}.

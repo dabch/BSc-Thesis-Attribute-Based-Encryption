@@ -3,36 +3,27 @@
 This chapter describes how the schemes from Chapter~\ref{chapter:constructions} were implemented on a lower level.
 It shall make clear what challenges had to be overcome to run \acrshort{abe} on the sensor.
 
-\section{Building Blocks} % TODO rename this
-
-\subsection{Hardware}
+\section{Hardware}
 
 The main goal of this project was to implement an \acrshort{abe} scheme on a constrained embedded ARM processor.
-More specifically, the chip used was a Nordic Semiconductor nRF52840 with a 64MHz Cortex M4 CPU, 256kB of RAM and 1MB of flash storage.
+More specifically, the chip used was a Nordic Semiconductor nRF52840 with a 64\,MHz Cortex M4 CPU, 256\,KB of RAM and 1\,MB of flash storage.
 For the detailed specifications, see \cite{noauthor_nrf52840_nodate}.
 This SoC will be referred to simply as `the SoC'.
 
 For reference, the implementation was also tested on a standard laptop, referred to as `the Laptop'.
-More specifically, this system has a 2.7GHz Intel i7-7500U CPU and 16GB of RAM.
+More specifically, this system has a 2.7\,GHz Intel i7-7500U CPU and 16\,GB of RAM.
 It runs a Linux-based operating system.
 
-% The implementation of \acrshort{abe} on the SoC in Rust posed three main challenges:
-% \begin{itemize}
-%     \item The availability of pairing libraries in Rust is very limited.
-%     \item Due to the lack of an operating system, there is no standard library, no dynamic memory allocation and no easy access to a \acrshort{csprng}.
-%     \item The low speed of computation compared to PCs or even other \gls{iot} platforms (e.g. Raspberry Pi).
-% \end{itemize}
+\section{Programming language and libraries}
 
-\subsection{Programming language and libraries}
-
-\subsubsection{Rust}
+\subsection*{Rust}
 
 Rust was chosen as programming language for this project.
-First, it is a compiled language and thus incurs little overhead at runtime. Its speed is comparable to that of C/C++. % citation needed for that last bit
+First, it is a compiled language and thus incurs little overhead at runtime. Its speed is comparable to that of C/C++.
 Second, it provides much stronger memory safety guarantees than other compiled languages (especially C/C++ where extreme care is required to avoid introducing exploitable vulnerabilities).
 This is especially attractive for security-critical components like an encryption library.
 
-\subsubsection{The \texttt{rabe-bn} library}
+\subsection*{The \texttt{rabe-bn} library}
 
 A Rust-only implementation of elliptic curves and a pairing is provided by the open-source library \texttt{rabe-bn}\footnote{\url{https://github.com/georgbramm/rabe-bn}}, a derivative of the \texttt{bn} library by Zcash~\cite{bowe_bn_2016}.
 It implements a concrete pairing on 256-bit \emph{BN curves}.
@@ -48,13 +39,13 @@ For the elliptic curve groups (structs \texttt{G1} and \texttt{G2}), additive no
 The target group (struct \texttt{Gt}) uses multiplicative notation.
 For this reason, the description of the schemes in Chapter~\ref{chapter:constructions} has also been adapted to use compatible notation.
 
-\subsubsection{nRF52840 HAL crate}
+\subsection*{nRF52840 HAL crate}
 For easier access to the peripherals of the SoC, the \acrfull{hal} \gls{crate} \texttt{nrf52840-hal} was also used.
 It provides simplified access to the hardware \acrfull{rng} and the timers.
 Strictly speaking, these were not necessary to build a Rust library (timers are only needed for evaluation and the library interface allows the caller to pass their desired random number generator).
 However, for testing and actual use of the library bare-metal on the SoC, both the \acrshort{rng} and the timers were needed.
 
-\subsubsection{\texttt{heapless} crate}
+\subsection*{\texttt{heapless} crate}
 The \texttt{heapless}\footnote{\url{https://crates.io/crates/heapless}} crate provides stack-allocated versions of some of the data structures from \texttt{std::collections}. 
 Most important were \texttt{heapless::Vec} (replaces \texttt{std::vec::Vec}) and \texttt{heapless::IndexMap} (replaces \texttt{std::collections::HashMap}).
 These data structures are statically allocated and expect their desired capacity as an additional generic type parameter.

@@ -37,10 +37,10 @@ Sampling from $\mathbb{G}_T$ is done by generating random elements of $\mathbb{G
 This is reflected in the measured timings.
 
 Interestingly, RAM size seems to be a limiting factor when computing pairings on embedded devices.
-During development, I also tested the ported \texttt{rabe-bn} library on the nRF52832 SoC, which has 64KB of RAM (vs. 256KB in the nRF52840). 
+During development, I also tested the ported \texttt{rabe-bn} library on the nRF52832 SoC, which has 64\,KB of RAM (vs. 256\,KB in the nRF52840). 
 On this chip, a pairing could be computed successfully only if the library was built \emph{without debug symbols}.
 With debug symbols, there was not enough RAM available and the pairing computation failed.
-This suggests that the memory use during pairing computation is close to 64KB, which would still be a quarter of the RAM on the nRF52840 SoC.
+This suggests that the memory use during pairing computation is close to 64\,KB, which would still be a quarter of the RAM on the nRF52840 SoC.
 While this memory is not consumed permanently, it still needs to be available when the pairing function is called.
 
 \section{Performance of the ABE schemes}
@@ -82,12 +82,12 @@ For both schemes, Setup takes about the same time as Encryption for the same num
 In both Setup and Encryption, the difference between GPSW and YCT for the same number of attributes is constant:
 On the SoC, setup and encryption with a single attribute take about 4 seconds with GPSW and only about 0.4 seconds with YCT.
 With 30 attributes, GPSW requires about 8.5 seconds and YCT about 5 seconds.
-The runtimes increase linearly in both, with each additional attribute adding about 150ms.
+The runtimes increase linearly in both, with each additional attribute adding about 150\,ms.
 
 For the KeyGen algorithm, difference is even larger:
 The runtime of GPSW increases considerably for a larger number of attributes.
-With one attribute, KeyGen takes about 650ms. With 25 attributes, it already takes more than 16 seconds.
-The runtime of YCT only increases slightly from 35ms for one attribute to 210ms for 25 attributes.
+With one attribute, KeyGen takes about 650\,ms. With 25 attributes, it already takes more than 16 seconds.
+The runtime of YCT only increases slightly from 35\,ms for one attribute to 210\,ms for 25 attributes.
 For more than 25 attributes, GPSW-KeyGen could not meaningfully be evaluated on the SoC due to lack of RAM.
 Only for two of the ten sets, KeyGen ran successfully for all policy sizes up to 30.
 In one of the ten randomly generated sets, KeyGen already failed with only nine attributes.
@@ -108,15 +108,15 @@ But still, the slowest algorithms of YCT are much faster than the fastest of GPS
 \section{Discussion}
 The results for Setup and Encrypt are in line with the time-consuming operations performed by the algorithms: 
 In both schemes, each additional attribute results in one additional exponentiation in $\mathbb{G}_1$.
-This takes about 150ms as per Table~\ref{tbl:rabebn-performance}, which is exactly the additional time per attribute.
-The constant overhead of about 3.5s with GPSW is a result of the pairing computation and exponentiation in $\mathbb{G}_T$ (for Setup) and the sampling and exponentiation in $\mathbb{G}_T$ (for Encrypt).
+This takes about 150\,ms as per Table~\ref{tbl:rabebn-performance}, which is exactly the additional time per attribute.
+The constant overhead of about 3.5\,s with GPSW is a result of the pairing computation and exponentiation in $\mathbb{G}_T$ (for Setup) and the sampling and exponentiation in $\mathbb{G}_T$ (for Encrypt).
 
 This contradicts the result from \cite{girgenti_feasibility_2019}, where the encryption performance of GPSW and YCT are explicitly noted to be equivalent.
 However, their conclusion is based on very small numbers of attributes for YCT due to a bug in the evaluated library.
-In addition, their SoC is significantly faster than ours (240MHz vs. 64MHz), thus the constant overhead of GPSW is smaller.
+In addition, their SoC is significantly faster than ours (240\,MHz vs. 64\,MHz), thus the constant overhead of GPSW is smaller.
 
 For the KeyGen algorithm, the speed difference between YCT and GSPW is especially striking: 
-The YCT algorithm is extremely fast for a small number of attributes (below 100ms) and only increases slightly as more attributes are added.
+The YCT algorithm is extremely fast for a small number of attributes (below 100\,ms) and only increases slightly as more attributes are added.
 GPSW is not only slower already for a few attributes, but its runtime also increases much more quickly when increasing the policy size.
 Again, looking at the schemes, the reason becomes evident: YCT's KeyGen only works on elements of $\mathbb{F}_r$, which are small and easy to calculate with.
 GPSW uses secret shares from $\mathbb{G}_2$, for which operations take considerably more time.
@@ -145,8 +145,8 @@ For one, interoperability between the ``light'' \acrshort{abe} library presented
 Regarding the results on the SoC, large improvements could be made by improving the underlying pairing and elliptic curve implementation of the \texttt{rabe-bn} library.
 Even though the operations remain computationally expensive, other implementations do significantly better:
 In \cite{scott_deployment_2020}, the \emph{MIRACL Core} library was tested on the same SoC as ours using the same type of curve (256-bit BN curve).
-This library evaluates a pairing in about 600ms; our library takes 1600ms. 
-Exponentiation in $\mathbb{G}_T$ takes about 300ms with their library and about 1400ms with ours. 
+This library evaluates a pairing in about 600\,ms; our library takes 1600\,ms. 
+Exponentiation in $\mathbb{G}_T$ takes about 300\,ms with their library and about 1400\,ms with ours. 
 Both libraries are high-level implementations (i.e. no optimized assembly code), and thus it is likely that the optimizations from \emph{MIRACL Core} could be carried over to Rust.
 As the runtime of \acrshort{abe} is dominated by these expensive curve operations, an improved pairing and curve implementation offers great potential for speedup.
 These improvements, however, are clearly outside the scope of this thesis.
