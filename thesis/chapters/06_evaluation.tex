@@ -81,14 +81,23 @@ This ensures that the ciphertext can always be decrypted, and does not influence
 \input{figures/06_diagrams_ram}
 
 RAM use is not presented for encryption and key generation because those algorithms use a constant amount of RAM.
+The RAM use of key generation and decryption depends only on the depth of the access tree.
+For this reason, different policies were used for RAM evaluation than for timing evaluation:
+Instead of flat policies with only one layer, \glspl{access-tree}  in the shape of \glspl{perfect-binary-tree} were employed.
 
-The values for decryption were obtained by running key generation and decryption on the laptop and measuring the RAM use using Valgrind's \texttt{Massif} tool~\cite{nethercote_massif_nodate}.
+The values were obtained by running decryption on the laptop and measuring the RAM use using Valgrind's \texttt{Massif} tool~\cite{nethercote_massif_nodate}.
 Valgrind is a tool suite for analyzing memory use and memory management of programs.
 Massif itself is originally a heap profiler, but can also be used to measure the stack's memory use with the option \verb+--stacks=yes+.
 Heap use is not profiled because our library is specifically written to work without the heap.
 
 Massif outputs a number of measurements for different instants during the runtime of the program. 
 The presented values represent the maximum stack memory use during the entire runtime.
+
+It is assumed that RAM use on the laptop is representative for RAM use on the SoC.
+This is in line with other evaluations of \acrshort{abe}~\cite{borgh_attribute-based_2016}. 
+In addition, decryption with the same policies on the SoC confirmed this assumption:
+With three- and four-layer policies, decryption failed on the SoC, but it worked with one- and two-layer policies.
+The RAM use on the laptop is below 256\,KB (the RAM size of the SoC) for the two-layer policy, but above 256\,KB for the three-layer policy.
 
 \subsubsection{Flash size measurements}
 \input{figures/06_diagrams_flash}
@@ -99,40 +108,31 @@ The presented sizes are the sum of the \texttt{text}, \texttt{rodata} and \textt
 
 
 \subsection{Results}
-Two results are immediately visible from the diagrams:
-First, the laptop is obviously much faster than the SoC.
-This was expected and any other result would be very surprising.
-
-Second, the pairing-free YCT scheme is significantly faster than the pairing-based GPSW scheme on both platforms. 
+The pairing-free YCT scheme is significantly faster than the pairing-based GPSW scheme in all four algorithms. 
 For both schemes, Setup takes about the same time as Encryption for the same number of attributes in the system or ciphertext, respectively.
-In both Setup and Encryption, the difference between GPSW and YCT for the same number of attributes is constant:
+The runtime of Setup and Encrypt with GPSW is about 3.5\,s longer than with YCT, independent on the number of attributes.
 On the SoC, setup and encryption with a single attribute take about 4 seconds with GPSW and only about 0.4 seconds with YCT.
 With 30 attributes, GPSW requires about 8.5 seconds and YCT about 5 seconds.
 The runtimes increase linearly in both, with each additional attribute adding about 150\,ms.
 
 For the KeyGen algorithm, difference is even larger:
-The runtime of GPSW increases considerably for a larger number of attributes.
-With one attribute, KeyGen takes about 650\,ms. With 25 attributes, it already takes more than 16 seconds.
+The runtime of GPSW increases considerably with larger policies.
+With a single-attribute policy, KeyGen takes about 650\,ms. With 25 attributes, it already takes more than 16 seconds.
 The runtime of YCT only increases slightly from 35\,ms for one attribute to 210\,ms for 25 attributes.
-For more than 25 attributes, GPSW-KeyGen could not meaningfully be evaluated on the SoC due to lack of RAM.
-Only for two of the ten sets, KeyGen ran successfully for all policy sizes up to 30.
-In one of the ten randomly generated sets, KeyGen already failed with only nine attributes.
-This shows how strongly the required time and resources depend on the concrete structure of a policy.
 
 For decryption, this influence is even stronger because of the further optimization to evaluate only a minimal subset of the \gls{access-tree} (this optimization is not applicable for KeyGen).
 But again, YCT is much, much faster than GPSW: For larger policies, decryption takes about eight to ten times longer for GPSW than it takes for YCT.
 
-The relative timings between the algorithms differs between the two schemes:
-For GPSW, Decrypt is by far the slowest, except for very small number of attributes. KeyGen is only slightly slower.
-Encrypt and Setup are the fastest algorithms of GPSW.
+The RAM use also shows a large advantage for YCT:
+With GPSW, a single-level policy already uses up more than three times more RAM than YCT; this difference only increases with more policy levels.
+With three or more levels, decryption fails entirely on the SoC because there is not enough RAM.
+Assuming RAM use on the laptop is representative for the SoC, the single-level policy already requires more than two thirds of the total RAM on the sensor.
+YCT does not have this problem: Even with a four-level policy, it uses only the equivalent of about a quarter of the total RAM.
 
-For YCT, Encrypt and Setup are the slowest.
-Decrypt comes second and KeyGen is by far the fastest.
-But still, the slowest algorithms of YCT are much faster than the fastest of GPSW.
 
 
 \section{Discussion}
-The results for Setup and Encrypt are in line with the time-consuming operations performed by the algorithms: 
+The timings of Setup and Encrypt are in line with the time-consuming operations performed by the algorithms: 
 In both schemes, each additional attribute results in one additional exponentiation in $\mathbb{G}_1$.
 This takes about 150\,ms as per Table~\ref{tbl:rabebn-performance}, which is exactly the additional time per attribute.
 The constant overhead of about 3.5\,s with GPSW is a result of the pairing computation and exponentiation in $\mathbb{G}_T$ (for Setup) and the sampling and exponentiation in $\mathbb{G}_T$ (for Encrypt).
