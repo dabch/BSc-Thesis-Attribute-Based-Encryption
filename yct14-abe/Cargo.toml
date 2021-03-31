@@ -1,5 +1,5 @@
 [package]
-name = "yao-abe-rust"
+name = "yct14-abe"
 version = "0.1.0"
 authors = ["Daniel Bücheler <dabch@posteo.de>"]
 edition = "2018"
