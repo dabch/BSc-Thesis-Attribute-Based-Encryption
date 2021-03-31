@@ -25,7 +25,7 @@ This is especially attractive for security-critical components like an encryptio
 
 \subsection*{The \texttt{rabe-bn} library}
 
-A Rust-only implementation of elliptic curves and a pairing is provided by the open-source library \texttt{rabe-bn}\footnote{\url{https://github.com/georgbramm/rabe-bn}}, a derivative of the \texttt{bn} library by Zcash~\cite{bowe_bn_2016}.
+A Rust-only implementation of elliptic curves and a pairing is provided by the open-source library \texttt{rabe-bn}~\cite{bowe_bn_2016}, a derivative of the \texttt{bn} library by Zcash~\cite{bowe_bn_2016}.
 It implements a concrete pairing on 256-bit \emph{BN curves}.
 BN curves are a family of pairing-friendly elliptic curves proposed by Barreto and Naehrig \cite{barreto_pairing-friendly_2006}.
 
@@ -43,10 +43,10 @@ For this reason, the description of the schemes in Chapter~\ref{chapter:construc
 For easier access to the peripherals of the SoC, the \acrfull{hal} \gls{crate} \texttt{nrf52840-hal} was also used.
 It provides simplified access to the hardware \acrfull{rng} and the timers.
 Strictly speaking, these were not necessary to build a Rust library (timers are only needed for evaluation and the library interface allows the caller to pass their desired random number generator).
-However, for testing and actual use of the library bare-metal on the SoC, both the \acrshort{rng} and the timers were needed.
+However, for testing and actual use of the library bare-metal on the SoC, both the \acrshort{rng} and the timers were needed. % TODO maybe remove last two sentences
 
 \subsection*{\texttt{heapless} crate}
-The \texttt{heapless}\footnote{\url{https://crates.io/crates/heapless}} crate provides stack-allocated versions of some of the data structures from \texttt{std::collections}. 
+The \texttt{heapless}~\cite{aparicio_heapless_nodate} crate provides stack-allocated versions of some of the data structures from \texttt{std::collections}. 
 Most important were \texttt{heapless::Vec} (replaces \texttt{std::vec::Vec}) and \texttt{heapless::IndexMap} (replaces \texttt{std::collections::HashMap}).
 These data structures are statically allocated and expect their desired capacity as an additional generic type parameter.
 
@@ -62,6 +62,7 @@ If this feature is disabled, the \texttt{core} library and stack-allocated colle
 Some further modifications were necessary to implement the \texttt{core::fmt::Display} trait for the \texttt{Gt} struct in a bare-metal compatible manner.
 The implementation of this trait was used in conjunction with \acrshort{sha3} as a \gls{kdf} to create an AES key from curve points.
 The behavior of the \texttt{core::fmt::Display} implementation stayed exactly the same to ensure interoperability with the original \texttt{rabe-bn} library.
+% TODO Stefans Feedback einarbeiten: Besser beschreiben wie Key abgeleitet wird!
 
 With these modifications, the \texttt{rabe-bn} library runs on the SoC.
 

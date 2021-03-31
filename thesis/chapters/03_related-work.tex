@@ -82,7 +82,7 @@ Therefore, a fast implementation of the bilinear pairing is vital.
 Comparing different pairing implementations is difficult because the performance greatly depends on the \gls{security-level}, the concrete pairing implemented, the choice of elliptic curves and of course the speed of the hardware and architecture used. 
 Furthermore, many implementations are not portable due to hand-optimized assembly code or the use of architecture-specific instructions.
 
-One of the first notable implementations was the \emph{Pairing-Based Cryptography Library (PBC)}~\cite{ben_lynn_pairing-based_nodate, lynn_implementation_2007}.
+One of the first notable implementations was the \emph{Pairing-Based Cryptography Library (PBC)}~\cite{lynn_pairing-based_nodate, lynn_implementation_2007}.
 The efficiency improvements implemented by the PBC library were first described by its author, Ben Lynn, in~\cite{lynn_implementation_2007}.
 This implementation runs sufficiently fast on standard PC hardware, e.g. it takes 20.5ms to compute a pairing on a 224-bit MNT curve on a 2.4\,GHz Intel Core i5 processor~\cite{akinyele_self-protecting_2010}.
 
@@ -136,3 +136,4 @@ They also test the pairing-free YCT scheme \cite{yao_lightweight_2015} and evalu
 The authors port existing \acrshort{abe} libraries to the ESP32 platform and use curves with a security level of 80 bits.
 Due to a bug in the library for the YCT scheme, their evaluation only considers its performance with five and ten attributes (the other schemes are evaluated with up to 50 attributes).
 The conclusion of \cite{girgenti_feasibility_2019} is similar to that of \cite{borgh_attribute-based_2016}. 
+In contrast, our SoC is more constrained and we evaluate the YCT scheme for larger and more meaningful policy sizes.

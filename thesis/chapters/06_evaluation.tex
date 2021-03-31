@@ -2,9 +2,14 @@
 This chapter shall present the results of my study and discuss the implications of what was observed.
 
 \section{Performance of \texttt{rabe\_bn}}\label{sec:rabebn-evaluation}
+
+The performance of \acrshort{abe} greatly depends on the underlying implementation of the elliptic curves and pairing because those are the most expensive operations performed by the schemes presented in Chapter~\ref{chapter:constructions}.
+Therefore, the performance of the ported \texttt{rabe-bn} library will be evaluated before turning to the performance of the actual \acrshortpl{abes}.
+
 See Table~\ref{tbl:rabebn-performance} for performance measurements of random element sampling, group operations, group-scalar exponentiation and the pairing operation.
 The times have been measured using randomly sampled elements and averaged over 100 calls each.
 
+% TODO maybe evaluate RAM usage of these operations?
 \begin{center}
     \begin{tabular}{|c|r|r|}\hline%
         Operation & SoC [ms] & Laptop [ms]\\\hline\hline
