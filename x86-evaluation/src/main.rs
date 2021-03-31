@@ -6,7 +6,7 @@ use std::time::Instant;
 use gpsw06_abe::{GpswAbeCiphertext, GpswAbePrivate, GpswAbePublic, AccessNode, AccessStructure, G1, G2, F, S};
 use heapless::{consts, FnvIndexMap, Vec};
 
-use abe_utils::policy_1 as policy;
+use abe_utils::policies as policy;
 
 const SMPL_CNT: u128 = 10;
 
@@ -69,32 +69,38 @@ fn main() {
 
     let policies: &[&[AccessNode]] = policy!();
 
-    rng.fill_bytes(&mut data);
-    println!("keygen;dec");
-    for i in 0..policies.len() {
-        // rprintln!("starting setup");
-        let mut keygen_us = 0;
-        let mut dec_us = 0;
-        for _ in 0..SMPL_CNT {
-            let mut data_cpy = data.clone();
-            let ciphertext = public.encrypt(&atts, &mut data_cpy, &mut rng).unwrap();
+    let i = 9;
 
-            let start = Instant::now();
-            let key = private.keygen(&public, policies[i], &mut rng);
-            keygen_us += Instant::now().duration_since(start).as_micros();
+    let key = private.keygen(&public, policies[i], &mut rng);
 
-            let start = Instant::now();
-            let data_recovered = PUBLIC::decrypt(ciphertext, &key).unwrap();
-            dec_us += Instant::now().duration_since(start).as_micros();
-            assert_eq!(data_recovered, data);
+    let plain = PUBLIC::decrypt(ciphertext, &key);
+
+    // rng.fill_bytes(&mut data);
+    // println!("keygen;dec");
+    // for i in 0..policies.len() {
+    //     // rprintln!("starting setup");
+    //     let mut keygen_us = 0;
+    //     let mut dec_us = 0;
+    //     for _ in 0..SMPL_CNT {
+    //         let mut data_cpy = data.clone();
+    //         let ciphertext = public.encrypt(&atts, &mut data_cpy, &mut rng).unwrap();
+
+    //         let start = Instant::now();
+    //         let key = private.keygen(&public, policies[i], &mut rng);
+    //         keygen_us += Instant::now().duration_since(start).as_micros();
+
+    //         let start = Instant::now();
+    //         let data_recovered = PUBLIC::decrypt(ciphertext, &key).unwrap();
+    //         dec_us += Instant::now().duration_since(start).as_micros();
+    //         assert_eq!(data_recovered, data);
             
-        }
-        println!(
-            "{};{}",
-            keygen_us / (SMPL_CNT as u128),
-            dec_us / (SMPL_CNT as u128)
-        );
-    }
+    //     }
+    //     println!(
+    //         "{};{}",
+    //         keygen_us / (SMPL_CNT as u128),
+    //         dec_us / (SMPL_CNT as u128)
+    //     );
+    // }
     // let access_structure: AccessStructure = &[
     //   AccessNode::Node(2, Vec::from_slice(&[1,2,3,4]).unwrap()),
     //   AccessNode::Leaf("tum"),

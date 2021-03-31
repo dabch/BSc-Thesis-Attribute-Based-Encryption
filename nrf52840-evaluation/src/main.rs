@@ -1,8 +1,5 @@
 #![no_main]
 #![no_std]
-#![feature(asm)]
-
-mod stackcheck;
 
 use core::panic::PanicInfo;
 use cortex_m::asm;
@@ -23,7 +20,7 @@ use rand_chacha::{
 // use aes;
 // use ccm;
 
-use abe_utils::policy_10 as policy;
+use abe_utils::policies;
 
 // use yao_abe_rust::{AccessNode, AccessStructure, YaoABEPrivate, YaoABEPublic, F, G, S};
 use gpsw06_abe::{GpswAbeCiphertext, GpswAbePrivate, GpswAbePublic, AccessNode, AccessStructure, G1, G2, F, S};
@@ -65,35 +62,33 @@ fn main() -> ! {
 
   // rprintln!("Setup");
   // for i in 1..31 {
-    let i = 10;
-    let mut us: u64 = 0;
-    // for _ in 0..SMPL_CNT {
-      // rprintln!("starting setup");
-      stackcheck::StackChecker::paint();
-      let mut public_map: FnvIndexMap<&str, PUBLIC_MAP, S> = FnvIndexMap::new();
-      let mut private_map: FnvIndexMap<&str, PRIVATE_MAP, S> = FnvIndexMap::new();
-      let start = _timer.read();
-      let (private, public) = PRIVATE::setup(
-        &system_atts[..i],
-        &mut public_map,
-        &mut private_map,
-        &mut rng,
-      );
-      us += (_timer.read() - start) as u64;
-      let stack_size = stackcheck::StackChecker::get();
-    // }
-    rprintln!("{};{:?}", i, us / SMPL_CNT);
+    // let i = 10;
+    // let mut us: u64 = 0;
+    // // for _ in 0..SMPL_CNT {
+    //   // rprintln!("starting setup");
+    //   let mut public_map: FnvIndexMap<&str, PUBLIC_MAP, S> = FnvIndexMap::new();
+    //   let mut private_map: FnvIndexMap<&str, PRIVATE_MAP, S> = FnvIndexMap::new();
+    //   let start = _timer.read();
+    //   let (private, public) = PRIVATE::setup(
+    //     &system_atts[..i],
+    //     &mut public_map,
+    //     &mut private_map,
+    //     &mut rng,
+    //   );
+    //   us += (_timer.read() - start) as u64;
+    // // }
+    // rprintln!("{};{:?}", i, us / SMPL_CNT);
   // }
 
 
-  // let (private, public) =
-  // PRIVATE::setup(&system_atts, &mut public_map, &mut private_map, &mut rng);
+  let (private, public) =
+  PRIVATE::setup(&system_atts, &mut public_map, &mut private_map, &mut rng);
 
   // // rprintln!("Encrypt");
-  // let mut data: [u8; 256] = [0; 256];
-  // rng.fill_bytes(&mut data);
+  let mut data: [u8; 256] = [0; 256];
+  rng.fill_bytes(&mut data);
 
-  // let atts = ["att12", "att29", "att07", "att10", "att22", "att24", "att23", "att18", "att08", "att06", "att14", "att11", "att25", "att02", "att09", "att26", "att03", "att20", "att04", "att30", "att01", "att21", "att15", "att19", "att05", "att13", "att17", "att27", "att16", "att28"];
+  let atts = ["att12", "att29", "att07", "att10", "att22", "att24", "att23", "att18", "att08", "att06", "att14", "att11", "att25", "att02", "att09", "att26", "att03", "att20", "att04", "att30", "att01", "att21", "att15", "att19", "att05", "att13", "att17", "att27", "att16", "att28"];
 
 
   // // for i in 1..31 {
@@ -108,38 +103,34 @@ fn main() -> ! {
   // // }
 
 
-  // let sets: &[&[&[AccessNode]]] = policy!();
-  // let SMPL_CNT: u64 = 1;
+  let policies: &[&[AccessNode]] = policies!();
+  let SMPL_CNT: u64 = 1;
 
-  // rng.fill_bytes(&mut data);
-  // rprintln!("keygen;dec");
-  // for i in 0..sets[0].len() {
-  //   // let i = 0;
-  //     // rprintln!("starting setup");
-  //     let mut keygen_us: u64 = 0;
-  //     let mut dec_us: u64 = 0;
-  //     for _ in 0..SMPL_CNT {
-  //         for policyset in sets {
-  //             let mut data_cpy = data.clone();
-  //             let ciphertext = public.encrypt(&atts, &mut data_cpy, &mut rng).unwrap();
+  rng.fill_bytes(&mut data);
+  rprintln!("keygen;dec");
+  for i in 0..policies.len() {
+    // let i = 0;
+      // rprintln!("starting setup");
+      let mut keygen_us: u64 = 0;
+      let mut dec_us: u64 = 0;
+        let mut data_cpy = data.clone();
+        let ciphertext = public.encrypt(&atts, &mut data_cpy, &mut rng).unwrap();
 
-  //             let start = _timer.read();
-  //             let key = private.keygen(&public, policyset[i], &mut rng);
-  //             keygen_us += (_timer.read() - start) as u64;
-  //             // rprint!("keygendone,");
-  //             let start = _timer.read();
-  //             let data_recovered = PUBLIC::decrypt(ciphertext, &key).unwrap();
-  //             dec_us += (_timer.read() - start) as u64;
-  //             // rprint!("decdone,");
-  //             assert_eq!(data_recovered, data);
-  //         }
-  //     }
-  //     rprintln!(
-  //         "{};{}",
-  //         keygen_us / (SMPL_CNT as u64 * sets.len() as u64) as u64,
-  //         dec_us / (SMPL_CNT as u64 * sets.len() as u64) as u64,
-  //     );
-  // }
+        let start = _timer.read();
+        let key = private.keygen(&public, policies[i], &mut rng);
+        keygen_us += (_timer.read() - start) as u64;
+        // rprint!("keygendone,");
+        let start = _timer.read();
+        let data_recovered = PUBLIC::decrypt(ciphertext, &key).unwrap();
+        dec_us += (_timer.read() - start) as u64;
+        // rprint!("decdone,");
+        assert_eq!(data_recovered, data);
+      rprintln!(
+          "{};{}",
+          keygen_us / SMPL_CNT as u64,
+          dec_us / SMPL_CNT as u64 ,
+      );
+  }
 
   rprintln!("done.");
   loop {

@@ -24,21 +24,29 @@ impl StackChecker {
         let mut stack_size = 0;
         let mut following_patterns = 0;
         unsafe {
-            let mut cur_ptr = &_stack_start as *const u32 as *mut u32;
-            cur_ptr = cur_ptr.offset(-0x1);
-            while cur_ptr > &_stack_end as *const u32 as *mut u32 {
-                if *cur_ptr == 0xABABABAB {
-                    following_patterns += 1;
-                } else {
-                    following_patterns = 0;
-                }
-                if following_patterns == 1 {
-                    let stack_start_addr = &_stack_start as *const u32 as usize;
-                    stack_size = stack_start_addr - cur_ptr.offset(0x1) as usize;
-                }
-                cur_ptr = cur_ptr.offset(-0x1);
+            let mut cur_ptr = &_stack_end as *const u32 as *mut u32;
+            cur_ptr = cur_ptr.offset(0x1);
+            while cur_ptr < &_stack_start as *const u32 as *mut u32 {
+                if *cur_ptr != 0xABABABAB {
+                    return &_stack_end as *const u32 as *mut u32 as usize - cur_ptr as usize;
+                } 
+                cur_ptr = cur_ptr.offset(0x1);
             }
+            // let mut cur_ptr = &_stack_start as *const u32 as *mut u32;
+            // cur_ptr = cur_ptr.offset(-0x1);
+            // while cur_ptr > &_stack_end as *const u32 as *mut u32 {
+            //     if *cur_ptr == 0xABABABAB {
+            //         following_patterns += 1;
+            //     } else {
+            //         following_patterns = 0;
+            //     }
+            //     if following_patterns == 1 {
+            //         let stack_start_addr = &_stack_start as *const u32 as usize;
+            //         stack_size = stack_start_addr - cur_ptr.offset(0x1) as usize;
+            //     }
+            //     cur_ptr = cur_ptr.offset(-0x1);
+            // }
         }
-        stack_size
+        1
     }
 }

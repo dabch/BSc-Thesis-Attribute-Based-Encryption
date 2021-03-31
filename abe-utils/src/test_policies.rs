@@ -1,7 +1,7 @@
 use crate::access_tree::{AccessNode, AccessStructure};
 use heapless::Vec;
 #[macro_export]
-macro_rules! policy_1 {
+macro_rules! policies {
     () => {
         &[
             &[AccessNode::Leaf("att01")],
