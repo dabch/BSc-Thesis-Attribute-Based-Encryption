@@ -5,7 +5,7 @@
 // extern crate std;
 use core::convert::TryInto;
 use rabe_bn::{G1, Fr, Group};
-use heapless::{IndexMap, FnvIndexMap, Vec, consts};
+use heapless::{FnvIndexMap, Vec, consts};
 use rand::{RngCore, Rng};
 
 use sha3::Sha3_512;
@@ -213,7 +213,7 @@ impl<'data, 'key, 'es, 'attr> YaoABEPublic<'attr, 'es> {
     &self,
     atts: &[&'attr str],
     data: &'data mut [u8],
-    mut rng: &mut dyn RngCore,
+    rng: &mut dyn RngCore,
     ) -> Result<YaoAbeCiphertext<'attr, 'data>, ()>
   where 'attr: 'es, 'es: 'key, 'key: 'data
   {
@@ -362,7 +362,7 @@ mod tests {
     let mut data = data_orig.clone();
 
     let ciphertext = public.encrypt(&attributes_2, &mut data, &mut rng).unwrap();
-    let res = YaoABEPublic::decrypt(ciphertext, &priv_key).unwrap_err();
+    let _res = YaoABEPublic::decrypt(ciphertext, &priv_key).unwrap_err();
     // assert_eq!(Err(()), res);
   }
 
@@ -402,7 +402,7 @@ mod tests {
     //println!("private key:\n{:?}", priv_key)
 
   
-    let mut ciphertext = public.encrypt(&attributes_1, &mut data, &mut rng).unwrap();
+    let ciphertext = public.encrypt(&attributes_1, &mut data, &mut rng).unwrap();
   
     // println!("ciphertext:\n{:?}", ciphertext);
     
@@ -413,7 +413,7 @@ mod tests {
     // failing decryption
     let mut data = data_orig.clone();
     let ciphertext = public.encrypt(&attributes_2, &mut data, &mut rng).unwrap();
-    let res = YaoABEPublic::decrypt(ciphertext, &priv_key).unwrap_err();
+    let _res = YaoABEPublic::decrypt(ciphertext, &priv_key).unwrap_err();
     // assert_eq!(Err(Error), res);
   }
 
@@ -433,7 +433,7 @@ mod tests {
     
     let attributes = &["student", "tum"][..];
     let mut data = data_orig.clone();
-    let mut ciphertext = public.encrypt(&attributes, &mut data, &mut rng).unwrap();
+    let ciphertext = public.encrypt(&attributes, &mut data, &mut rng).unwrap();
 
     // this represents the following logical access structure:
     // (tum AND student) OR (cs AND has_bachelor AND (over21 OR over25))
@@ -462,7 +462,7 @@ mod tests {
     // example 2 - shall decrypt 
     let attributes = &["student", "has_bachelor", "cs", "over21"][..];
     let mut data = data_orig.clone();
-    let mut ciphertext = public.encrypt(&attributes, &mut data, &mut rng).unwrap();
+    let ciphertext = public.encrypt(&attributes, &mut data, &mut rng).unwrap();
     let res = YaoABEPublic::decrypt(ciphertext, &priv_key);
     assert_eq!(Ok(&data_orig[..]), res);
     // let ciphertext = public.encrypt(&attributes, &data);
@@ -472,8 +472,8 @@ mod tests {
     // example 2 - shall not decrypt 
     let attributes = &["student", "cs", "over21"][..];
     let mut data = data_orig.clone();
-    let mut ciphertext = public.encrypt(&attributes, &mut data, &mut rng).unwrap();
-    let res = YaoABEPublic::decrypt(ciphertext, &priv_key).unwrap_err();
+    let ciphertext = public.encrypt(&attributes, &mut data, &mut rng).unwrap();
+    let _res = YaoABEPublic::decrypt(ciphertext, &priv_key).unwrap_err();
     // assert_eq!(Err(Error), res);
     // let ciphertext = public.encrypt(&attributes, &data);
     // let decrypted = public.decrypt(&ciphertext, &priv_key);

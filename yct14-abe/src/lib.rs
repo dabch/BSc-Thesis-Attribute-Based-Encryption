@@ -1,6 +1,6 @@
 #![no_std]
 
-pub use yct14_abe::*;
+pub use self::yct14_abe::*;
 
 mod yct14_abe;
 
