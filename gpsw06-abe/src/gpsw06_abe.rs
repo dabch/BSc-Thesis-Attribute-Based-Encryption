@@ -79,7 +79,7 @@ pub struct PrivateKey<'attr, 'own>(AccessStructure<'attr, 'own>, FnvIndexMap<u8,
 
 /// Polynomial p(x) = a0 + a1 * x + a2 * x^2 + ... defined by a vector of coefficients [a0, a1, a2, ...]
 //#[derive(Debug)]
-struct Polynomial(Vec<F, consts::U16>);
+struct Polynomial(Vec<F, S>);
 
 impl Polynomial {
   /// Evaluates the polynomial p(x) at a given x
@@ -89,7 +89,7 @@ impl Polynomial {
 
   /// Generates a random polynomial p(x) of degree `coeffs` coefficients, where p(0) = `a0`
   fn randgen(a0: F, coeffs: u64, rng: &mut dyn RngCore) -> Polynomial {
-    let mut coefficients: Vec<F, consts::U16> = Vec::from_slice(&[a0]).unwrap();
+    let mut coefficients: Vec<F, S> = Vec::from_slice(&[a0]).unwrap();
     coefficients.extend((1..coeffs).map(|_| -> F { rng.gen() }));
     assert_eq!(coefficients.len() as u64, coeffs);
     Polynomial(coefficients)
@@ -97,7 +97,7 @@ impl Polynomial {
 
   /// Calculates the langrage base polynomials l_i(x) for given set of indices omega and the index i.
   /// As we only ever need to interpolate p(0), no value for x may be passed.
-  fn lagrange_of_zero(i: &F, omega: &Vec<F, consts::U16>) -> F {
+  fn lagrange_of_zero(i: &F, omega: &Vec<F, S>) -> F {
     //println!("LAGRANGE: {:?}\n{:?}", i, omega);
     let r = omega.iter()
       .filter(|x| *x != i)
@@ -308,7 +308,7 @@ impl<'data, 'key, 'es, 'attr> GpswAbePublic<'attr, 'es> {
         };
 
         // std::println!("pruned at {}: {:?}", tree_ptr, pruned);
-        let children_result: Vec<(F, Gt), consts::U16> = pruned.into_iter()
+        let children_result: Vec<(F, Gt), S> = pruned.into_iter()
           .map(|i| (F::from((i) as u64), Self::decrypt_node(tree_arr, children[(i-1) as usize], secret_shares, att_es))) // node indexes start at one, enumerate() starts at zero! 
           .filter_map(|(i, x)| match x { None => None, Some(y) => Some((i, y))}) // filter out all children that couldn't decrypt because of missing ciphertext secret shares
           .collect();
@@ -317,8 +317,8 @@ impl<'data, 'key, 'es, 'attr> GpswAbePublic<'attr, 'es> {
         // we can only reconstruct our secret share if at least `thresh` children decrypted successfully (interpolation of `thresh-1`-degree polynomial)
         if children_result.len() < *thresh as usize { return None }
         // an arbitrary subset omega with |omega| = thresh is enough to reconstruct the secret. To make it easy, we just take the first `thresh` in our list.
-        let relevant_children: Vec<(F, Gt), consts::U16> = children_result.into_iter().take(*thresh as usize).collect();
-        let relevant_indexes: Vec<F, consts::U16> = relevant_children.iter()
+        let relevant_children: Vec<(F, Gt), S> = children_result.into_iter().take(*thresh as usize).collect();
+        let relevant_indexes: Vec<F, S> = relevant_children.iter()
           .map(|(i, _)| i.clone()).collect(); // our langrange helper function wants this vector of field elements
         let result: Gt = relevant_children.into_iter()
           .map(|(i, dec_res)| { dec_res.pow(Polynomial::lagrange_of_zero(&i, &relevant_indexes)) } )

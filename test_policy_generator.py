@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 import random
 
-SET_COUNT = 10
+SET_COUNT = 1
 POLICY_COUNT = 30
 
 total_count = 0
@@ -48,6 +48,11 @@ class Node(Tree):
             index = random.randint(0,len(self.children)-1)
             self.children[index] = self.children[index].randgen()
             return self
+    
+    def insert(self, i):
+        self.thresh += 1
+        self.children.append(Leaf(atts[i]))
+        return self
 
     def __str__(self) -> str:
         # print(self.children)
@@ -78,6 +83,10 @@ class Leaf(Tree):
         otherleaf = self
         return Node(random.randint(1,2), [newleaf, otherleaf])
 
+    def insert(self, i) -> Tree:
+        newleaf = Leaf(atts[i])
+        return Node(2, [self, newleaf])
+
     def __str__(self) -> str:
         return f"Leaf({self.att})"
 
@@ -99,11 +108,11 @@ tree = Leaf(atts[0])
 
 # print(tree.to_rust())
 for i in range(SET_COUNT):
-print("""
-#[macro_export]
-macro_rules! policy_%d {
-    () => {""" % (2 //2))
-print("&[")
+    print("""
+    #[macro_export]
+    macro_rules! policy_%d {
+        () => {""" % (2 //2))
+    print("&[")
     print("&[")
     total_count = 0
     tree = Leaf(atts[0])
@@ -112,7 +121,7 @@ print("&[")
         print("&[")
         print(tree.to_rust(True))
         print("],")
-        tree = tree.randgen()
+        tree = tree.insert(i)
     print("],")
 print("]")
 print("""};

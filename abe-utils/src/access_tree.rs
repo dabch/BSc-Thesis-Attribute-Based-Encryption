@@ -6,7 +6,7 @@ type S = consts::U32;
 /// This is passed to keygen() by the KGC, and then embedded in the private key issued to the user.
 #[derive(Debug)]
 pub enum AccessNode<'attr> {
-  Node(u64, Vec<u8, consts::U12>), // threshold, children
+  Node(u64, Vec<u8, S>), // threshold, children
   Leaf(&'attr str),
 }
 
@@ -21,7 +21,7 @@ pub fn prune_dec<'attr, 'key, T> (
     tree_arr: AccessStructure<'attr, 'key>,
     tree_ptr: u8,
     att_es: &FnvIndexMap<& 'attr str, T, S>,
-  ) -> Option<(u8, Vec<u8, consts::U16>)>
+  ) -> Option<(u8, Vec<u8, S>)>
   where 'attr: 'key
   {
     let own_node = &tree_arr[tree_ptr as usize];
@@ -40,14 +40,14 @@ pub fn prune_dec<'attr, 'key, T> (
         // this intermediate node.
 
         // this contains tuples (index, no. of pairings required) for each child node that is satisfied
-        let mut children_result: Vec<(u8, u8), consts::U16> = children.into_iter().enumerate()
+        let mut children_result: Vec<(u8, u8), S> = children.into_iter().enumerate()
           .filter_map(|(index, child_ptr)| match prune_dec(tree_arr, *child_ptr, att_es) { Some((pairings, _)) => Some(((index + 1) as u8, pairings)), None => None })
           .collect();
         // we can only reconstruct our secret share if at least `thresh` children decrypted successfully (interpolation of `thresh-1`-degree polynomial)
         if children_result.len() < *thresh as usize { return None }
         // an arbitrary subset omega with |omega| = thresh is enough to reconstruct the secret. We choose that with the minimal number of pairings
         children_result[..].sort_unstable_by(|(_, n1), (_, n2)| n1.partial_cmp(n2).unwrap());
-        let relevant_children: Vec<(u8, u8), consts::U16> = children_result.into_iter().take(*thresh as usize).collect();
+        let relevant_children: Vec<(u8, u8), S> = children_result.into_iter().take(*thresh as usize).collect();
         return Some((relevant_children.iter().map(|(_, p) | p).sum(), relevant_children.iter().map(|(i, _)| *i).collect()));
       }
     }

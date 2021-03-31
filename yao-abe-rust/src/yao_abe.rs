@@ -28,7 +28,7 @@ pub type F = Fr;
 //#[derive(Debug)]
 pub struct YaoABEPrivate<'attr, 'own> {
   // gen: G,
-  atts: &'own FnvIndexMap<&'attr str, (F, G), S>,
+  atts: &'own FnvIndexMap<&'attr str, F, S>,
   // pk: G,
   master_secret: F,
 }
@@ -60,7 +60,7 @@ pub struct PrivateKey<'attr, 'own>(AccessStructure<'attr, 'own>, FnvIndexMap<u8,
 
 /// Polynomial p(x) = a0 + a1 * x + a2 * x^2 + ... defined by a vector of coefficients [a0, a1, a2, ...]
 //#[derive(Debug)]
-struct Polynomial(Vec<F, consts::U16>);
+struct Polynomial(Vec<F, consts::U32>);
 
 impl Polynomial {
   /// Evaluates the polynomial p(x) at a given x
@@ -70,7 +70,7 @@ impl Polynomial {
 
   /// Generates a random polynomial p(x) of degree `coeffs` coefficients, where p(0) = `a0`
   fn randgen(a0: F, coeffs: u64, rng: &mut dyn RngCore) -> Polynomial {
-    let mut coefficients: Vec<F, consts::U16> = Vec::from_slice(&[a0]).unwrap();
+    let mut coefficients: Vec<F, consts::U32> = Vec::from_slice(&[a0]).unwrap();
     coefficients.extend((1..coeffs).map(|_| -> F { rng.gen() }));
     assert_eq!(coefficients.len() as u64, coeffs);
     Polynomial(coefficients)
@@ -78,7 +78,7 @@ impl Polynomial {
 
   /// Calculates the langrage base polynomials l_i(x) for given set of indices omega and the index i.
   /// As we only ever need to interpolate p(0), no value for x may be passed.
-  fn lagrange_of_zero(i: &F, omega: &Vec<F, consts::U16>) -> F {
+  fn lagrange_of_zero(i: &F, omega: &Vec<F, S>) -> F {
     //println!("LAGRANGE: {:?}\n{:?}", i, omega);
     let r = omega.iter()
       .filter(|x| *x != i)
@@ -97,7 +97,7 @@ impl<'attr: 'es, 'es: 'key, 'key> YaoABEPrivate<'attr, 'es> {
   pub fn setup(
     att_names: &[&'attr str],
     public_map: &'es mut FnvIndexMap<&'attr str, G, S>,
-    private_map: &'es mut FnvIndexMap<&'attr str, (F, G), S>,
+    private_map: &'es mut FnvIndexMap<&'attr str, F, S>,
     mut rng: &mut dyn RngCore,
   ) -> (Self, YaoABEPublic<'attr, 'es>) 
   where 'attr: 'es
@@ -110,7 +110,7 @@ impl<'attr: 'es, 'es: 'key, 'key> YaoABEPrivate<'attr, 'es> {
       let si: F = rng.gen();
       let mut gi = g * si;
       gi.normalize();
-      private_map.insert(attr, (si, gi)).unwrap();
+      private_map.insert(attr, si).unwrap();
       public_map.insert(attr, gi).unwrap();
     }
     
@@ -176,7 +176,7 @@ impl<'attr: 'es, 'es: 'key, 'key> YaoABEPrivate<'attr, 'es> {
       AccessNode::Leaf(attr_name) => {
         // terminate recursion, embed secret share in the leaf
         let q_of_zero = parent_poly.eval(index);
-        let (s, _) = self.atts.get(*attr_name).unwrap();
+        let s = self.atts.get(*attr_name).unwrap();
         let s_inverse = s.inverse().unwrap();
         return Ok(Vec::from_slice(&[(tree_ptr, q_of_zero * s_inverse)]).unwrap());
       },
@@ -279,15 +279,15 @@ impl<'data, 'key, 'es, 'attr> YaoABEPublic<'attr, 'es> {
           None => return None,
         };
 
-        let children_result: Vec<(F, GIntermediate), consts::U16> = pruned.iter()
+        let children_result: Vec<(F, GIntermediate), S> = pruned.iter()
           .map(|i| (index_prf(r_per_level[level as usize], F::from(*i as u64)), Self::decrypt_node(tree_arr, children[(i-1) as usize], secret_shares, att_cs, level+1, r_per_level))) // node indexes start at one, enumerate() starts at zero! 
           .filter_map(|(i, x)| match x { None => None, Some(y) => Some((i, y))}) // filter out all children that couldn't decrypt because of missing ciphertext secret shares
           .collect();
         // we can only reconstruct our secret share if at least `thresh` children decrypted successfully (interpolation of `thresh-1`-degree polynomial)
         if children_result.len() < *thresh as usize { return None }
         // an arbitrary subset omega with |omega| = thresh is enough to reconstruct the secret. To make it easy, we just take the first `thresh` in our list.
-        let relevant_children: Vec<(F, GIntermediate), consts::U16> = children_result.into_iter().take(*thresh as usize).collect();
-        let relevant_indexes: Vec<F, consts::U16> = relevant_children.iter()
+        let relevant_children: Vec<(F, GIntermediate), S> = children_result.into_iter().take(*thresh as usize).collect();
+        let relevant_indexes: Vec<F, S> = relevant_children.iter()
           .map(|(i, _)| i.clone()).collect(); // our langrange helper function wants this vector of field elements
         let result: GIntermediate = relevant_children.into_iter()
           .map(|(i, dec_res)| { dec_res * Polynomial::lagrange_of_zero(&i, &relevant_indexes) } )
@@ -339,7 +339,7 @@ mod tests {
     let access_structure = &access_structure_vec[..];
 
     let mut public_map: FnvIndexMap<&str, G, S> = FnvIndexMap::new();
-    let mut private_map: FnvIndexMap<&str, (F, G), S> = FnvIndexMap::new();
+    let mut private_map: FnvIndexMap<&str, F, S> = FnvIndexMap::new();
 
     let mut rng = rand::thread_rng();
     let data_orig: Vec<u8, consts::U2048> = (0..500).map(|_| rng.gen()).collect();
@@ -383,7 +383,7 @@ mod tests {
     let attributes_2 = &["tum"][..];
 
     let mut public_map: FnvIndexMap<&str, G, S> = FnvIndexMap::new();
-    let mut private_map: FnvIndexMap<&str, (F, G), S> = FnvIndexMap::new();
+    let mut private_map: FnvIndexMap<&str, F, S> = FnvIndexMap::new();
 
     let mut rng = rand::thread_rng();
     let data_orig: Vec<u8, consts::U2048> = (0..500).map(|_| rng.gen()).collect();
@@ -423,7 +423,7 @@ mod tests {
     
     
     let mut public_map: FnvIndexMap<&str, G, S> = FnvIndexMap::new();
-    let mut private_map: FnvIndexMap<&str, (F, G), S> = FnvIndexMap::new();
+    let mut private_map: FnvIndexMap<&str, F, S> = FnvIndexMap::new();
     
     let mut rng = rand::thread_rng();
     let data_orig: Vec<u8, consts::U2048> = (0..500).map(|_| rng.gen()).collect();
