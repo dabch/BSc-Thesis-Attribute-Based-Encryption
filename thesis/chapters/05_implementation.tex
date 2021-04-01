@@ -79,7 +79,9 @@ This generator, however, is quite slow and speed can differ greatly: With bias c
 To alleviate this, the hardware \acrshort{rng} is only used to seed a ChaCha20 pseudorandom number generator (crate \texttt{rand\_chacha}).
 This is essentially the same construction as the current implementation of \texttt{ThreadRng}~\cite{noauthor_rust_nodate}.
 
-\section{Representation of Access Trees}
+\section{Aspects common to both ABE schemes}
+
+\subsection{Representation of Access Trees}
 The Rust type system is very well suited to represent the type of tree structures we need for Access Trees.
 A simple implementation might look like the one in Listing~\ref{lst:access-tree-naive}. 
 
@@ -113,3 +115,43 @@ enum AccessNode<'a> {
     Leaf(&'a str),
 }
 \end{lstlisting}
+
+\subsection{Hybrid Encryption}
+Both schemes encrypt a given plaintext using a hybrid approach:
+Instead of encrypting the data with \acrshort{abe} directly, the plaintext is encrypted with AES and the key for AES is encrypted under \acrshort{abe}.
+This results in faster encryption and decryption for longer ciphertexts because AES is significantly faster than ABE.
+
+In our implementation, the \acrshort{abe} scheme generates a secret curve point (i.e. either \verb+rabe_bn::G1+ or \verb+rabe_bn::Gt+).
+From this, an AES key is derived and then used to encrypt the plaintext with AES-CCM.
+
+\subsubsection{Key derivation}
+Both schemes output a randomly generated curve point to use as symmetric key.
+The binary representation of these curve points is much longer than the 256-bit key AES expects.
+Therefore, the curve point is run through a \gls{kdf}, which can be seen in Listing\ref{lst:kdf} in the string representation of the curve point is hashed using \acrshort{sha3}:
+
+\begin{lstlisting}[caption={Hash-based key derivation Function for curve points},label={lst:kdf}]
+struct Wrapper<W: sha3::Digest>(pub W); // newtype for sha3::Digest
+impl<W: sha3::Digest> core::fmt::Write for Wrapper<W> {
+    fn write_str(&mut self, arg: &str) -> fmt::Result {
+        self.0.update(arg);
+        Ok(())
+    }
+}
+
+fn kdf<G: core::fmt::Display>(inp: &G) -> GenericArray<u8, consts::U32> {
+    let mut hasher = Wrapper(Sha3_256::new());
+    write!(&mut hasher, "{}", inp).unwrap();
+    hasher.0.finalize()
+}
+\end{lstlisting}
+
+The \verb+kdf()+ function takes any struct that implements the \texttt{core::fmt::Display} trait and outputs a 256-bit byte array (exactly the size needed for an AES key).
+\texttt{Display} is a formatting trait for user-facing output, i.e. it would be used to format a struct when it is printed to the console.
+Normally, \texttt{Display} is used to turn a struct into a \verb+String+, but those are implemented in the standard library and thus are not available on the SoC.
+Therefore, the naive approach of using \texttt{Display} to turn our curve point into a \texttt{String} and then hashing the \texttt{String} does not work.
+
+To circumvent this problem, I implemented the \verb+core::fmt::Write+ trait for the \acrshort{sha3} hasher using a newtype pattern.
+This trait represents a sink for formatted text, like that produced by structs implementing the \verb+core::fmt::Display+ trait.
+Then it is possible to simply use the \verb+write!()+ macro to write the formatted curve points (or any other struct) into the \acrshort{sha3} hasher.
+
+\subsubsection{Symmetric Encryption}
