@@ -116,6 +116,19 @@ enum AccessNode<'a> {
 }
 \end{lstlisting}
 
+Listing~\ref{lst:access-tree-example} shows the \gls{access-tree} from Figure~\ref{fig:sample-access-tree} in this representation.
+
+\begin{lstlisting}[caption={Sample access tree in the heapless Rust representation},label={lst:access-tree-example}]
+let access_tree: AccessTree = &[
+    AccessNode::Node(2, Vec::from_slice(&[1, 2, 3]).unwrap()),
+    AccessNode::Leaf("A"),
+    AccessNode::Leaf("B"),
+    AccessNode::Node(1, Vec::from_slice(&[4, 5]).unwrap()),
+    AccessNode::Leaf("C"),
+    AccessNode::Leaf("D"),
+];
+\end{lstlisting}
+
 \subsection{Hybrid Encryption}
 Both schemes encrypt a given plaintext using a hybrid approach:
 Instead of encrypting the data with \acrshort{abe} directly, the plaintext is encrypted with AES and the key for AES is encrypted under \acrshort{abe}.
@@ -155,3 +168,49 @@ This trait represents a sink for formatted text, like that produced by structs i
 Then it is possible to simply use the \verb+write!()+ macro to write the formatted curve points (or any other struct) into the \acrshort{sha3} hasher.
 
 \subsubsection{Symmetric Encryption}
+
+The 256-bit key obtained from \texttt{kdf()} is then used as the key to encrypt the actual plaintext.
+This is done by AES-256 in CCM mode (Counter Mode Encryption with CBC-MAC).
+CCM is an AEAD mode, i.e. it secures both confidentiality and integrity of the data.
+
+\begin{lstlisting}[caption={Symmetric Ciphertext struct},label={lst:symm-ciphertext}]
+pub struct Ciphertext<'data> {
+    data: &'data mut [u8],
+    nonce: [u8; 13],
+    mac: ccm::aead::Tag<ccm::consts::U10>,
+}
+\end{lstlisting}
+
+Listing~\ref{lst:symm-ciphertext} shows the result of encryption with AES-CCM.
+Because dynamic allocation of additional memory is not possible, the plaintext is encrypted in-place.
+In addition to a reference to the encrypted data itself, the ciphertext stores the nonce used for the counter and the authentication tag.
+
+The \texttt{Ciphertext} struct allows a CCM-encrypted ciphertext to be reconstructed and checked for unauthorized modifications if the key is known.
+In combination with the \acrshort{abe} ciphertext, it forms a hybrid ciphertext.
+This combined ciphertext can then be decrypted with a valid \acrshort{abe} key.
+
+
+
+
+% fn encrypt_with_aes_key<'a>(
+%     aes_key: &GenericArray<u8, consts::U32>,
+%     plaintext: &'a mut [u8],
+%     rng: &mut dyn RngCore) 
+% -> Result<Ciphertext<'a>, AeadError> {
+%     let nonce: [u8; 13] = rng.gen();
+
+%     let ccm = Ccm::new(&aes_key);
+%     let mac = ccm.encrypt_in_place_detached(
+%         &GenericArray::from(nonce),
+%         &[],        // associated data - empty
+%         plaintext
+%     )?;
+%     Ok(
+%         Ciphertext {
+%             data: plaintext,
+%             nonce,
+%             mac,
+%         }   
+%     )
+% }
+% \end{lstlisting}
