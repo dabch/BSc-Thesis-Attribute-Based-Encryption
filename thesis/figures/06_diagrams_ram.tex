@@ -17,14 +17,18 @@
             grid style=dashed,
             legend style={nodes={scale=1, transform shape}}
         ]
-        \addlegendentry{GPSW};
-        \addplot [color=blue, mark=square] table [x=layers,y=gpsw,col sep=comma] {data/ram.csv};
-        \addlegendentry{YCT};
-        \addplot [color=orange, mark=triangle] table [x=layers,y=yct,col sep=comma] {data/ram.csv};
+        \addlegendentry{GPSW Enc};
+        \addplot [color=blue, mark=square] table [x=layers,y=gpsw-enc,col sep=comma] {data/ram.csv};
+        \addlegendentry{GPSW Dec};
+        \addplot [color=green, mark=o] table [x=layers,y=gpsw-dec,col sep=comma] {data/ram.csv};
+        \addlegendentry{YCT Enc};
+        \addplot [color=orange, mark=triangle] table [x=layers,y=yct-enc,col sep=comma] {data/ram.csv};
+        \addlegendentry{YCT Dec};
+        \addplot [color=red, mark=x] table [x=layers,y=yct-dec,col sep=comma] {data/ram.csv};
         % \addlegendentry{SoC RAM size};
         % \addplot [color=black, mark=none] {262144};
         \end{axis}
     \end{tikzpicture}
-    \caption[RAM use of ABE decryption]{RAM use of \acrshort{abe} decryption on the laptop. The \glspl{access-tree} used for key geneneration are \glspl{perfect-binary-tree} of the given depth. A depth of one means that the tree consists of one root with two children.}
+    \caption[RAM use of ABE]{RAM use of \acrshort{abe} encryption and decryption on the laptop. The \glspl{access-tree} used for decrytion are \glspl{perfect-binary-tree} of the given depth. A depth of one means that the tree consists of one root with two children.}
     \label{fig:abe-performance-diagrams-ram}
 \end{figure}

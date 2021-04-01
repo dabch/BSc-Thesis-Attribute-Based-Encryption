@@ -67,14 +67,14 @@ fn main() {
 
     let ciphertext = public.encrypt(&system_atts, &mut data, &mut rng).unwrap();
 
-    let policies_3: &[&[AccessNode]] = policies_deep_ternary!();
-    let policies_2: &[&[AccessNode]] = policies_deep_binary!();
+    // let policies_3: &[&[AccessNode]] = policies_deep_ternary!();
+    // let policies_2: &[&[AccessNode]] = policies_deep_binary!();
 
-    let i = 0;
+    // let i = 0;
 
-    let key = private.keygen(&public, policies_2[i], &mut rng);
+    // let key = private.keygen(&public, policies_2[i], &mut rng);
 
-    let plain = PUBLIC::decrypt(ciphertext, &key);
+    // let plain = PUBLIC::decrypt(ciphertext, &key);
 
     // rng.fill_bytes(&mut data);
     // println!("keygen;dec");

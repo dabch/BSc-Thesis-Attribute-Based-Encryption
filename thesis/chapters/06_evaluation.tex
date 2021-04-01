@@ -1,5 +1,6 @@
 \chapter{Evaluation}
 This chapter shall present the results of my study and discuss the implications of what was observed.
+
 The performance of \acrshort{abe} greatly depends on the underlying implementation of the elliptic curves and pairing because those are the most expensive operations performed by the schemes presented in Chapter~\ref{chapter:constructions}.
 Therefore, the performance of the ported \texttt{rabe-bn} library will be evaluated in Section~\ref{sec:rabebn-evaluation} before turning to the performance of the actual \acrshortpl{abes} in Section~\ref{sec:abe-performance}.
 
@@ -34,7 +35,7 @@ The times have been measured using randomly sampled elements and averaged over 1
 \end{center}
 
 
-It is apparent that the the cost of the operations differs greatly between the groups. 
+It is evident that the the cost of the operations differs greatly between the groups. 
 Sampling a random element takes about the same time as group exponentiation for $\mathbb{G}_1$ and $\mathbb{G}_2$, but is significantly more costly for $\mathbb{G}_T$.
 Looking at the implementation, the reason for this is obvious: Sampling from $\mathbb{G}_1$ and $\mathbb{G}_2$ simply generates a random $z \in \mathbb{F}_r$ and returns the group element $z \cdot G$ for $G$ a generator.
 Sampling from $\mathbb{G}_T$ is done by generating random elements of $\mathbb{G}_1$ and $\mathbb{G}_2$ and computing their pairing.
@@ -55,7 +56,7 @@ This is indeed close to the 64\,KB and thus supports our assumption that RAM use
 In this section, the performance of the four algorithms Encrypt, Decrypt, Setup and KeyGen of the two \acrshort{abe} schemes GPSW and YCT will be evaluated.
 
 For the results of the runtime analysis, see Figures~\ref{fig:abe-performance-diagrams-gpsw} and \ref{fig:abe-performance-diagrams-yct}. 
-For the analysis of RAM use, see Figure~\ref{fig:abe-performance-diagrams-ram}; for flash use Figure~\ref{fig:abe-performance-diagrams-flash}. 
+For the analysis of RAM use, see Figure~\ref{fig:abe-performance-diagrams-ram}; for flash use see Figure~\ref{fig:abe-performance-diagrams-flash}. 
 
 
 \subsection{Methods of measurement}
@@ -72,18 +73,21 @@ For Encrypt, the number of attributes refers to the number of attributes under w
 For KeyGen, the number of attributes refers to the number of leaf nodes in the used access policy.
 The \glspl{access-tree} consists only of a root node and the given number of children, i.e. the root node has up to 30 children. 
 To ensure that all leaves have to be evaluated, the threshold is set to the number of children (the root acts as an \emph{AND} node).
-This approach might not represent real-world scenarios but is also found in literature~\cite{girgenti_feasibility_2019}.
+This approach is also found in other evaluations of \acrshort{abe}~\cite{girgenti_feasibility_2019}.
 
 For Decrypt, the same access policies from KeyGen are used to decrypt a ciphertext encrypted with all system attributes.
 This ensures that the ciphertext can always be decrypted, and does not influence the decryption speed.
 
+For reference, the same measurements were made on the laptop.
+These timings are included in Appendix~\ref{sec:appendix_laptop}.
+
 \subsubsection{RAM use measurements}
 \input{figures/06_diagrams_ram}
 
-RAM use is not presented for encryption and key generation because those algorithms use a constant amount of RAM.
+RAM use is not presented for encryption and key generation because those algorithms use a constant amount of memory.
 The RAM use of key generation and decryption depends only on the depth of the access tree.
-For this reason, different policies were used for RAM evaluation than for timing evaluation:
-Instead of flat policies with only one layer, \glspl{access-tree}  in the shape of \glspl{perfect-binary-tree} were employed.
+For this reason, the flat policies from the timing evaluation could not be re-used for RAM evaluation.
+Instead, \glspl{access-tree} in the shape of \glspl{perfect-binary-tree} were employed.
 
 The values were obtained by running decryption on the laptop and measuring the RAM use using Valgrind's \texttt{Massif} tool~\cite{nethercote_massif_nodate}.
 Valgrind is a tool suite for analyzing memory use and memory management of programs.
@@ -104,15 +108,15 @@ The RAM use on the laptop is below 256\,KB (the RAM size of the SoC) for the two
 
 The sizes of the executable binaries were measured by calling \verb+cargo size -- -A+ with optimizations on a binary crate that contains a minimal code snippet calling the respective \acrshort{abe} library.
 \verb+cargo size+ is part of \verb+cargo-binutils+~\cite{noauthor_cargo-binutils_nodate}, which provides access to the LLVM tools in the Rust toolchain.
-The presented sizes are the sum of the \texttt{text}, \texttt{rodata} and \texttt{bss} segments.
+The presented sizes are the combined size of the \texttt{text}, \texttt{rodata} and \texttt{bss} segments.
 
 
 \subsection{Results}
 The pairing-free YCT scheme is significantly faster than the pairing-based GPSW scheme in all four algorithms. 
 For both schemes, Setup takes about the same time as Encryption for the same number of attributes in the system or ciphertext, respectively.
 The runtime of Setup and Encrypt with GPSW is about 3.5\,s longer than with YCT, independent on the number of attributes.
-On the SoC, setup and encryption with a single attribute take about 4 seconds with GPSW and only about 0.4 seconds with YCT.
-With 30 attributes, GPSW requires about 8.5 seconds and YCT about 5 seconds.
+% On the SoC, setup and encryption with a single attribute take about 4 seconds with GPSW and only about 0.4 seconds with YCT.
+% With 30 attributes, GPSW requires about 8.5 seconds and YCT about 5 seconds.
 The runtimes increase linearly in both, with each additional attribute adding about 150\,ms.
 
 For the KeyGen algorithm, difference is even larger:
@@ -120,8 +124,8 @@ The runtime of GPSW increases considerably with larger policies.
 With a single-attribute policy, KeyGen takes about 650\,ms. With 25 attributes, it already takes more than 16 seconds.
 The runtime of YCT only increases slightly from 35\,ms for one attribute to 210\,ms for 25 attributes.
 
-For decryption, this influence is even stronger because of the further optimization to evaluate only a minimal subset of the \gls{access-tree} (this optimization is not applicable for KeyGen).
-But again, YCT is much, much faster than GPSW: For larger policies, decryption takes about eight to ten times longer for GPSW than it takes for YCT.
+Decryption time is also linear with both schemes.
+Again, YCT is much faster than GSPW with YCT taking 12\,s and GPSW taking 80\,s for the largest policy.
 
 The RAM use also shows a large advantage for YCT:
 With GPSW, a single-level policy already uses up more than three times more RAM than YCT; this difference only increases with more policy levels.
@@ -149,19 +153,25 @@ Again, looking at the schemes, the reason becomes evident: YCT's KeyGen only wor
 GPSW uses secret shares from $\mathbb{G}_2$, for which operations take considerably more time.
 This is also the case for decryption: YCT only requires exponentation and point addition in $\mathbb{G}_1$, whereas GPSW performs pairings, multiplications and exponentiations in $\mathbb{G}_T$.
 
-If some latency is acceptable, doing \acrshort{abe} on the SoC definitely seems feasible for small policy sizes (up to 30 for YCT and up to about 15 for GPSW).
-From a performance point of view, the pairing-free YCT scheme is to be preferred, as it was faster in all respects.
-It also doesn't suffer from the RAM size issues with key generation and decryption as GPSW does.
-This clearly results from the lack of pairing computations, which already take up about one quarter of the total RAM on the SoC (c.f. Section~\ref{sec:rabebn-evaluation}).
+The RAM consumption of decryption with GPSW is a limiting factor on the SoC:
+Decryption with policies of more than two layers fails because of too little memory.
+Unlike the timing results, this poses a hard limit on the size of \glspl{access-policy}.
+Also, in our evaluation, the \acrshort{abe} library was able to use all of the available RAM on the SoC.
+In a real-world use case, the application employing \acrshort{abe} might already occupy a considerable portion of the available RAM, leaving too little space even for decryption with small \glspl{access-tree}.
+This problem is much less pronounced with the pairing-free YCT scheme.
+
+If some latency is acceptable, doing encryption with \acrshort{abe} on the SoC is feasible if the number of attributes is not very large.
+The pairing-free YCT scheme performs better, but the pairing-free GPSW scheme is still good enough for encryption.
+
+With decryption, the YCT scheme is to be preferred:
+With GPSW, decryption takes considerably more time and uses a large amount of RAM.
+This results in the mentioned hard limit on the policy depth, which is not present with YCT.
 
 However, as the security of pairing-free \acrshort{abes} is questioned (see \cite{herranz_attacking_2020}), a pairing-based scheme might be preferable.
-Even though decryption with GPSW is limited to small policies by the RAM size issues and long run times, it is feasible for small policies (max. 5-10 attributes).
-For encryption, even larger number of attributes are viable: The additional time per attributes is the same as with YCT and even for 30 attributes there were no RAM size issues.
-Thus, the relative advantage of YCT over GPSW becomes smaller with larger policies.
+Therefore, in applications where only encryption is necessary on the SoC, the GPSW scheme might be preferred over YCT.
 
-As already outlined in the introduction, running encryption on the SoC is more relevant for our use case than decryption. 
 The other two algorithms, Setup and KeyGen, are run only by the \acrshort{kgc}.
-Therefore, I think it is reasonable to assume that these don't need to be run on a constrained node in real-world scenarios.
+Therefore, it is reasonable to assume that these don't need to be run on a constrained node in real-world scenarios.
 The \acrshort{kgc} would probably be a specially protected PC or at least a powerful \acrshort{iot} node (e.g. Raspberry Pi).
 
 \section{Further Improvements / Future Work}
@@ -169,25 +179,25 @@ The \acrshort{kgc} would probably be a specially protected PC or at least a powe
 The implementations evaluated in this thesis offer room for improvement in many ways.
 For one, interoperability between the ``light'' \acrshort{abe} library presented here and a potential ``full'' counterpart (e.g. for the \acrshort{kgc}) was not a priority.
 
-Regarding the results on the SoC, large improvements could be made by improving the underlying pairing and elliptic curve implementation of the \texttt{rabe-bn} library.
+Regarding the results on the SoC, improvements could be made by improving the underlying pairing and elliptic curve implementation of the \texttt{rabe-bn} library.
 Even though the operations remain computationally expensive, other implementations do significantly better:
 In \cite{scott_deployment_2020}, the \emph{MIRACL Core} library was tested on the same SoC as ours using the same type of curve (256-bit BN curve).
 This library evaluates a pairing in about 600\,ms; our library takes 1600\,ms. 
 Exponentiation in $\mathbb{G}_T$ takes about 300\,ms with their library and about 1400\,ms with ours. 
 Both libraries are high-level implementations (i.e. no optimized assembly code), and thus it is likely that the optimizations from \emph{MIRACL Core} could be carried over to Rust.
-As the runtime of \acrshort{abe} is dominated by these expensive curve operations, an improved pairing and curve implementation offers great potential for speedup.
+As the runtime of \acrshort{abe} is dominated by these expensive curve operations, an improved pairing and curve implementation offers considerable potential for speedup.
 These improvements, however, are clearly outside the scope of this thesis.
 
 Runtimes in the order of several seconds might still be too long, even if improved by a better pairing library.
 To aid this, the symmetric key used to encrypt the actual payload may be reused:
-In both implemented schemes, the data is not encrypted directly but rather using a hybrid approach, i.e. a random key is generated and encrypted under \acrshort{abe} (key encapsulation).
-This key is then used to encrypt the actual payload using AES (data encapsulation).
-Usually, a new key is generated and encrypted for every message.
+In both implemented schemes, the data is not encrypted directly but rather using a hybrid approach, i.e. a random key is generated and encrypted under \acrshort{abe} (so-called key encapsulation).
+This key is then used to encrypt the actual payload using AES (so-called data encapsulation).
+This approach allows fast encryption and decryption of messages of arbitrary size and is standard practice with \glspl{pkes}.
 
-Instead, the encapsulated key could be re-used:
-By caching both the symmetric key and its \acrshort{abe}-encrypted version, more than one message can be encrypted with the same symmetric key.
-This approach requires only a single encryption of \acrshort{abe} for many messages.
-The encyptor may then periodically generate and encrypt a new symmetric key (e.g. once per day).
+Usually, a new key is generated and encrypted for every message, but this is not strictly necessary:
+By saving both the symmetric key and its \acrshort{abe}-encrypted version, more than one message can be encrypted with the same symmetric key.
+A single \acrshort{abe} encryption operation can then be used for many messages.
+The encyptor may periodically generate and encrypt a new symmetric key (e.g. once per day).
 If the messages should be decryptable on their own, the \acrshort{abe}-encrypted symmetric key can be copied into each encrypted message.
 The downside is that all messages encrypted with the same symmetric key naturally have the same attributes or access policy attached (i.e. reduced granularity).
 Also, if the symmetric key is compromised (possibly while it is stored to encrypt the next message), all messages encrypted with that key will be compromised.
@@ -198,6 +208,8 @@ Then, both the symmetric ciphertext of and the respective \acrshort{abe}-encrypt
 
 This symmetric key-caching approach was implemented for use in a system similar to that presented in Figure~\ref{fig:system-architecture}.
 However, it was not evaluated for this thesis, because it doesn't represent ``true'' \acrlong{abe}.
+~\\
 
-The current library also does not implement efficient revocation. 
-Implementation and evaluation of a scheme with efficient revocation is left as a future project.
+The two schemes implemented in the library are \acrshort{kp-abe} schemes, currently no \acrshort{cp-abe} schemes are implemented.
+The implemented schemes also don't support key revocation, key delegation or a \gls{large-universe} of attributes. 
+Implementation and evaluation of such schemes is left for future projects.
