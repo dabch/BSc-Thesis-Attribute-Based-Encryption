@@ -466,14 +466,12 @@ $\mathbb{G}_1$ and $\mathbb{G}_2$ are written additively, $\mathbb{G}_T$ is writ
 
 There are a few different concrete pairing functions, e.g. the Weil pairing, Tate pairing and the Ate pairing~\cite{kiraz_still_2016}.
 Usually the source groups $\mathbb{G}_1$ and $\mathbb{G}_2$ are subgroups of certain elliptic curves \cite{kiraz_still_2016} and the target $\mathbb{G}_T$ is a finite field (\emph{not} another point on a curve)~\cite{blake_advances_2005}.
-% Using a bilinear pairing with a group $\mathbb{G}_T$ where the DLP is easy to solve, the DLP in $\mathbb{G}_1$ can also be solved easily:
-% To find $n$ such that $Q = nP$, compute $e(P,Q) = e(P, nP) = e(P, \underbrace{P+\cdots+P}_{n \text{ times}}) = \underbrace{e(P,P) \cdots e(P,P)}_{n \text{ times}} = e(P,P)^n$.
-% Thus, the discrete logarithm of $Q$ with respect to $P$ is the discrete logarithm of $e(P,Q)$ with respect to $g = e(P,P) \in \mathbb{G}_T$.~\cite{menezes_introduction_2009}
 
-% \subsubsection{Bilinear Hardness Assumption}
+\subsection{Use of elliptic curves and pairings in ABE}
+Bilinear pairings have given rise to a whole new class of cryptographic algorithms, the \emph{pairing-based cryptography}.
+For example, pairings are used to construct \gls{ibe}, a three-party \gls{dh}~\cite{joux_one_2000} or short \glspl{dss}~\cite{boneh_short_2001}.
 
-% Since the DLP can be easy to solve using pairings, we need to adapt our hardness assumption. Therefore, we define
-
-% The \emph{Bilinear Diffie-Hellman Problem} (BDHP): Given $P, aP, bP, cP$ with $a,b,c \in \{1,\dots,n-1\}$ chosen randomly, compute $e(P, P)^{abc}$.~\cite{menezes_introduction_2009}
-
-% If the BDHP is hard for a pairing $e$ on groups $\mathbb{G}_1 \text{ and } \mathbb{G}_T$, this implies that the DLP is hard in both $\mathbb{G}_1 \text{ and } \mathbb{G}_T$.~\cite{menezes_introduction_2009}
+Most \acrshortpl{abes} make use of bilinear pairings, and even the pairing-free scheme (see next section) needs an implementation of the elliptic curve operations.
+These operations are the building blocks of the \acrshortpl{abes} presented in Chapter~\ref{chapter:constructions} and by far the most expensive operations performed by the schemes.
+Therefore, the performance of an \acrshort{abe} implementation greatly depends on the performance of the \gls{ec} and pairing implementation.
+For this reason, pairing implementations are considered in Chapter~\ref{chap:related-work} and our own pairing implementation is evaluated separately in Chapter~\ref{chap:evaluation}.
