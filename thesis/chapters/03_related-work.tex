@@ -1,8 +1,8 @@
-\chapter{Related Work}
+\chapter{Related Work}\label{chap:related-work}
 
-This chapter shall give an overview of the state of research in \acrshort{abe}.
-The first section deals with abstract constructions for \acrshort{abes} and their different properties without concerning with the implementation or perfomance numbers.
-The second section gives a brief overview of \acrshort{abe} implementations on regular PC hardware.
+This chapter shall give an overview of the state of research on \acrshort{abe}.
+The first section deals with abstract constructions for \acrshortpl{abes} and their different properties without concerning with implementations or perfomance numbers.
+The second section gives a brief overview of \acrshort{abe} implementations on unconstrained devices.
 The third section is then most closely related to the topic of this thesis and deals with implementations of pairings and \acrshort{abe} on resource-constrained devices.
 
 % \begin{itemize}
@@ -32,11 +32,11 @@ This property is realized by means of a $(k, n)$-threshold secret sharing scheme
 Sahai and Water's construction can already be seen as an \acrshort{abes} with very limited expressiveness, i.e. it only works with ''k-out-of-n'' access structures~\cite{goyal_attribute-based_2006}.
 
 In 2006, Goyal, Pandey, Sahai and Waters~\cite{goyal_attribute-based_2006} extended this into the first expressive \acrshort{kp-abe} scheme using the \gls{access-tree} construction described in Chapter~\ref{chapter:background}.
-Their main construction uses \glspl{access-tree} and a small attribute universe, but they also give constructions with a large attribute universe and for \gls{lsss} access structures, respectively.
+Their main construction uses \glspl{access-tree} and a \glslink{small-universe}{small attribute universe}, but they also give a \gls{large-universe} construction.
 
 The first expressive \acrshort{cp-abe} scheme was proposed by Bethencourt, Sahai and Waters in~\cite{bethencourt_ciphertext-policy_2007}.
 It is also a large-universe construction and uses \glspl{access-tree}.
-Waters \cite{waters_ciphertext-policy_2011} later also gives the first \acrshort{cp-abe} schemes with a security proof in the \gls{standard-model}, not only in the \gls{ggm} (the distinction is not relevant for this thesis).
+Waters \cite{waters_ciphertext-policy_2011} later also gives the first \acrshort{cp-abe} schemes with a security proof in the \gls{standard-model}, not only in the \gls{ggm}.
 
 Both the schemes in~\cite{goyal_attribute-based_2006} and in~\cite{bethencourt_ciphertext-policy_2007} only support monotonic \glspl{access-structure}.
 
@@ -44,7 +44,7 @@ In \cite{goyal_attribute-based_2006}, an inefficient realization of general (non
 This is inefficient because it doubles the total number of attributes in the system~\cite{goyal_attribute-based_2006}. 
 Non-monotonic access structures over a universe of $n$ attributes are represented by monotonic access structures over a universe of $2n$ attributes.
 It also requires every ciphertext to be associated with $n$ attributes (i.e. either with their positive or negated of a corresponding attribute).
-Note that the size of ciphertexts or keys is usually linear in the number of attributes in expressive \acrshortpl{abes}.
+Note that the size of ciphertexts and keys usually grows linearly with the number of attributes.
 
 The first efficient construction for non-monotonic \glspl{access-structure} was given in~\cite{ostrovsky_attribute-based_2007}. 
 However, this construction leads to large private keys.
@@ -72,17 +72,8 @@ All three of these schemes were attacked by Herranz in \cite{herranz_attacking_2
 \cite{herranz_attacking_2020} argues that it is not possible to build secure \acrshortpl{abes} in the (non-bilinear) discrete-logarithm setting (i.e. on elliptic curves without bilinear pairings).
 For this reason, the security of pairing-free schemes like \cite{yao_lightweight_2015,sowjanya_efficient_2020,tan_enhancement_2019} remains questionable, even if further improved.
 
-~
-
-\section{Evaluation on unconstrained hardware}
-One of the major factors for the performance of the implementation of an \acrshort{abes} is the underlying pairing computation (except for \cite{yao_lightweight_2015} and its derivatives, of course).
-Not only \acrshort{abe} is based on bilinear pairings, but a large variety of cryptographic schemes, e.g. a three-party \gls{dh}~\cite{joux_one_2000} or short \glspl{dss}~\cite{boneh_short_2001}).
-
-Therefore, a fast implementation of the bilinear pairing is vital.
-Comparing different pairing implementations is difficult because the performance greatly depends on the \gls{security-level}, the concrete pairing implemented, the choice of elliptic curves and of course the speed of the hardware and architecture used. 
-Furthermore, many implementations are not portable due to hand-optimized assembly code or the use of architecture-specific instructions.
-
-One of the first notable implementations was the \emph{Pairing-Based Cryptography Library (PBC)}~\cite{lynn_pairing-based_nodate, lynn_implementation_2007}.
+\section{Implementation on unconstrained hardware}
+One of the first notable pairing implementations was the \emph{Pairing-Based Cryptography Library (PBC)}~\cite{lynn_pairing-based_nodate, lynn_implementation_2007}.
 The efficiency improvements implemented by the PBC library were first described by its author, Ben Lynn, in~\cite{lynn_implementation_2007}.
 This implementation runs sufficiently fast on standard PC hardware, e.g. it takes 20.5ms to compute a pairing on a 224-bit MNT curve on a 2.4\,GHz Intel Core i5 processor~\cite{akinyele_self-protecting_2010}.
 
@@ -106,18 +97,19 @@ This is subsequently challenged in \cite{ambrosin_feasibility_2015}, where a C i
 This implementation is significantly faster than the one in \cite{wang_performance_2014} at comparable \glspl{security-level}.
 As such, the authors conclude that \acrshort{abe} is indeed feasible on smartphones.
 
-\section{Evaluation on constrained devices}
+\section{Implementation on constrained devices}
 
-Despite pairing computation being very computationally demanding, there exist libraries even for the smalles microcontrollers:
+Despite pairings being very computationally demanding, there exist libraries even for the smalles microcontrollers:
 For example, the \emph{TinyPBC} library~\cite{aranha_tinypbc_nodate}.
 It takes a minimum of 1.9\,s to compute a pairing on a 7\,MHz ATmega128L processor with optimized assembly code~\cite{oliveira_tinypbc_2011}. 
 Their choice of elliptic curves, however, only provides a security level of 80 bits.
-This is significantly lower than the security level of the 224-bit MNT curve from the PBC library is (around 128 bits)~\cite{akinyele_self-protecting_2010} and the curves in this project (around 100 bits).
-
+This is significantly lower than the security level of the 224-bit MNT curve from the PBC library (around 128 bits)~\cite{akinyele_self-protecting_2010} and the curves in this project (around 100 bits).
 
 Scott~\cite{scott_deployment_2020} provides a fast implementation of the 254-bit BN curve (the same as used in this project) in the \emph{MIRACL Core Cryptographic Library}~\cite{scott_miracl_nodate}.
 They also evaluate their library on the same SoC as used in this thesis (nRF52840, 64\,MHz ARM Cortex M4 CPU) and compute a pairing of the 254-bit BN curve in 635\,ms \cite[Table~4]{scott_deployment_2020}.
 Only the pairing implementation is tested and evaluated, the authors do not implement an \acrshort{abes}.
+
+~
 
 The authors of \cite{ambrosin_feasibility_2015} test their \acrshort{abe} implementation on \gls{iot} devices in \cite{ambrosin_feasibility_2016}.
 They evaluate the performance of the same library on full-fledged \acrshort{iot} devices (among others, on a Raspberry Pi Zero with 1\,GHz ARM11 CPU) and conclude that \acrshort{abe} is feasible on these devices, too.
@@ -126,14 +118,15 @@ In contrast to the setting in this thesis, their hardware is significantly more 
 
 The setting in \cite{borgh_attribute-based_2016} is much closer to ours: \acrshort{abe} is implemented bare-metal (i.e. without operating system) on a sensor equipped with an STM32L151VCT6 SoC with a maximum clock frequency of 32\,MHz.
 They use the pairing library \emph{RELIC Toolkit}~\cite{aranha_relic_nodate} at a security level of 128 bits and evaluate a C implementation of the \acrshort{cp-abe} scheme in \cite{waters_ciphertext-policy_2011}.
-Only decryption is evaluated; decryption is not implemented on the SoC.
+Only encryption is evaluated; decryption is not implemented on the SoC.
 The author again concludes that \acrshort{abe} encryption on the sensor is feasible if the policy size is rather small and the runtime of several seconds is acceptable~\cite{borgh_attribute-based_2016}.
 In this case, the encryption time is over 10\,s already for just six attributes~\cite{borgh_attribute-based_2016}.
-In contrast to our work, the hardware is slightly more constrained and the evaluated scheme is \acrshort{cp-abe}
+In contrast to our work, the hardware is slightly less powerful and the evaluated scheme is \acrshort{cp-abe}.
 
-\cite{girgenti_feasibility_2019} provides a similar analysis for the slightly faster ESP32 board (240\,MHz Xtensa LX6 processor).
+\cite{girgenti_feasibility_2019} provides a similar analysis for the faster ESP32 board (240\,MHz Xtensa LX6 processor).
 They also test the pairing-free YCT scheme \cite{yao_lightweight_2015} and evaluate the energy consumption of \acrshort{abe} operations.
 The authors port existing \acrshort{abe} libraries to the ESP32 platform and use curves with a security level of 80 bits.
 Due to a bug in the library for the YCT scheme, their evaluation only considers its performance with five and ten attributes (the other schemes are evaluated with up to 50 attributes).
 The conclusion of \cite{girgenti_feasibility_2019} is similar to that of \cite{borgh_attribute-based_2016}. 
 In contrast, our SoC is more constrained and we evaluate the YCT scheme for larger and more meaningful policy sizes.
+Also, our implementation has a higher security level.
