@@ -12,12 +12,12 @@
             \node[below, align=center] at (a.south) {$\{m, \omega\}$\\};
             \node[below, align=center] at (b.south) {$\{\}$};
 
-            % \draw[->] (a) edge node[left] {\{$S_A$\}} (kgc);
-            % \draw[->] (b) edge node [right] {\{$S_B$\}} (kgc);
-            % \draw[->] (a) edge pic [left=0.5cm, scale=0.05] {key} node [left=.5cm] {k} (kgc);
-            \draw[->] (b) edge pic [right=0.5cm, scale=0.5, blue] {tree} node [right=.75cm, blue] {$S_B$} (kgc);
+            \draw[->] (a) -- (kgc) node (lbl_a) [pos=0.5, left, olive] {$S_A$};
+            \draw (lbl_a.west) +(-0.25,0) pic [scale=0.5, olive] {tree};
+
+            \draw[->] (b) -- (kgc) node (lbl_b) [pos=0.5, right, blue] {$S_B$};
+            \draw (lbl_b.east) +(0.25,0) pic [scale=0.5, blue] {tree};
             % TODO fix arrows
-            \draw[->] (a) edge pic [left=0.5cm, scale=0.5, olive] {tree} node [left=.75cm, olive] {$S_A$} (kgc);
             % \draw[->] (b) edge node [right] {\{$S_B$\}} (kgc);
 
         \end{tikzpicture}
@@ -36,8 +36,10 @@
             \node[below, align=center] at (a.south) {{\{$PK$, $\textcolor{olive}{k_A}$\}}\\$\{m, \omega\}$};
             \node[below, align=center] at (b.south) {\{$PK$, $\textcolor{blue}{k_B}$\}};
 
-            \draw[->] (kgc) edge pic [left=0.55cm, above=0.3cm, scale=0.05, olive] {key} node [left] {\{$PK$, $\textcolor{olive}{k_A}$\}} (a);
-            \draw[->] (kgc) edge pic [right=1.1cm, above=0.3cm, scale=0.05, blue] {key} node [right] {\{$PK$, $\textcolor{blue}{k_B}$\}} (b);
+            \draw[->] (kgc) -- (a) node (lbl_a) [pos=0.5, left] {\{$PK$, $\textcolor{olive}{k_A}$\}};
+            \draw (lbl_a.north) +(0.35,0) pic [scale=0.05, olive] {key};
+            \draw[->] (kgc) -- (b) node (lbl_b) [pos=0.5, right] {\{$PK$, $\textcolor{blue}{k_B}$\}};
+            \draw (lbl_b.north) +(0.35,0) pic [scale=0.05, blue] {key};
 
             % \draw[->] (kgc) edge node [left] {\{$PK$, $\textcolor{olive}{k_A}$\}} (a);
             % \draw[->] (kgc) edge node [right] {\{$PK$, $\textcolor{blue}{k_B}$\}} (b);
