@@ -18,13 +18,13 @@
             legend style={nodes={scale=1, transform shape}}
         ]
         \addlegendentry{GPSW Enc};
-        \addplot [color=blue, mark=square] table [x=layers,y=gpsw-enc,col sep=comma] {data/ram.csv};
+        \addplot [color=blue, mark=none] table [x=layers,y=gpsw-enc,col sep=comma] {data/ram.csv};
         \addlegendentry{GPSW Dec};
-        \addplot [color=green, mark=o] table [x=layers,y=gpsw-dec,col sep=comma] {data/ram.csv};
+        \addplot [color=blue, mark=o] table [x=layers,y=gpsw-dec,col sep=comma] {data/ram.csv};
         \addlegendentry{YCT Enc};
-        \addplot [color=orange, mark=triangle] table [x=layers,y=yct-enc,col sep=comma] {data/ram.csv};
+        \addplot [color=orange, mark=none] table [x=layers,y=yct-enc,col sep=comma] {data/ram.csv};
         \addlegendentry{YCT Dec};
-        \addplot [color=red, mark=x] table [x=layers,y=yct-dec,col sep=comma] {data/ram.csv};
+        \addplot [color=orange, mark=triangle] table [x=layers,y=yct-dec,col sep=comma] {data/ram.csv};
         % \addlegendentry{SoC RAM size};
         % \addplot [color=black, mark=none] {262144};
         \end{axis}
