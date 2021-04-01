@@ -8,9 +8,9 @@ It shall make clear what challenges had to be overcome to run \acrshort{abe} on 
 The main goal of this project was to implement an \acrshort{abe} scheme on a constrained embedded ARM processor.
 More specifically, the chip used was a Nordic Semiconductor nRF52840 with a 64\,MHz Cortex M4 CPU, 256\,KB of RAM and 1\,MB of flash storage.
 For the detailed specifications, see \cite{noauthor_nrf52840_nodate}.
-This SoC will be referred to simply as `the SoC'.
+This SoC will be referred to simply as ``the SoC''.
 
-For reference, the implementation was also tested on a standard laptop, referred to as `the Laptop'.
+For reference, the implementation was also tested on a standard laptop, referred to as ``the laptop''.
 More specifically, this system has a 2.7\,GHz Intel i7-7500U CPU and 16\,GB of RAM.
 It runs a Linux-based operating system.
 
@@ -21,11 +21,11 @@ It runs a Linux-based operating system.
 Rust was chosen as programming language for this project.
 First, it is a compiled language and thus incurs little overhead at runtime. Its speed is comparable to that of C/C++.
 Second, it provides much stronger memory safety guarantees than other compiled languages (especially C/C++ where extreme care is required to avoid introducing exploitable vulnerabilities).
-This is especially attractive for security-critical components like an encryption library.
+This is very attractive for security-critical components like an encryption library.
 
 \subsection*{The \texttt{rabe-bn} library}
 
-A Rust-only implementation of elliptic curves and a pairing is provided by the open-source library \texttt{rabe-bn}~\cite{bowe_bn_2016}, a derivative of the \texttt{bn} library by Zcash~\cite{bowe_bn_2016}.
+A Rust-only implementation of elliptic curves and a pairing is provided by the open-source library \texttt{rabe-bn}~\cite{bowe_rabe-bn_nodate}, a derivative of the \texttt{bn} library by Zcash~\cite{bowe_bn_2016}.
 It implements a concrete pairing on 256-bit \emph{BN curves}.
 BN curves are a family of pairing-friendly elliptic curves proposed by Barreto and Naehrig \cite{barreto_pairing-friendly_2006}.
 
@@ -35,15 +35,15 @@ Due to the discovery of better attacks on the underlying cryptographic assumptio
 The library provides four structs: \texttt{G1}, \texttt{G2} and \texttt{Gt}, elements of the groups $\mathbb{G}_1$, $\mathbb{G}_2$ and $\mathbb{G}_T$, respectively.
 Let their orders be $r$, then \texttt{Fr} represents an element of the field $\mathbb{F}_r$.
 
-For the elliptic curve groups (structs \texttt{G1} and \texttt{G2}), additive notation is used and the \texttt{*} operator is conveniently overloaded.
+For the elliptic curve groups (structs \texttt{G1} and \texttt{G2}), additive notation is used and the \texttt{*} operator is overloaded.
+This means that point-scalar multiplication can be simply written in Rust code as \verb$group_element * scalar$.
 The target group (struct \texttt{Gt}) uses multiplicative notation.
 For this reason, the description of the schemes in Chapter~\ref{chapter:constructions} has also been adapted to use compatible notation.
 
 \subsection*{nRF52840 HAL crate}
 For easier access to the peripherals of the SoC, the \acrfull{hal} \gls{crate} \texttt{nrf52840-hal} was also used.
 It provides simplified access to the hardware \acrfull{rng} and the timers.
-Strictly speaking, these were not necessary to build a Rust library (timers are only needed for evaluation and the library interface allows the caller to pass their desired random number generator).
-However, for testing and actual use of the library bare-metal on the SoC, both the \acrshort{rng} and the timers were needed. % TODO maybe remove last two sentences
+Access to the timers was not necessary for implementing the \acrshort{abe} library, but was used to measure the runtimes of the \acrshort{abe} algorithms.
 
 \subsection*{\texttt{heapless} crate}
 The \texttt{heapless}~\cite{aparicio_heapless_nodate} crate provides stack-allocated versions of some of the data structures from \texttt{std::collections}. 
@@ -142,7 +142,7 @@ This results in faster encryption and decryption for long ciphertexts because AE
 \subsubsection{Key derivation}
 Both schemes output a randomly generated curve point to use as symmetric key.
 The binary representation of these curve points is much longer than the 256-bit key AES expects.
-Therefore, the curve point is run through a \gls{kdf}, which can be seen in Listing\ref{lst:kdf} in the string representation of the curve point is hashed using \acrshort{sha3}:
+Therefore, the curve point is run through a \gls{kdf}, which can be seen in Listing~\ref{lst:kdf}.
 
 \begin{lstlisting}[caption={Hash-based key derivation Function for curve points},label={lst:kdf}]
 struct Wrapper<W: sha3::Digest>(pub W); // newtype for sha3::Digest
@@ -174,7 +174,6 @@ Then it is possible to simply use the \verb+write!()+ macro to write the formatt
 The 256-bit key obtained from \texttt{kdf()} is then used as the key to encrypt the actual plaintext.
 This is done by AES-256 in CCM mode (Counter Mode Encryption with CBC-MAC).
 CCM is an \acrshort{aead} mode, i.e. it secures both confidentiality and integrity of the data.
-
 The pure-Rust implementations of AES, the CCM mode and \acrshort{sha3} (for \texttt{kdf}) in the crates \texttt{aes}, \texttt{ccm} and \texttt{sha3} by the RustCrypto organization are used~\cite{noauthor_rustcrypto_nodate}.
 
 \begin{lstlisting}[caption={Symmetric Ciphertext struct},label={lst:symm-ciphertext}]
@@ -189,7 +188,7 @@ Listing~\ref{lst:symm-ciphertext} shows the result of encryption with AES-CCM.
 Because dynamic allocation of additional memory is not possible, the plaintext is encrypted in-place.
 In addition to a reference to the encrypted data itself, the ciphertext stores the nonce and the authentication tag.
 
-The \texttt{Ciphertext} struct allows a CCM-encrypted ciphertext to be reconstructed and checked for unauthorized modifications if the key is known.
+The \texttt{Ciphertext} struct allows a CCM-encrypted ciphertext to be reconstructed and checked for unauthorized modifications if the AES key is known.
 In combination with the \acrshort{abe} ciphertext, it forms a hybrid ciphertext.
 This combined ciphertext can then be decrypted with a valid \acrshort{abe} key.
 
@@ -197,7 +196,7 @@ This combined ciphertext can then be decrypted with a valid \acrshort{abe} key.
 
 Both schemes employ Shamir's secret sharing with polynomials for key generation, see Section~\ref{sec:lss-in-access-trees}.
 To facilitate this, a \texttt{Polynomial} struct was written, see Listing~\ref{lst:polynomials}.
-It represents a polynomial over $\mathbb{F}_r$ as a vector of coefficients from $\mathbb{F}_q$.
+It represents a polynomial over $\mathbb{F}_r$ as a vector of coefficients from $\mathbb{F}_r$.
 Polynomial evaluation, random generation and Lagrange interpolation are implemented.
 For reasons of simplicity, the latter is only implemented for $x=0$, i.e. the interpolation is immediately evaluated at $x=0$.
 Evaluation at any other $x$ is not needed for the \acrshort{abe} implementation.
@@ -225,23 +224,20 @@ impl Polynomial {
 
 \section{Implementation of the four ABE algorithms}
 \subsection{Setup}
-The implementations of the setup algorithm are fairly close to the descriptions given in Chapter~\ref{chapter:constructions}.
-The private and public attribute keys are stored in \texttt{FnvIndexMap}s.
-
-See Listing~\ref{lst:struct-pubkey} for the structure representing the public and private parameters generated by Setup of GPSW.
-For YCT, the generators are not required and the attribute public keys are of type \texttt{G1} instead of \texttt{G2}.
+The implementations of the setup algorithm are close to the descriptions given in Chapter~\ref{chapter:constructions}.
+See Listing~\ref{lst:struct-pubkey} for the structures representing the public and private parameters generated by Setup of GPSW.
 
 \begin{lstlisting}[caption={Private and public system parameters structs for GPSW},label={lst:struct-pubkey}]
 /// Private parameters, known only to KGC
 pub struct GpswAbePrivate<'attr, 'own> {
-  atts: &'own FnvIndexMap<&'attr str, F, S>, // att private keys
+  atts: &'own FnvIndexMap<&'attr str, F, S>, // attribute private keys
   master_secret: F,
 }
 /// Public parameters, known to all participants
 pub struct GpswAbePublic<'attr, 'own> {
   g1: G1, // generator of G1
   g2: G2, // generator of G2
-  atts: &'own FnvIndexMap<&'attr str, G2, S>, // att public keys
+  atts: &'own FnvIndexMap<&'attr str, G1, S>, // attribute public keys
   pk: Gt,
 }
 \end{lstlisting}
@@ -261,11 +257,12 @@ pub struct GpswAbeCiphertext<'attr, 'data>(GpswAbeGroupCiphertext<'attr>, kem::C
 \end{lstlisting}
 % \subsubsection{GPSW}
 The GPSW scheme as described in Chapter~\ref{chapter:constructions} encrypts a message encoded as an element of $\mathbb{G}_T$.
-The hybrid encryption function therefore just samples a random element from \texttt{Gt}, encrypts it with GPSW and then encrypts the ciphertext using AES with the key derived from the random \texttt{Gt}.
+The hybrid encryption function therefore just samples a random element from \texttt{Gt}, encrypts it with GPSW and then encrypts the plaintext using AES with the key derived from the random \texttt{Gt}.
 
 % \subsubsection{YCT}
-The YCT scheme itself only generates a random curve point; its formal definition relies on a \gls{privkes} to encrypt the data.
-Therefore, the curve point generated by YCT ($C'$ in the formal definition) is simply used as the symmetric key to encrypt the payload.
+The YCT scheme itself only generates a random curve point; it is not possible to specify which curve point should be used.
+Practically, this makes little difference:
+The curve point generated by YCT ($C'$ in the formal definition) is simply used as the symmetric key to encrypt the payload.
   
 
 \subsection{KeyGen}
@@ -289,24 +286,23 @@ fn keygen_node (
   ) -> Vec<(u8, G1), consts::U30>;
 \end{lstlisting}
 
-The argument \verb+tree_ptr+ is the position of the currently visited \gls{access-tree} node within \verb+tree_arr+.
-\verb+parent_poly+ is the parent node's secret sharing polynomial and is evaluated at the index of the current node (argument \texttt{index}).
+\verb+tree_ptr+ is the position of the currently visited \gls{access-tree} node within \verb+tree_arr+.
+The argument \verb+parent_poly+ is the parent node's secret sharing polynomial and is evaluated at the index of the current node (argument \texttt{index}).
 The function returns a list of secret shares created by the current node and its children. 
 These secret shares consist of an element of \texttt{G1} (the curve element) and a \texttt{u8}, which is the index of the leaf node that generated the secret share.
 
 The public-facing \verb+keygen()+ function calls \verb+decrypt_node()+ on the root and combines the result with a reference to the \gls{access-tree} to form the actual decryption key.
 See Listing~\ref{lst:struct-key} for the structure representing a decryption key in GPSW.
-The decryption key for YCT only differs in the type of secret shares contained in the \texttt{FnvIndexMap} (\texttt{F} instead of \texttt{G1}).
+The decryption key for YCT only differs in the type of secret shares contained in the \texttt{FnvIndexMap} (\texttt{F} instead of \texttt{G2}).
 
 \begin{lstlisting}[caption={Decryption key struct},label={lst:struct-key}, breaklines=true]
-pub struct PrivateKey<'attr, 'own>(AccessStructure<'attr, 'own>, FnvIndexMap<u8, G1, consts::U32>);
+pub struct PrivateKey<'attr, 'own>(AccessStructure<'attr, 'own>, FnvIndexMap<u8, G2, consts::U32>);
 \end{lstlisting}
 
 \subsection{Decrypt}
 Like key generation, decryption is defined recursively for both schemes.
-Again, this is implemented using a recursive function \verb+decrypt_node()+ that is called by the public-facing \texttt{decrypt()} function.
-
-See Listing~\ref{lst:decrypt-node} for the signature of \verb+decrypt_node+ with GPSW.
+This is implemented using a recursive function \verb+decrypt_node()+.
+See Listing~\ref{lst:decrypt-node} for its signature with the GPSW scheme.
 
 \begin{lstlisting}[caption={Function signature of recursive decryption},label={lst:decrypt-node}]
 fn decrypt_node(
@@ -317,7 +313,7 @@ fn decrypt_node(
 ) -> Option<Gt>;
 \end{lstlisting}
 
-The arguments \verb+tree_arr+ and \verb+tree_ptr+ are like with Listing~\ref{lst:keygen-node}.
+The arguments \verb+tree_arr+ and \verb+tree_ptr+ are like in Listing~\ref{lst:keygen-node}.
 In \verb+secret_shares+, the secret shares corresponding to the leafs of the \gls{access-tree} are passed.
 \verb+att_es+ contains the curve elements corresponding to the attributes associated with the ciphertext.
 
