@@ -4,6 +4,7 @@ pub mod hash_to_group;
 pub mod msp;
 pub mod access_tree;
 pub mod test_policies;
+pub mod polynomial;
 
 pub use kem::{encrypt, decrypt, Ciphertext};
 

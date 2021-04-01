@@ -5,7 +5,7 @@ use rabe_bn::{self, Group};
 
 use heapless::{FnvIndexMap, Vec, consts};
 use rand::{Rng, RngCore};
-use abe_utils::kem;
+use abe_utils::{kem, polynomial::Polynomial};
 pub use abe_utils::access_tree::{AccessNode, AccessStructure, S as STree};
 
 pub use ccm::aead::Error;
@@ -76,39 +76,6 @@ pub struct GpswAbeCiphertext<'attr, 'data>(GpswAbeGroupCiphertext<'attr>, kem::C
 /// in the leaves of the tree.
 //#[derive(Debug)]
 pub struct PrivateKey<'attr, 'own>(AccessStructure<'attr, 'own>, FnvIndexMap<u8, G1, S>);
-
-/// Polynomial p(x) = a0 + a1 * x + a2 * x^2 + ... defined by a vector of coefficients [a0, a1, a2, ...]
-//#[derive(Debug)]
-struct Polynomial(Vec<F, S>);
-
-impl Polynomial {
-  /// Evaluates the polynomial p(x) at a given x
-  fn eval(&self, x: F) -> F {
-    self.0.iter().rev().fold(F::zero(), |acc, c| *c + (x * acc))
-  }
-
-  /// Generates a random polynomial p(x) of degree `coeffs` coefficients, where p(0) = `a0`
-  fn randgen(a0: F, coeffs: u64, rng: &mut dyn RngCore) -> Polynomial {
-    let mut coefficients: Vec<F, S> = Vec::from_slice(&[a0]).unwrap();
-    coefficients.extend((1..coeffs).map(|_| -> F { rng.gen() }));
-    assert_eq!(coefficients.len() as u64, coeffs);
-    Polynomial(coefficients)
-  }
-
-  /// Calculates the langrage base polynomials l_i(x) for given set of indices omega and the index i.
-  /// As we only ever need to interpolate p(0), no value for x may be passed.
-  fn lagrange_of_zero(i: &F, omega: &Vec<F, S>) -> F {
-    //println!("LAGRANGE: {:?}\n{:?}", i, omega);
-    let r = omega.iter()
-      .filter(|x| *x != i)
-      // .map(|x| { println!("{:?}", x); x} )
-      .map(|j| -*j * (*i-*j).inverse().unwrap())
-      .fold(F::one(), |acc, x| acc * x);
-    //println!("\n");
-    r
-  }
-}
-
 
 impl<'attr: 'es, 'es: 'key, 'key> GpswAbePrivate<'attr, 'es> {
 
@@ -303,8 +270,8 @@ impl<'data, 'key, 'es, 'attr> GpswAbePublic<'attr, 'es> {
         // we can only reconstruct our secret share if at least `thresh` children decrypted successfully (interpolation of `thresh-1`-degree polynomial)
         if children_result.len() < *thresh as usize { return None }
         // an arbitrary subset omega with |omega| = thresh is enough to reconstruct the secret. To make it easy, we just take the first `thresh` in our list.
-        let relevant_children: Vec<(F, Gt), S> = children_result.into_iter().take(*thresh as usize).collect();
-        let relevant_indexes: Vec<F, S> = relevant_children.iter()
+        let relevant_children: Vec<(F, Gt), STree> = children_result.into_iter().take(*thresh as usize).collect();
+        let relevant_indexes: Vec<F, STree> = relevant_children.iter()
           .map(|(i, _)| i.clone()).collect(); // our langrange helper function wants this vector of field elements
         let result: Gt = relevant_children.into_iter()
           .map(|(i, dec_res)| { dec_res.pow(Polynomial::lagrange_of_zero(&i, &relevant_indexes)) } )
