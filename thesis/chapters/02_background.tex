@@ -8,19 +8,20 @@ Today's conventional cryptography knows two main classes of cryptosystems: \glsp
 
 Consider $n$ participants wanting to communicate securely (i.e. no user can read encrypted messages between two other users).
 Using a \gls{privkes}, each participant would need to agree on a unique key with every other participant, resulting in a total number of $\frac{n(n-1)}{2}$ keys.
-Using a \gls{pkes} reduces the number of keys to only $n$, because each participant could obtain everyone else's public key and then send messages to them securely.
+The users would need to exchange these keys secretly, e.g. by meeting in person.
+Using an \gls{pkes} removes the need for secret key exchange because the encryption keys can be published. It also reduces the number of keys to only $n$, because each participant could obtain every other participant's public key and send messages to them.
 
 Another problem remains, however: Encrypting a single message to a large number of participants requires encrypting it with everyone's public key separately.
 For a large number of recipients, this is inefficient.
-So, for example, to encrypt a message for all students of a certain university, we'd need to obtain each student's public key and encrypt the message with each key separately.
+So, for example, to encrypt a message for all students of a certain university, we would need to obtain each student's public key and encrypt the message with each key separately.
 
-Even worse, what if we want to encrypt data for any student of said university, even if they \emph{haven't joined the university yet}.
-In this case, our only option using classic asymmetric cryptography would be to have some trusted instance keep a plaintext copy and re-encrypt the data for any new student when they join the university.
+Even worse, what if we want to encrypt data for any student of said university, even if they \emph{haven't joined the university yet}?
+In this case, our only option using classic cryptography would be to have some trusted instance keep a plaintext copy and re-encrypt the data for any new student when they join the university.
 Attribute-Based encryption solves this problem.
 
 \section{Attribute-Based Encryption}\label{sec:background-abe}
 \acrfull{abe} uses a combination of attributes to define a \emph{group} of private keys that should be able to read encrypted data, instead of encrypting it for one specific private key only (as in \glspl{pkes}).
-In Figure~\ref{fig:keys-abe}, this is represented by a tree.
+In Figure~\ref{fig:key-use}, this is represented by a tree.
 
 The combination of attributes may be as restrictive or permissive as needed.
 It is possible to create ciphertexts that can be read by almost all members of an \acrshort{abes}, and ciphertexts that can be read by nobody except a few selected participants.
@@ -31,7 +32,7 @@ Figure~\ref{fig:abe-system} shows a small \acrshort{abe} system with the \acrsho
 \input{figures/02_abe_system_overview}
 
 In essence, attributes are strings describing certain characteristics or features of actors and objects.
-For example, a typical freshman student of informatics at TUM could be described by the attributes \texttt{"semester count 1", "computer science", "tum", "is young", "started degree in 2017"}.
+For example, a typical freshman student of computer science at TUM could be described by the attributes \texttt{"semester count 1", "computer science", "tum", "is young", "started degree in 2017"}.
 
 These attributes themselves don't contain any information to which users or object they apply; instead this is a matter of interpretation.
 Some attributes may be very clearly defined, e.g. \texttt{"started degree in 2017"} from above.
@@ -55,25 +56,26 @@ With a \gls{small-universe} construction, the size of the public parameters usua
 We will define a \acrshort{kp-abe} scheme here, for the difference between \acrshort{cp-abe} and \acrshort{kp-abe} and formal definitions of Access Trees, see the next sections.
 
 \begin{definition}
-    A (Key-Policy) \Acrlong{abes} consists of the following four algorithms:~\cite{goyal_attribute-based_2006}
+    A (Key-Policy) \Acrlong{abes} consists of the following four algorithms~\cite{goyal_attribute-based_2006}:
     \begin{itemize}
         \item \emph{Setup}. Run once by the \acrfull{kgc}. Sets up the system by generating public parameters $PK$ and a private master key $MK$. The public parameters are shared with all participants, while the master key remains only known to the \acrshort{kgc}.
-        \item \emph{KeyGen(PK, s, S)}. Input: public parameters $PK$, master secret $s$ and \gls{access-structure} $S$.\\
+        \item \emph{KeyGen(PK, MK, S)}. Input: public parameters $PK$, master key $MK$ and \gls{access-structure} $S$.
         Run by the trusted authority once for each user to generate their private key. Returns a private key $k$ corresponding to $S$.
-        \item \emph{Encrypt(PK, m, $\omega$)}. Input: public parameters $PK$, plaintext message $m$ and set of attributes $\omega$.\\
+        \item \emph{Encrypt(PK, m, $\omega$)}. Input: public parameters $PK$, plaintext message $m$ and set of attributes $\omega$.
         Run by any participant of the system. Encrypts $m$ under $\omega$ and returns the ciphertext $c$.
-        \item \emph{Decrypt(c, k)}. Input: ciphertext $c$ (output of \emph{Encrypt}) and key $k$ (output of \emph{KeyGen}).\\
+        \item \emph{Decrypt(c, k)}. Input: ciphertext $c$ (output of \emph{Encrypt}) and key $k$ (output of \emph{KeyGen}).
         Run by any participant holding a private key generated by \emph{KeyGen}. Outputs the correctly decrypted message $m'$ if and only if the set of attributes under which $m$ was encrypted satisfies the access structure under which $k$ was created.
     \end{itemize}
 \end{definition}
 
-The definition of a \acrshort{cp-abe} scheme is identical, except that \emph{Encrypt(PK, m, S)} takes an \gls{access-structure} $S$ and \emph{KeyGen(PK, s, $\omega$)} takes a set of attributes.
+The definition of a \acrshort{cp-abe} scheme is identical, except that \emph{Encrypt(PK, m, S)} takes an \gls{access-structure} $S$ and \emph{KeyGen(PK, MK, $\omega$)} takes a set of attributes.
 
 How exactly these algorithms work in concrete ABE schemes will be discussed in Chapter~\ref{chapter:constructions}.
 
 \subsection{KP-ABE and CP-ABE}\label{sec:cp-vs-kp}
 
-Two components are necessary to specify a group of keys that shall be able to decrypt a ciphertext: A number of attributes that are present, and a policy that defines a combination of required attributes. 
+Two components are necessary to specify a group of keys that shall be able to decrypt a ciphertext:
+A list of attributes that are present, and a policy that defines a combination of required attributes. 
 Each of these can either be associated with the ciphertext, or with the decryption key:
 
 In \acrfull{cp-abe}, the key is associated with a set of attributes and the ciphertext is encrypted under an \gls{access-policy}.
@@ -82,7 +84,7 @@ See Figure~\ref{fig:cp-kp-abe} for illustration.
 
 In both cases, a ciphertext can be decrypted if and only if the set of attributes specified in one part satisfy the \gls{access-policy} associated with the other part.
 
-\acrshort{cp-abe} tends to be more intuitive because, when encrypting a plaintext, the encryptor controls rather explicitly who can decrypt their ciphertext:
+\acrshort{cp-abe} tends to be more intuitive because, when encrypting a plaintext, the encryptor controls more explicitly who can decrypt their ciphertext:
 They set the \gls{access-policy} that defines which combinations of attributes are required from the users to successfully decrypt the ciphertext~\cite{bethencourt_ciphertext-policy_2007}.
 An example use case for \acrshort{cp-abe} in a hospital setting would be sending an encrypted note about problems with a specific treatment to all doctors, patients that received that treatment and nurses of the department that administered the treatment.
 This could be specified by an \gls{access-policy} as (\texttt{hospital-name} AND (\texttt{doctor} OR (\texttt{patient} AND \texttt{received-treatment-x}) OR (\texttt{nurse} AND \texttt{department-y})).
@@ -107,7 +109,7 @@ With \acrshort{kp-abe}, policies are handled by the \acrshort{kgc}, which is in 
 
 \subsection{Access Structures}\label{sec:access-structures}
 Access structures formally determine which sets of attributes are required to reconstruct the ciphertext under \acrshort{abe}.
-This definition is adapted from \cite{beimel_secure_1996} for our setting of allowed attribute sets, instead of allowed parties.
+This definition is adapted from \cite{beimel_secure_1996} to our setting of allowed attribute sets, instead of allowed parties.
 \begin{definition}Access Structure~\cite{beimel_secure_1996}.\\
     Let $U = \{A_1, \dots, A_n\}$ be the universe of attributes.
     A set $\mathcal{A} \subseteq 2^{U}$ is monotone if for all $B \in \mathcal{A}$ and $C \supseteq B$,  $C \in \mathcal{A}$.
@@ -122,7 +124,7 @@ Intuitively, the monotonicity of an access structure means that adding an attrib
 \input{figures/02_sample_access_tree}
 
 Explicitly specifying an \gls{access-structure} is not feasible, as its size may be exponential in the size of the attribute universe.
-Therefore, we will use the construction of \emph{Access Trees} from Goyal~et~al. in~\cite{goyal_attribute-based_2006}.
+Therefore, we will use the construction of \emph{Access Trees} from Goyal~et~al.~\cite{goyal_attribute-based_2006}.
 Each leaf of this tree is labelled with an attribute, and each interior node is labelled with an integer, the threshold for it to be satisfied~\cite{goyal_attribute-based_2006}.
 
 Figure~\ref{fig:sample-access-tree} illustrates an example for an Access Tree. It is satisfied by any set of attributes that contains two of $A, B$ and either $C$ or $D$.
@@ -131,10 +133,10 @@ For an attribute universe of $U = \{A, B, C, D\}$ this would realize the \gls{ac
 
 \begin{definition}
     Access Tree~\cite{goyal_attribute-based_2006}.\\
-    An interal node $x$ of an access tree is defined by its children and a threshold value $d_x$. If $x$ has $num_x$ children, then its threshold value satisfies $0 < d_x \leq num_x$.\\
+    An interal node $x$ of an access tree is defined by its children and a threshold value $d_x$.
+    If $x$ has $num_x$ children, then its threshold value satisfies $0 < d_x \leq num_x$.
     A leaf node $x$ is defined by an attribute and a threshold value $k_x = 1$.
 
-    \cite{goyal_attribute-based_2006} also defines the following functions for working with access trees:
     The parent of a node $x$ in the access tree is denoted by $\text{parent}(x)$.
     If $x$ is a leaf node, $\text{att}(x)$ denotes the attribute associated with $x$; otherwise it is undefined.
     The children of a node $x$ are numbered from $1$ to $num_x$. Then $\text{index}(y)$ denotes the unique index of $y$ among the children of its parent node.
@@ -148,7 +150,7 @@ For an attribute universe of $U = \{A, B, C, D\}$ this would realize the \gls{ac
     If $x$ is an internal node, then $\mathcal{T}_x = 1$ if and only if $d_x$ or more of the children $x'$ of $x$ return $\mathcal{T}_{x'}(\gamma) = 1$.
 \end{definition}
 The set of attribute sets that satisfy a tree $\mathcal{T}$ is then the access structure it represents: $\mathcal{A} = \{\gamma \in 2^U | \mathcal{T}(\gamma) = 1\}$.
-Note that $\mathcal{A}$ has to be monotone. It is not possible to specify that the \emph{absence} of an attribute in the tree.
+Note that $\mathcal{A}$ has to be monotone. It is not possible to specify the \emph{absence} of an attribute in the tree.
 
 Using the threshold-gate construction, we can express \emph{A AND B} as a node with two children $A$ and $B$ and threshold $2$, and express \emph{A OR B} as a node with two children $A$ and $B$ and threshold $1$~\cite{yao_lightweight_2015}.
 
@@ -193,7 +195,7 @@ Using the threshold-gate construction, we can express \emph{A AND B} as a node w
 
 \section{Shamir's Secret Sharing}
 This secret sharing scheme based on polynomial interpolation was first introduced by Adi Shamir in 1979~\cite{shamir_how_1979}.
-It allows a secret $s$, which is generally just a number, to be shared among a number of $n$ participants.
+It allows a secret $s$, which is generally just a number, to be shared among $n$ participants.
 The shares are computed such that $s$ can be reconstructed if, and only if, at least $k$ participants meet and combine their shares.
 Such a theme is then called a $(k,n)$-threshold scheme.~\cite{shamir_how_1979}
 
@@ -212,7 +214,7 @@ To interpolate a polynomial of degree $d$ from $d+1$ given points $(x_1, y_1), \
     \end{equation}
     is the lagrange interpolation polynomial for that set of points, where $\omega = \{x_1, \dots, x_{d+1}\}$ and $\Delta_{\omega,k}(x)$ are the Lagrange basis polynomials:
     \begin{equation}
-        \Delta_{\omega,k}(x) = \prod_{\substack{i\in\omega\\ i \neq k}}^d \frac{x-i}{k-i}
+        \Delta_{\omega,k}(x) = \prod_{\substack{i\in\omega\\ x_i \neq k}} \frac{x-x_i}{x_k-x_i}
     \end{equation}
 \end{definition}
 
@@ -245,11 +247,11 @@ See also Figure~\ref{fig:sss} for illustration.
 In practice, the numbers would be far bigger and calculations wouldn't be performed over the real numbers, but rather a finite field modulo a prime~\cite{shamir_how_1979}.
 
 \subsection{Secret Sharing in Attribute Based Encryption}\label{sec:lss-in-access-trees}
-To realize an Access Tree that ,,gives away'' a secret if and only if it is satsified by a set of attributes, we can recursively use Shamir's Secret Sharing scheme:
+To realize an Access Tree that ,,gives away'' a secret if and only if it is satsified by a set of attributes, we can recursively apply Shamir's Secret Sharing scheme:
 
 \input{figures/02_access_tree_shamir}
 
-We use a secret-sharing polynomial on each internal node of the Access Tree:
+We use a secret-sharing polynomial on each internal node of the Access Tree.
 For a node $x$ with threshold $d_x$ and $\text{num}_x$ children, we define a $(d_x, \text{num}_x)$-threshold scheme and embed one share of the secret in each child.
 Begin in the root, and set $s$ as the secret we want to embed in the tree. For all other nodes, set $s$ as the secret share received from the parent node.
 
@@ -274,16 +276,15 @@ A user's capabilities can only be extended (e.g. by issuing a key with additiona
 This is is an problem, e.g. if their private key is compromised~\cite{boldyreva_identity-based_2008}.
 
 The simplest approach is to simply renew the keys of valid users from time to time~\cite{boldyreva_identity-based_2008}.
-When a user is revoked, their key will not be updated any longer. Thus any ciphertexts encrypted after the next key update will not be readable for the revoked user~\cite{boldyreva_identity-based_2008}
-
-This approach requires the \acrshort{kgc} to update or re-issue one key per valid user and requires a secure channel to the \acrshort{kgc}~\cite{boldyreva_identity-based_2008}.
+When a user is revoked, their key will not be updated any longer. Thus any ciphertexts encrypted after the next key update will not be readable for the revoked user~\cite{boldyreva_identity-based_2008}.
+This is inefficient because it requires the \acrshort{kgc} to update or re-issue one key per valid user and needs a secure channel to the \acrshort{kgc}~\cite{boldyreva_identity-based_2008}.
 
 Attrapadung and Imai~\cite{attrapadung_attribute-based_2009} differentiate between \emph{direct} and \emph{indirect revocation}: 
 With direct revocation, the list of revoked users is directly specified by the encrypting party (i.e. the encryption takes a ''black list'' of revoked users).
 Indirect revocation achieves revocation by means of updating the keys of valid users, as described in the naive approach above.
 
 Direct revocation requires the encryptor to know the list of revoked users \cite{attrapadung_attribute-based_2009} (i.e. the encrypting party is responsible for correct revocation of the users on the revocation list).
-This can be a major drawback, especially in large systems or when encryptors are severely constrained (as in our case, \gls{iot} devices).
+This can be a major drawback, especially in large systems or when encryptors are severely constrained (as in our case, \acrshort{iot} devices).
 With indirect revocation, the encryptor does not need to do anything except use the most recent version of the public parameters~\cite{attrapadung_attribute-based_2009}.
 
 The advantage of direct revocation, however, is that it works instantly: As soon as an encryptor knows about the revocation of a user, they will include them on their revocation list for future encryptions.
@@ -345,7 +346,7 @@ One special point is added, the \emph{point at infinity} denoted by $\mathcal{O}
 \subsection{Point Addition}
 Now, it is possible to show that every line intersecting a curve $E(\mathbb{Z}_p)$ intersects it in exactly three points, if you (1) count tangential intersections double and (2) count any vertical line as intersecting the curve in the point at infinity $\mathcal{O}$~\cite{katz_introduction_2015}.
 Therefore, $\mathcal{O}$ can be thought of as sitting ``above'' the end of the y-axis~\cite{katz_introduction_2015}.
-Figure~\ref{fig:ecc-point-addition} shows all four different combinations, feel free to convince yourself that this statement indeed makes sense for the plotted curve.
+Figure~\ref{fig:ecc-point-addition} shows the four different cases.
 
 Using this intersecting line, we can define an operation on curve points:
 \begin{definition}
@@ -365,7 +366,7 @@ Using this intersecting line, we can define an operation on curve points:
 
 \begin{figure}
     \includegraphics[width=\textwidth]{figures/ecc_point_addition.pdf}
-    \caption[Elliptic Curve point addition]{Elliptic Curve point addition\\(Image by \href{https://commons.wikimedia.org/wiki/File:ECClines-2.svg}{SuperManu}, licensed under \href{https://creativecommons.org/licenses/by-sa/3.0/deed.en}{Creative Commons}.)}
+    \caption[Elliptic Curve point addition]{Elliptic curve point addition\\(Image by \href{https://commons.wikimedia.org/wiki/File:ECClines-2.svg}{SuperManu}, licensed under \href{https://creativecommons.org/licenses/by-sa/3.0/deed.en}{Creative Commons}.)}
     \label{fig:ecc-point-addition}
 \end{figure}
 
@@ -377,28 +378,28 @@ We will be adding points to themselves a lot. Therefore, we define for ease of n
     \end{equation}
 \end{definition}
  
-That is exactly the definition of group exponentiation, applied to our additive \Gls{ec} group. Note that the product of a scalar with a point is again a point on our curve.\\
+That is exactly the definition of group exponentiation, applied to our additive \gls{ec} group. Note that the product of a scalar with a point is again a point on our curve.\\
 
 \subsection{Groups on Elliptic Curves}
 \begin{theorem}
-    The points of an Elliptic Curve $E(\mathbb{Z}_p)$ plus the addition law as stated in Definition~\ref{def:point-add} forms an abelian (commutative group)~\cite{katz_introduction_2015, washington_elliptic_2008}:
+    The points of an Elliptic Curve $E(\mathbb{Z}_p)$ plus the addition law as stated in Definition~\ref{def:point-add} form an abelian (commutative) group~\cite{katz_introduction_2015, washington_elliptic_2008}:
 \end{theorem}
 \begin{proof}
     A formal proof is outside the scope of this thesis, but here's some informal reasoning about the group axioms:
     \begin{itemize}
         \item Existence of Identity: $P + \mathcal{O} = P$ (as per definition)
-        \item Commutativity: For all $P_1, P_2 \in E(\mathbb{Z}_p)$, $P_1 + P_2 = P_2 + P_1$ (obvious, because the line through $P_1$ and $P_2$ will be the same)
-        \item Unique inverse: For any point $P = (x,y) \in E(\mathbb{Z}_p)$, the unique inverse is $-P = (x, -y)$ (obvious).
+        \item Commutativity: For all $P_1, P_2 \in E(\mathbb{Z}_p)$, $P_1 + P_2 = P_2 + P_1$ (because the line through $P_1$ and $P_2$ will be the same)
+        \item Unique inverse: For all $P = (x,y) \in E(\mathbb{Z}_p)$, the unique inverse is $-P = (x, -y)$ (because the line through $P$ and $-P$ will be vertical).
         \item Associativity: For all $P_1, P_2, P_3 \in E(\mathbb{Z}_p)$, $(P_1 + P_2) + P_3 = P_1 + (P_2 + P_3)$ (much less obvious, see e.g.~\cite[Chapter 2.4]{washington_elliptic_2008} for a proof).
     \end{itemize}
 \end{proof}
 
 Of particular interest to cryptography are \emph{cyclic} groups on elliptic curves:
 \begin{definition}
-    A (multiplicative) group $\mathbb{G}$ is cyclic if there is an element $g \in \mathbb{G}$ that generates $\mathbb{G}$, i.e. $\mathbb{G} = \langle g \rangle = \{g^n | n \in \mathbb{Z}\}$.
+    An (additive) group $\mathbb{G}$ is cyclic if there is an element $g \in \mathbb{G}$ that generates $\mathbb{G}$, i.e. $\mathbb{G} = \langle g \rangle = \{k \cdot g | k \in \mathbb{Z}\}$.
 \end{definition}
 
-Translated to our (additive) groups on elliptic curves, this means that there is a generator point $P \in E(\mathbb{Z}_p)$, such that every point $Q \in E(\mathbb{Z}_p)$ can be written as $Q = nP$ with some $n \in \mathbb{N}$.
+Translated to our elliptic curves, this means that there is a generator point $P \in E(\mathbb{Z}_p)$, such that every point $Q \in E(\mathbb{Z}_p)$ can be obtained by repeatedly adding $P$ to itself using the point addition from Definition~\ref{def:point-add}.
 
 \begin{theorem}\cite{katz_introduction_2015}
     Let $\mathbb{G}$ be a finite group of order $n$, i.e. $|\mathbb{G}| = n$.
@@ -412,12 +413,11 @@ Translated to our (additive) groups on elliptic curves, this means that there is
 
 There is an important consequence to this fact: If a group has prime order, all points except the identity are generators.
 This stems from the fact that a prime number has exactly two divisors: One (the order of the identity) and itself (the order of all other points).
-\\
-This follows from the fact that for any point $P \in E(\mathbb{Z}_p)$, its order $\text{ord}(P) = | \langle P \rangle |$ must divide the group order.
-A prime has exactly two divisors: One (the order of $\mathcal{O}$) and itself (the order of all other points).
 
 Again, translated to Elliptic Curves this means that if the number of points $\#E(\mathbb{Z}_p)$ on a curve is prime, all points except $\mathcal{O}$ are generators.
-These cyclic elliptic curve groups (or, cyclic subgroups of non-cyclic elliptic curves) are exactly the groups we are interested in for doing actual cryptography. For a detailed description why, see \cite[p.~321]{katz_introduction_2015}.
+These cyclic elliptic curve groups are exactly the groups we are interested in for doing actual cryptography.
+The ease of finding generators is one reason, but not the only one. 
+For a detailed explanation, see \cite[p.~321]{katz_introduction_2015}.
 
 % \subsection{Hardness Assumptions}
 

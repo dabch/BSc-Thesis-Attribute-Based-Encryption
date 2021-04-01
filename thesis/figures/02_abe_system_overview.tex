@@ -66,7 +66,7 @@
         \end{tikzpicture}
         \caption{Alice can now use the public parameters $PK$ and $\omega$ to encrypt a message for Bob, which he can decrypt only if his access policy $\textcolor{blue}{S_B}$ is satisfied by $\omega$. Note that the \acrshort{kgc} is not involved in this step}
     \end{subfigure}
-    \begin{subfigure}[b]{0.4\textwidth}
+    \begin{minipage}[c][][c]{0.4\textwidth}
         \centering
         \begin{tikzpicture}[matrixstyle/.style={
             matrix of nodes,
@@ -92,9 +92,9 @@
                 $\omega$ & \node[align=left, text width=3.5cm] {Set of attributes};\\
             };
         \end{tikzpicture}
-    \end{subfigure}
+    \end{minipage}
     \caption[Interaction of Alice, Bob and KGC in an \acrshort{abes}]{
-        Alice wants to send an \acrshort{kp-abe} encrypted message $m$ to Bob. She wants to encrypt the message under a set of attributes $\omega$.
+        Alice wants to send a \acrshort{kp-abe} encrypted message $m$ to Bob. She wants to encrypt the message under a set of attributes $\omega$.
         Both Alice and Bob create a desired \gls{access-policy}, $\textcolor{olive}{S_A}$ and $\textcolor{blue}{S_B}$, respectively.
         Note that the \acrshort{kgc} will only issue a corresponding key if it deems that they should be allowed to obtain a key under the given access policy.
 
