@@ -81,6 +81,8 @@ This is essentially the same construction as the current implementation of \text
 
 \section{Aspects common to both ABE schemes}
 
+These aspects of the implementation are common to both ABE schemes and therefore outsourced into a separate \verb+abe_utils+ crate.
+
 \subsection{Representation of Access Trees}
 The Rust type system is very well suited to represent the type of tree structures we need for Access Trees.
 A simple implementation might look like the one in Listing~\ref{lst:access-tree-naive}. 
@@ -96,7 +98,7 @@ enum AccessTree<'a> {
 
 This, however, does not work when the \texttt{std::vec::Vec} is replaced by a stack-allocated \texttt{heapless::Vec}:
 The \texttt{std::vec::Vec} is allocated on the heap and thus only a pointer to the vector needs to be stored in the \texttt{AccessTreeNode}.
-This pointer has constant size, of course.
+This pointer has constant size.
 
 A \texttt{heapless::Vec} is not located on the heap, but directly inside the \texttt{AccessTreeNode}.
 Even if there is a limit on the number of children a single inner node might have, there is no limit to the depth of the access tree.
