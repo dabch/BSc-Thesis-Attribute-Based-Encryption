@@ -4,14 +4,14 @@
 \chapter{Introduction}\label{chapter:introduction}
 
 \acrfull{abe} promises to provide security while improving flexibility over standard cryptosystems.
-Its approach of combining \glspl{attribute} and \glslink{access-policy}{policies} describing admissible attribute combinations is closer to traditional notions of access control (e.g. RBAC)~\cite{bethencourt_ciphertext-policy_2007}.
+Its approach of combining \glspl{attribute} and \glslink{access-policy}{policies} describing admissible attribute combinations is closer to traditional notions of access control (e.g. RBAC) than conventional encryption~\cite{bethencourt_ciphertext-policy_2007}.
 
 This increased flexibility is also desirable for \acrshort{iot} applications.
 However, the \acrfull{iot} is especially affected by the trade-off between cost and security:
 Because hardware must be cheap and has to run on batteries, it is often highly constrained.
-Many traditional security measures, even some standard cryptographic schemes, are not practical on \acrshort{iot} devices.
-Compared to standard cryptgraphy, most \acrshortpl{abes} demand even more resources~\cite{wang_performance_2014}.
-Thus, the feasibility of \acrshort{abe} on constrained \acrshort{iot} nodes is disputed~\cite{wang_performance_2014,ambrosin_feasibility_2016,ambrosin_feasibility_2015,girgenti_feasibility_2019,borgh_attribute-based_2016}.
+Many traditional security measures, even some standard cryptographic algorithms, are not practical on \acrshort{iot} devices.
+Compared to standard cryptography, most \acrshortpl{abes} demand even more resources~\cite{wang_performance_2014}.
+Thus, the feasibility of \acrshort{abe} on constrained \acrshort{iot} nodes is disputed~\cite{ambrosin_feasibility_2016,ambrosin_feasibility_2015,borgh_attribute-based_2016,girgenti_feasibility_2019,wang_performance_2014}.
 
 The objective of this thesis is to assess to what extent \acrshort{abe} can be practically applied on ARM Cortex M4 processors.
 To this end, an \acrshort{abe} library is developed using the Rust programming language.
@@ -34,26 +34,24 @@ Trusting them would be an unreasonable assumption in many scenarios.
 An alternative to encryption with \acrshort{abe} on the sensor would be outsourcing the \acrshort{abe} operations to the gateway:
 The sensor and gateway share a secret key, which is used to secure the communication over \acrshort{ble}.
 The gateway then decrypts the symmetrically encrypted data and re-encrypts it using \acrshort{abe}.
-This approach does not require \acrshort{abe} on the sensor, but only on the gateway.
+This approach does not require \acrshort{abe} on the sensor, only on the gateway.
 The latter is assumed to be much more powerful than the sensor.
 However, the gateway must be trusted in this scenario.
 
-An alternative to \acrshort{abe} itself would be to let the cloud server enforce access control:
-All participants exchange secret keys with the cloud server.
+An alternative using only \glslink{privkes}{symmetric cryptography} would be to let the cloud server enforce access control:
+All participants exchange a secret key with the cloud server.
 The sensor then uses this key to encrypt the data, which only the cloud server can read.
-When a user wants to read some data, they request it at the cloud server.
-If the cloud server grants their request, it re-encrypts the data with the respective user's key and transmits it to them.
-This approach removes trust in the gateway and requires only symmetric cryptography, which is much faster than \acrshort{abe} or \glspl{pkes}.
+When a user wants to access some data, they request it at the cloud server.
+If the cloud server grants their request, the server re-encrypts the data with the respective user's key and transmits it to them.
+This approach removes trust in the gateway and requires only \glslink{privkes}{symmetric encryption} for all participants, which is much faster than \acrshort{abe}.
 The disadvantage is that the cloud server knows all data in plain text. It thus needs to be trusted and represents a single point of failure.
 
-End-to-end \acrshort{abe} does not, however, remove the single point of failure:
+End-to-end \acrshort{abe} removes trust in the gateway and the cloud server, but it does not remove the single point of failure:
 A malicious \acrfull{kgc} could issue keys that allow decryption of arbitrary data (see Section~\ref{sec:kgc}).
-However, the \acrfull{kgc} is only required once to setup the \acrshort{abe} system and issue the participant's keys.
+However, the \acrshort{kgc} is only required to setup the \acrshort{abe} system and issue the participant's keys.
 It is not involved in any encryption or decryption operations.
-The \acrshort{kgc} does not need to be online during the use of the system and could e.g. be located on an air-gapped network. 
+The \acrshort{kgc} does not need to be online during the use of the system and could e.g. be located on an air-gapped network and only be connected when new a users joins the system. 
 This greatly reduces the attack surface.
-~\\
-
 % ~\\
 
 % \emph{Martin: }
