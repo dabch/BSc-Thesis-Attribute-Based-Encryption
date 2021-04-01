@@ -11,11 +11,6 @@ use rand::{RngCore, Rng};
 
 type Ccm = ccm::Ccm<Aes256, ccm::consts::U10, ccm::consts::U13>;
 
-trait SymmetricKey<KeySize: generic_array::ArrayLength<u8>> {
-    type GroupElement;
-
-    fn get_bytes() -> GenericArray<u8, KeySize>;
-}
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Ciphertext<'data> {
