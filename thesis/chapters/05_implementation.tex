@@ -173,6 +173,8 @@ The 256-bit key obtained from \texttt{kdf()} is then used as the key to encrypt 
 This is done by AES-256 in CCM mode (Counter Mode Encryption with CBC-MAC).
 CCM is an AEAD mode, i.e. it secures both confidentiality and integrity of the data.
 
+The pure-Rust implementations of AES, \gls{sha3} (for \texttt{kdf}) and the CCM mode in the crates \texttt{aes}, \texttt{ccm} and \texttt{sha3} by the RustCrypto organization are used~\cite{noauthor_rustcrypto_nodate}.
+
 \begin{lstlisting}[caption={Symmetric Ciphertext struct},label={lst:symm-ciphertext}]
 pub struct Ciphertext<'data> {
     data: &'data mut [u8],
