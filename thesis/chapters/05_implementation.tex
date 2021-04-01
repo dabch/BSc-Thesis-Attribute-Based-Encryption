@@ -132,10 +132,10 @@ let access_tree: AccessTree = &[
 \subsection{Hybrid Encryption}
 Both schemes encrypt a given plaintext using a hybrid approach:
 Instead of encrypting the data with \acrshort{abe} directly, the plaintext is encrypted with AES and the key for AES is encrypted under \acrshort{abe}.
-This results in faster encryption and decryption for longer ciphertexts because AES is significantly faster than ABE.
+This results in faster encryption and decryption for long ciphertexts because AES is significantly faster than ABE.
 
-In our implementation, the \acrshort{abe} scheme generates a secret curve point (i.e. either \verb+rabe_bn::G1+ or \verb+rabe_bn::Gt+).
-From this, an AES key is derived and then used to encrypt the plaintext with AES-CCM.
+% In our implementation, the \acrshort{abe} scheme generates a secret curve point (i.e. either \verb+rabe_bn::G1+ or \verb+rabe_bn::Gt+).
+% From this, an AES key is derived and then used to encrypt the plaintext with AES-CCM.
 
 \subsubsection{Key derivation}
 Both schemes output a randomly generated curve point to use as symmetric key.
@@ -159,8 +159,8 @@ fn kdf<G: core::fmt::Display>(inp: &G) -> GenericArray<u8, consts::U32> {
 \end{lstlisting}
 
 The \verb+kdf()+ function takes any struct that implements the \texttt{core::fmt::Display} trait and outputs a 256-bit byte array (exactly the size needed for an AES key).
-\texttt{Display} is a formatting trait for user-facing output, i.e. it would be used to format a struct when it is printed to the console.
-Normally, \texttt{Display} is used to turn a struct into a \verb+String+, but those are implemented in the standard library and thus are not available on the SoC.
+\texttt{Display} is a formatting trait for user-facing output, i.e. it would be used to format a struct when something is printed to the console.
+Normally, \texttt{Display} is used to turn a struct into a \verb+String+, but those are implemented in the standard library and thus not available on the SoC.
 Therefore, the naive approach of using \texttt{Display} to turn our curve point into a \texttt{String} and then hashing the \texttt{String} does not work.
 
 To circumvent this problem, I implemented the \verb+core::fmt::Write+ trait for the \acrshort{sha3} hasher using a newtype pattern.
@@ -171,9 +171,9 @@ Then it is possible to simply use the \verb+write!()+ macro to write the formatt
 
 The 256-bit key obtained from \texttt{kdf()} is then used as the key to encrypt the actual plaintext.
 This is done by AES-256 in CCM mode (Counter Mode Encryption with CBC-MAC).
-CCM is an AEAD mode, i.e. it secures both confidentiality and integrity of the data.
+CCM is an \acrshort{aead} mode, i.e. it secures both confidentiality and integrity of the data.
 
-The pure-Rust implementations of AES, \gls{sha3} (for \texttt{kdf}) and the CCM mode in the crates \texttt{aes}, \texttt{ccm} and \texttt{sha3} by the RustCrypto organization are used~\cite{noauthor_rustcrypto_nodate}.
+The pure-Rust implementations of AES, the CCM mode and \acrshort{sha3} (for \texttt{kdf}) in the crates \texttt{aes}, \texttt{ccm} and \texttt{sha3} by the RustCrypto organization are used~\cite{noauthor_rustcrypto_nodate}.
 
 \begin{lstlisting}[caption={Symmetric Ciphertext struct},label={lst:symm-ciphertext}]
 pub struct Ciphertext<'data> {
@@ -185,7 +185,7 @@ pub struct Ciphertext<'data> {
 
 Listing~\ref{lst:symm-ciphertext} shows the result of encryption with AES-CCM.
 Because dynamic allocation of additional memory is not possible, the plaintext is encrypted in-place.
-In addition to a reference to the encrypted data itself, the ciphertext stores the nonce used for the counter and the authentication tag.
+In addition to a reference to the encrypted data itself, the ciphertext stores the nonce and the authentication tag.
 
 The \texttt{Ciphertext} struct allows a CCM-encrypted ciphertext to be reconstructed and checked for unauthorized modifications if the key is known.
 In combination with the \acrshort{abe} ciphertext, it forms a hybrid ciphertext.
@@ -221,7 +221,8 @@ impl Polynomial {
 }
 \end{lstlisting}
 
-\subsection{Setup algorithm}
+\section{Implementation of the four ABE algorithms}
+\subsection{Setup}
 The implementations of the setup algorithm are fairly close to the descriptions given in Chapter~\ref{chapter:constructions}.
 The private and public attribute keys are stored in \texttt{FnvIndexMap}s.
 
@@ -243,7 +244,7 @@ pub struct GpswAbePublic<'attr, 'own> {
 }
 \end{lstlisting}
 
-\subsection{Encrypt algorithm}
+\subsection{Encrypt}
 As mentioned before, encryption is done in a hybrid manner.
 The implementations of both schemes provide a struct containing the \acrshort{abe} ciphertext according to Chapter~\ref{chapter:constructions}.
 Combined with the symmetric ciphertext, this forms a hybrid ciphertext.
@@ -256,20 +257,20 @@ struct GpswAbeGroupCiphertext<'attr> {
 }
 pub struct GpswAbeCiphertext<'attr, 'data>(GpswAbeGroupCiphertext<'attr>, kem::Ciphertext<'data>);
 \end{lstlisting}
-\subsubsection{GPSW}
+% \subsubsection{GPSW}
 The GPSW scheme as described in Chapter~\ref{chapter:constructions} encrypts a message encoded as an element of $\mathbb{G}_T$.
-The encryption function therefore just samples a random element from \texttt{Gt}, encrypts it with GPSW and then encrypts the ciphertext using AES with the key derived from the random \texttt{Gt}.
+The hybrid encryption function therefore just samples a random element from \texttt{Gt}, encrypts it with GPSW and then encrypts the ciphertext using AES with the key derived from the random \texttt{Gt}.
 
-\subsubsection{YCT}
+% \subsubsection{YCT}
 The YCT scheme itself only generates a random curve point; its formal definition relies on a \gls{privkes} to encrypt the data.
 Therefore, the curve point generated by YCT ($C'$ in the formal definition) is simply used as the symmetric key to encrypt the payload.
   
 
-\subsection{Recursive key generation algorithm}
+\subsection{KeyGen}
 In both schemes, key generation is defined recursively:
 Starting from the root, random polynomials are formed for each inner node of the \gls{access-tree}.
-The actual decryption key consists of a set of secret shares, which are created whenever the key generation algorithm hits a leaf node.
-How exactly these are generated differs between the two schemes, but the general structure is the same.
+The actual decryption key is a set of secret shares, which are created whenever the key generation algorithm hits a leaf node.
+% How exactly these are generated differs between the two schemes, but the general structure is the same.
 
 To realize this, a recursive function \verb+decrypt_node()+ was implemented.
 Listing~\ref{lst:keygen-node} shows its signature for the GPSW scheme. 
@@ -299,7 +300,7 @@ The decryption key for YCT only differs in the type of secret shares contained i
 pub struct PrivateKey<'attr, 'own>(AccessStructure<'attr, 'own>, FnvIndexMap<u8, G1, consts::U32>);
 \end{lstlisting}
 
-\subsection{Recursive decryption algorithm}
+\subsection{Decrypt}
 Like key generation, decryption is defined recursively for both schemes.
 Again, this is implemented using a recursive function \verb+decrypt_node()+ that is called by the public-facing \texttt{decrypt()} function.
 
@@ -321,11 +322,18 @@ In \verb+secret_shares+, the secret shares corresponding to the leafs of the \gl
 \verb+decrypt_node()+ returns an \verb+Option<Gt>+.
 This is an optional type because decryption will fail if the \gls{access-tree} is not satisfied by the attributes associated with the ciphertext.
 
-\section{GPSW scheme}
-\subsection{Random choice of symmetric key}
+The public-facing \verb+decrypt()+ function receives both the combined ABE and symmetric ciphertext. 
+It calls \verb.decrypt_node. on the the root of the \gls{access-tree} to obtain the secret curve point.
+This is then run through \verb+kdf()+ to obtain the AES key.
+The plaintext is decrypted in-place with AES-CCM and a reference to the (now successfully decrypted) data is returned.
 
-\section{YCT scheme}
-\subsection{Randomization of \texttt{index()} function}
+\subsection{Randomization of index (only YCT)}
+To fix a flaw in the original YCT scheme, the index of nodes within their parent is additionally randomized.
+See Section~\ref{sec:yct} for a detailed description of this fix.
+
+The fix is implemented using an additional function \verb+index_prf()+ which uses an HMAC-SHA3-512 pseudorandom function to randomize the index.
+On every layer of the \gls{access-tree}, a different random seed is used. 
+These seeds are included in the private decryption key and passed to the YCT versions of \verb+keygen_node+ and \verb+decrypt_node+.
 % fn encrypt_with_aes_key<'a>(
 %     aes_key: &GenericArray<u8, consts::U32>,
 %     plaintext: &'a mut [u8],
