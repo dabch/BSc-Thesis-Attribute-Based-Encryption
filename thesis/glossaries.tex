@@ -5,7 +5,7 @@
 {
         name={key generation center},
         text={Key Generation Center},
-        description={Trusted central authority that sets up an \acrshort{abes} and generates keys for users of an \acrshort{abes} }
+        description={Trusted central authority that sets up an \acrshort{abes} and generates keys for users of an \acrshort{abes}. See Section~\ref{sec:kgc}}
 }
 
 \newglossaryentry{ec}{
@@ -34,7 +34,7 @@
 
 \newglossaryentry{access-policy}{
   name={access policy},
-  description={A policy that defines what combination of \glspl{attribute} shall be required to access data. Formalized by an access structure and usually realized by an access tree, see Section~\ref{sec:access-structures}}
+  description={A policy that defines what combination of \glspl{attribute} shall be required to access data. Formalized by an access structure and usually realized by an access tree, see Section~\ref{sec:access-structures}},
   plural={access policies},
 }
 
@@ -82,19 +82,6 @@
   name={identity-based encryption},
   description={type of encryption where data is encrypted using a unique identity (e.g. an email address or phone number), and only the participant holding the secret key corresponding to that identity is able to decrypt the ciphertext.}
 }
-
-\newglossaryentry{gls-msp}{
-  name={monotone span program},
-  description={linear algebraic computation model that is equivalent to \acrshort{lsss}. See Section~\ref{sec:lsss}},
-}
-
-\newglossaryentry{gls-lsss}{
-  name={linear secret sharing scheme},
-  description={secret sharing scheme in which the share generation can be described by a matrix. See~\cite{beimel_secure_1996}}
-}
-
-\newacronym[see={[Glossary:]{gls-msp}}]{msp}{MSP}{monotone span program\glsadd{gls-msp}}
-\newacronym[see={[Glossary:]{gls-lsss}}]{lsss}{LSSS}{linear secret sharing scheme\glsadd{gls-lsss}}
 
 \newglossaryentry{standard-model}{
   name={standard model},
