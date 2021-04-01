@@ -15,9 +15,9 @@
             % \draw[->] (a) edge node[left] {\{$S_A$\}} (kgc);
             % \draw[->] (b) edge node [right] {\{$S_B$\}} (kgc);
             % \draw[->] (a) edge pic [left=0.5cm, scale=0.05] {key} node [left=.5cm] {k} (kgc);
-            \draw[-] (b) edge pic [right=0.5cm, scale=0.5, blue] {tree} node [right=.75cm, blue] {$S_B$} (kgc);
+            \draw[->] (b) edge pic [right=0.5cm, scale=0.5, blue] {tree} node [right=.75cm, blue] {$S_B$} (kgc);
             % TODO fix arrows
-            \draw (a) edge pic [left=0.5cm, scale=0.5, olive] {tree} node [left=.75cm, olive] {$S_A$} (kgc);
+            \draw[->] (a) edge pic [left=0.5cm, scale=0.5, olive] {tree} node [left=.75cm, olive] {$S_A$} (kgc);
             % \draw[->] (b) edge node [right] {\{$S_B$\}} (kgc);
 
         \end{tikzpicture}
@@ -64,7 +64,7 @@
 
             % \draw[->] (c.north) -- ++(0,.2) node [anchor=south] {\small $\omega$};
         \end{tikzpicture}
-        \caption{Alice can now use the public parameters $PK$ and $\omega$ to encrypt a message for Bob, which he can decrypt only if his access policy $\textcolor{blue}{S_B}$ is satisfied by $\omega$. Note that the \acrshort{kgc} plays no role in this step}
+        \caption{Alice can now use the public parameters $PK$ and $\omega$ to encrypt a message for Bob, which he can decrypt only if his access policy $\textcolor{blue}{S_B}$ is satisfied by $\omega$. Note that the \acrshort{kgc} is not involved in this step}
     \end{subfigure}
     \begin{subfigure}[b]{0.4\textwidth}
         \centering
