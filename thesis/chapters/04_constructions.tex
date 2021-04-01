@@ -31,9 +31,10 @@ To speed up encryption and decryption, the plaintext is not encrypted with the G
 Instead, a random group element is chosen and encrypted under GPSW (i.e. a $k \in \mathbb{G}_T$).
 This element is hashed to obtain an symmetric key, which is then used to encrypt the plaintext with AES-GCM (an \acrshort{aead} mode of operation).
 The ciphertext now consists of the GPSW-encrypted group element plus the AES-GCM ciphertext.
-\\
+
+~\\
 Let $\mathbb{G}_1$ and $\mathbb{G}_2$ be bilinear groups of prime order $q$. Let $P$ be a generator of $\mathbb{G}_1$ and $Q$ be a generator of $\mathbb{G}_2$. Let $e: \mathbb{G}_1 \times \mathbb{G}_2 \rightarrow \mathbb{G}_T$ be a bilinear map.
-Note that $\mathbb{G}_1$ and $\mathbb{G}_2$ are written additively, but $\mathbb{G}_T$ is written using multiplicative notation.
+Note that $\mathbb{G}_1$ and $\mathbb{G}_2$ are written additively, but $\mathbb{G}_T$ is written using multiplicative notation.\\
 
 \emph{Setup}~\cite{goyal_attribute-based_2006}.
 The attribute universe is defined as $\text{U} = \{1, 2, \dots, n\}$ and is fixed.
