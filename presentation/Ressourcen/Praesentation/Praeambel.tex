@@ -7,6 +7,10 @@
 \usepackage{graphicx} % Grafiken
 \usepackage[absolute, overlay]{textpos} % Positionierung
 
+\usepackage{listings}
+\usepackage{lstautogobble}
+\usepackage{listings-rust}
+
 % Silbentrennung:
 \usepackage{hyphenat}
 %\tolerance 2414
@@ -62,3 +66,13 @@
 
 \makeglossaries
 \input{../thesis/glossaries.tex}
+
+% Settings for lstlistings
+\lstset{%
+  basicstyle=\ttfamily,
+  columns=fullflexible,
+  autogobble,
+  frame=single,
+  keywordstyle=\bfseries\color{TUMBlue},
+  stringstyle=\color{TUMAccentGreen}
+}

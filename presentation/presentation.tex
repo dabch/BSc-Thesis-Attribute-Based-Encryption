@@ -200,6 +200,48 @@
         \end{figure}
     \end{columns}
     \footnotetext[1]{\url{https://github.com/georgbramm/rabe-bn}}
+    \footnotetext[2]{\url{https://crates.io/crates/heapless}}
+\end{frame}
+
+\begin{frame}[c, fragile]
+    \frametitle{Implementation: Challenges}
+    \begin{block}{How to represent access trees without dynamic memory allocation?}
+        % Naive implementation:
+        \begin{lstlisting}[caption={Naive implementation (uses standard library)}]
+            enum AccessTree<'a> {
+                Node(u64, std::vec::Vec<AccessTree<'a>>),
+                Leaf(&'a str),
+            }
+        \end{lstlisting}
+        % Refined implementation: 
+        \begin{lstlisting}[caption={Refined implementation}]
+            type AccessTree<'a, 'b> = &'b [AccessNode<'a>];
+            enum AccessNode<'a> {
+                Node(u64, heapless::Vec<u8, consts::U16>),
+                Leaf(&'a str),
+            }
+            \end{lstlisting}
+    \end{block}
+\end{frame}
+
+\begin{frame}[c, fragile]
+    \frametitle{Implementation: Challenges}
+    \begin{block}{Porting \texttt{rabe-bn} pairing library to the SoC}
+        \begin{itemize}
+            \item Replace heap data structures by stack-allocated versions
+            \item Implementation \verb+core::fmt::Display+ without use of Strings
+        \end{itemize}
+    \end{block}
+    \begin{block}{Key derivation from curve points}
+        \begin{itemize}
+            \item Curve points are too long for an AES key + not random enough
+            \item Format curve point using \verb+core::fmt::Display+
+            \item Hash string representation using SHA-3
+        \end{itemize}
+    \end{block}
+    \begin{center}
+        \alert{\large $\rightarrow$ ported library behaves the same as original \texttt{rabe-bn}!}
+    \end{center}
 \end{frame}
 
 \section{Results}
