@@ -188,11 +188,23 @@
 
 \begin{frame}[c]
     \frametitle{Bilinear pairings (not-so-standard stuff)}
-    \begin{center}
+    \begin{minipage}{.04\textwidth}
+        ~
+    \end{minipage}
+    \onslide<2->{\begin{minipage}{.25\textwidth}
+        Pairing-Based Cryptography:
+        \begin{itemize}
+            \item Short Digital Signatures
+            \item Identity-Based Encryption
+            \item Three-Way Diffie-Hellman
+            \item \alert{Attribute-Based Encryption}
+        \end{itemize}
+    \end{minipage}}
+    \begin{minipage}{0.7\textwidth}\centering
         \input{figures/pairings.tex}  \\
         \vspace{0.5cm}
-        \onslide<2->{\alert{\large$\rightarrow$ very expensive to calculate (\textasciitilde1500\,ms on our MCU)}}
-    \end{center}
+        \onslide<3->{\alert{\large$\rightarrow$ very expensive to calculate (\textasciitilde1500\,ms on our MCU)}}
+    \end{minipage}
 \end{frame}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % FOLIENSTIL: Standard mit Lehrstuhl-, Fakultäts- und Universitätsnamen im
