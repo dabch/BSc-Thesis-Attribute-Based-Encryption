@@ -1,0 +1,27 @@
+% \begin{figure}[h]
+    \begin{tikzpicture}[fullnode/.style={draw, minimum width=3.75cm, minimum height=1.25cm, align=center}]
+        % \draw (0, 0) node (soc) {Sensor\\(nRF52840 SoC)} |- ++(5, 0) node (gateway) {Gateway\\(Smartphone or Raspberry Pi)};
+        \node[fullnode] (soc) {Sensor \\(nRF52840 SoC)};
+        \node[fullnode] (gateway) [right=4cm of soc] {Gateway\\(e.g. Smartphone)};
+        \node[fullnode] (cloud) [below=1.5cm of gateway] {Cloud\\(e.g. AWS instance)};
+        \node[fullnode] (kgc) [below=1.5cm of soc] {Key Generation\\Center};
+
+        \draw[->] (soc) -- (gateway) node [pos=0.5, align=center] {Bluetooth\\Low Energy};
+        \draw[<->] (gateway) -- (cloud) node [pos=0.5, align=center] {Internet\\(TCP/IP)};
+
+        \node[fullnode] (user1) [below=1.5cm of kgc] {User 1\\(e.g. Patient)};
+        \node[fullnode] (user2) [below=1.5cm of cloud] {User 2\\(e.g. Doctor)};
+
+        % \draw[->] (kgc) -- (gateway) node [pos=0.5] {Internet};
+        \draw[->, dotted] (kgc) -- (soc);% node [pos=0.5, align=center] {Key exchanged\\before deployment};
+        \draw[->, dotted] (kgc) -- (user1);% node [pos=0.5] {Internet};
+        \draw[->, dotted] (kgc) -- (user2);% node [pos=0.5] {Internet};
+        \draw[<->] (user1) -- (cloud) node [pos=0.25, sloped, above] {Internet};
+        \draw[<->] (user2) -- (cloud) node [pos=0.5] {Internet};
+
+        \node [draw, dashed, fit=(soc) (gateway), inner sep=1mm, label={[anchor=south west]north west:Carried by the patient}] {};
+        \node [red, draw, dashed, fit=(gateway) (cloud), inner sep=2mm, label={[red,anchor=south]above:Not trusted}] {};
+    \end{tikzpicture}
+    % \caption[Simplified use case for our ABE library]{Simplified use case for end-to-end Attribute Based Encryption with encryption on a constrained sensor MCU. The ABE library developed for this thesis runs on the sensor.}
+    % \label{fig:system-architecture}
+% \end{figure}
