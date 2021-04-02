@@ -103,6 +103,62 @@
 \end{frame}
 
 \begin{frame}[c]
+    \frametitle{ABE scheme: Algorithms}
+    \begin{minipage}[t]{0.49\textwidth}
+        \begin{center}
+            \begin{tikzpicture}[baseline=(current bounding box.north)]
+                \node[draw, font=\LARGE] at (0,0) {KGC};
+            \end{tikzpicture}
+        \end{center}
+        \vspace{0.5cm}
+        \begin{block}<2->{\centering $(PK, MK) = \text{Setup}(U)$}
+            \centering
+            Sets up the system and defines the attributes.
+            % \begin{itemize}
+            %     \item Input: Attribute Universe $U$
+            %     \item Output: Public Key $PK$, Master Key $MK$
+            % \end{itemize}
+        \end{block}
+        \vspace{0.5cm}
+        \begin{block}<3->{\centering $k = \text{KeyGen}(MK, S)$}
+            \centering
+            Issues a decryption key under a given access policy.
+            % \begin{itemize}
+            %     \item Input: Master Key $MK$, Access Policy $S$
+            %     \item Ouptut: Decryption key $k$
+            % \end{itemize}
+        \end{block}
+    \end{minipage}
+    \begin{minipage}[t]{0.49\textwidth}
+        \begin{center}
+            \begin{tikzpicture}[baseline=(current bounding box.north)]
+                \node[draw, font=\LARGE] at (-1.25,0) (a) {Alice};
+                \path (a) -- (b) node[pos=0.5, font=\LARGE] {\&};
+                \node[draw, font=\LARGE] at (1.25,0) (b) {Bob};
+            \end{tikzpicture}
+        \end{center}
+        \vspace{0.5cm}
+        \begin{block}<4->{\centering $c = \text{Encrypt}(PK, m, \omega)$}
+            \centering
+            Encrypts plaintext under given list of attributes.
+            % \begin{itemize}
+            %     \item Input: Attribute Universe $U$
+            %     \item Output: Public Key $PK$, Master Key $MK$
+            % \end{itemize}
+        \end{block}
+        \vspace{0.5cm}
+        \begin{block}<5->{\centering $m = \text{KeyGen}(k, c)$}
+            \centering
+            Decrypts ABE ciphertext.
+            % \begin{itemize}
+            %     \item Input: Master Key $MK$, Access Policy $S$
+            %     \item Ouptut: Decryption key $k$
+            % \end{itemize}
+        \end{block}
+    \end{minipage}
+\end{frame}
+
+\begin{frame}[c]
     \frametitle{How to specify Access Policies?}
     \input{../thesis/figures/02_sample_access_tree.tex}
 \end{frame}
@@ -191,6 +247,7 @@
             \item nRF52840 SoC: \textcolor{TUMBlau}{64MHz} ARM Cortex M4, \textcolor{TUMBlau}{256KB RAM}
             \item Rust programming language: Memory safety guarantees built in!
             \item Pairing and Elliptic Curve Library: \texttt{rabe-bn}\footnotemark
+            \item Use of \texttt{core} library and \texttt{heapless} data structures\footnotemark
         \end{itemize}
         
         \column{0.45\textwidth}
@@ -258,7 +315,7 @@
         \end{itemize}
 
         \column{.45\textwidth}
-        Test
+        \input{figures/evaluation-tree}
     \end{columns}
 \end{frame}
 
