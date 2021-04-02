@@ -133,8 +133,8 @@
         \begin{center}
             \begin{tikzpicture}[baseline=(current bounding box.north)]
                 \node[draw, font=\LARGE] at (-1.25,0) (a) {Alice};
-                \only<2->{\path (a) -- (b) node[pos=0.5, font=\LARGE] {\&};}
                 \node[draw, font=\LARGE] at (1.25,0) (b) {Bob};
+                \path (a) -- (b) node[pos=0.5, font=\LARGE] {\&};
             \end{tikzpicture}
         \end{center}
         \vspace{0.5cm}
@@ -147,7 +147,7 @@
             % \end{itemize}
         \end{block}
         \vspace{0.5cm}
-        \begin{block}<5->{\centering $m = \text{KeyGen}(k, c)$}
+        \begin{block}<5->{\centering $m = \text{Decrypt}(k, c)$}
             \centering
             Decrypts ABE ciphertext.
             % \begin{itemize}
@@ -165,7 +165,7 @@
 
 \subsection{Secret Sharing}
 \begin{frame}[c]
-    \frametitle{Shamir's threshold Secret Sharing}
+    \frametitle{Shamir's Threshold Secret Sharing}
     \input{figures/02_sss.tex}
 \end{frame}
 
@@ -191,7 +191,7 @@
     \begin{minipage}{.04\textwidth}
         ~
     \end{minipage}
-    \onslide<2->{\begin{minipage}{.25\textwidth}
+    \onslide<3->{\begin{minipage}{.25\textwidth}
         Pairing-Based Cryptography:
         \begin{itemize}
             \item Short Digital Signatures
@@ -202,11 +202,12 @@
     \end{minipage}}
     \begin{minipage}{0.7\textwidth}\centering
         \input{figures/pairings.tex}  \\
+        \onslide<2->{* requires special pairing-friendly curves}
         \vspace{0.5cm}
     \end{minipage}
     \vspace{0.5cm}
     \centering
-    \onslide<3->{\alert{\large$\rightarrow$ very expensive to calculate (\textasciitilde1500\,ms on our MCU)}}
+    \onslide<4->{\alert{\large$\rightarrow$ very expensive to calculate (\textasciitilde1500\,ms on our MCU)}}
 
 \end{frame}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -250,7 +251,7 @@
         \end{block}
         
     \end{columns}
-    \center{$\rightarrow$ Both were implemented for analysis on the SoC}
+    \center{\alert{\large $\rightarrow$ Both were implemented for analysis on the SoC}}
 \end{frame}
 
 
@@ -346,7 +347,7 @@
 
 \begin{frame}[c]
     \centering
-    \frametitle{Results: Timings -- overview}
+    \frametitle{Results: Timings (overview)}
     \resizebox{!}{.35\textheight}{
         \input{figures/06_diagrams_timing_1}
     }
@@ -354,7 +355,7 @@
 
 \begin{frame}[c]
     \centering
-    \frametitle{Results: Timings -- same scale}
+    \frametitle{Results: Timings (same scale)}
     \resizebox{!}{.35\textheight}{
         \input{figures/06_diagrams_timing_2}
     }
