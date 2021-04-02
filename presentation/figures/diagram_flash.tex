@@ -1,0 +1,30 @@
+\begin{minipage}[h]{\textwidth}\centering
+    \pgfplotsset{scaled y ticks=false}
+    \begin{tikzpicture}
+        \begin{axis}[
+            ybar,
+            bar shift=0pt,
+            ylabel={kilobytes},
+            title={Size of executable},
+            height=0.7\textheight,
+            symbolic x coords={GPSW,YCT},
+            xtick={GPSW,YCT},
+            ymin=0, ymax=175,
+            bar width=2cm,
+            enlarge x limits = 0.75,
+            nodes near coords,
+            every node near coord/.style={
+                /pgf/number format/precision=2
+            },
+        ]
+        \addplot[blue, fill=blue!30] coordinates {
+            (GPSW, 148.824)
+        };
+        \addplot[orange, fill=orange!30] coordinates {
+            (YCT,	88.288)
+        };
+        % \addlegendentry{SoC RAM size};
+        % \addplot [color=black, mark=none] {262144};
+        \end{axis}
+    \end{tikzpicture}
+\end{minipage}
