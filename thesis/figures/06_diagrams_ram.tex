@@ -17,18 +17,16 @@
             grid style=dashed,
             legend style={nodes={scale=1, transform shape}}
         ]
-        \addlegendentry{GPSW Enc};
-        \addplot [color=blue, mark=none] table [x=layers,y=gpsw-enc,col sep=comma] {data/ram.csv};
         \addlegendentry{GPSW Dec};
         \addplot [color=blue, mark=o] table [x=layers,y=gpsw-dec,col sep=comma] {data/ram.csv};
-        \addlegendentry{YCT Enc};
-        \addplot [color=orange, mark=none] table [x=layers,y=yct-enc,col sep=comma] {data/ram.csv};
         \addlegendentry{YCT Dec};
         \addplot [color=orange, mark=triangle] table [x=layers,y=yct-dec,col sep=comma] {data/ram.csv};
-        % \addlegendentry{SoC RAM size};
-        % \addplot [color=black, mark=none] {262144};
+        \addlegendentry{GPSW Enc};
+        \addplot [color=blue, mark=none] {83560};
+        \addlegendentry{YCT Enc};
+        \addplot [color=orange, mark=none] {22616};
         \end{axis}
     \end{tikzpicture}
-    \caption[RAM use of ABE]{RAM use of \acrshort{abe} encryption and decryption on the laptop. The \glspl{access-tree} used for decrytion are \glspl{perfect-binary-tree} of the given depth. A depth of one means that the tree consists of one root with two children.}
+    \caption[RAM use of ABE]{RAM use of \acrshort{abe} encryption and decryption on the laptop. Memory use for encryption is constant. The \glspl{access-tree} used for decrytion are \glspl{perfect-binary-tree} of the given depth. A depth of one means that the tree consists of one root with two children.}
     \label{fig:abe-performance-diagrams-ram}
 \end{figure}
