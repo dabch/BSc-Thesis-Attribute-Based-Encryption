@@ -22,17 +22,17 @@ use rand_chacha::{
 
 use abe_utils::policies_deep_binary as policies;
 
-use yao_abe_rust::{AccessNode, AccessStructure, YaoABEPrivate, YaoABEPublic, F, G, S};
-// use gpsw06_abe::{GpswAbeCiphertext, GpswAbePrivate, GpswAbePublic, AccessNode, AccessStructure, G1, G2, F, S};
+// use yct14_abe::{AccessNode, AccessStructure, YaoABEPrivate, YaoABEPublic, F, G, S};
+use gpsw06_abe::{GpswAbeCiphertext, GpswAbePrivate, GpswAbePublic, AccessNode, AccessStructure, G1, G2, F, S};
 use heapless::{consts, FnvIndexMap, Vec};
 
 
 
-type PUBLIC<'a, 'b> = YaoABEPublic<'a, 'b>;
-type PRIVATE<'a, 'b> = YaoABEPrivate<'a, 'b>;
+type PUBLIC<'a, 'b> = GpswAbePublic<'a, 'b>;
+type PRIVATE<'a, 'b> = GpswAbePrivate<'a, 'b>;
 type ACCESS_NODE<'a> = AccessNode<'a>;
 
-type PUBLIC_MAP = G;
+type PUBLIC_MAP = G2;
 type PRIVATE_MAP = F;
 
 #[entry]
@@ -107,30 +107,31 @@ fn main() -> ! {
   let SMPL_CNT: u64 = 1;
 
   rng.fill_bytes(&mut data);
-  rprintln!("keygen;dec");
-  for i in 0..policies.len() {
-    // let i = 0;
-      // rprintln!("starting setup");
-      let mut keygen_us: u64 = 0;
-      let mut dec_us: u64 = 0;
+  let i = 1;
+  // rprintln!("keygen;dec");
+  // for i in 0..policies.len() {
+  //   // let i = 0;
+  //     // rprintln!("starting setup");
+  //     let mut keygen_us: u64 = 0;
+  //     let mut dec_us: u64 = 0;
         let mut data_cpy = data.clone();
         let ciphertext = public.encrypt(&atts, &mut data_cpy, &mut rng).unwrap();
 
-        let start = _timer.read();
-        let key = private.keygen(policies[i], &mut rng).unwrap();
-        keygen_us += (_timer.read() - start) as u64;
-        // rprint!("keygendone,");
-        let start = _timer.read();
+  //       let start = _timer.read();
+        let key = private.keygen(&public, policies[i], &mut rng);
+  //       keygen_us += (_timer.read() - start) as u64;
+  //       // rprint!("keygendone,");
+  //       let start = _timer.read();
         let data_recovered = PUBLIC::decrypt(ciphertext, &key).unwrap();
-        dec_us += (_timer.read() - start) as u64;
-        // rprint!("decdone,");
-        assert_eq!(data_recovered, data);
-      rprintln!(
-          "{};{}",
-          keygen_us / SMPL_CNT as u64,
-          dec_us / SMPL_CNT as u64 ,
-      );
-  }
+  //       dec_us += (_timer.read() - start) as u64;
+  //       // rprint!("decdone,");
+  //       assert_eq!(data_recovered, data);
+  //     rprintln!(
+  //         "{};{}",
+  //         keygen_us / SMPL_CNT as u64,
+  //         dec_us / SMPL_CNT as u64 ,
+  //     );
+  // }
 
   rprintln!("done.");
   loop {
