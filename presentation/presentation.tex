@@ -133,7 +133,7 @@
         \begin{center}
             \begin{tikzpicture}[baseline=(current bounding box.north)]
                 \node[draw, font=\LARGE] at (-1.25,0) (a) {Alice};
-                \path (a) -- (b) node[pos=0.5, font=\LARGE] {\&};
+                \only<2->{\path (a) -- (b) node[pos=0.5, font=\LARGE] {\&};}
                 \node[draw, font=\LARGE] at (1.25,0) (b) {Bob};
             \end{tikzpicture}
         \end{center}
@@ -326,7 +326,10 @@
 \begin{frame}[c]
     \frametitle{How to evaluate?}
     \begin{minipage}{.59\textwidth}
-        \begin{itemize}
+        Run the algorithms with different numbers of attributes:\\
+        ~
+        \begin{itemize} 
+            \setlength\itemsep{.75em}
             \item \texttt{Setup}: Number of attributes in the system
             \item \texttt{Encrypt}: Number of attributes associated with ciphertext
             \item \texttt{KeyGen}: Number of leafs in Access Tree
@@ -355,6 +358,12 @@
     \resizebox{!}{.35\textheight}{
         \input{figures/06_diagrams_timing_2}
     }
+\end{frame}
+
+\begin{frame}[c]
+    \frametitle{Results: RAM use}
+    \centering
+    \input{figures/06_diagrams_ram}
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

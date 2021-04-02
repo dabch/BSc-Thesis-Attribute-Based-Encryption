@@ -1,0 +1,30 @@
+\begin{minipage}{\textwidth}\centering
+    \begin{tikzpicture}
+        \begin{axis}[
+            % title={RAM use during decryption},
+            height=.7\textheight,
+            xlabel={depth of the \gls{access-tree}},
+            ylabel={kilobytes},
+            xmin=0.75, xmax=4.25,
+            ymin=0, ymax=360000,
+            xtick=data,
+            scaled y ticks=base 10:-3,
+            ytick scale label code/.code={}, % removes the '\cdot 10^3' label 
+            legend pos=north west,
+            grid=major,
+            minor y tick num=1,
+            grid style=dashed,
+            legend style={nodes={scale=.8, transform shape}}
+        ]
+        \addlegendentry{GPSW Dec};
+        \addplot [color=blue, mark=o] table [x=layers,y=gpsw-dec,col sep=comma] {../thesis/data/ram.csv};
+        \addlegendentry{YCT Dec};
+        \addplot [color=orange, mark=triangle] table [x=layers,y=yct-dec,col sep=comma] {../thesis/data/ram.csv};
+        \addlegendentry{GPSW Enc};
+        \addplot [color=blue, mark=none] {83560};
+        \addlegendentry{YCT Enc};
+        \addplot [color=orange, mark=none] {22616};
+        \addplot [color=black, dashed, mark=none] {256000};
+    \end{axis}
+    \end{tikzpicture}
+\end{minipage}
