@@ -310,18 +310,20 @@
 
 \begin{frame}[c]
     \frametitle{How to evaluate?}
-    \begin{columns}[c]
-        \column{0.5\textwidth}
+    \begin{minipage}{.59\textwidth}
         \begin{itemize}
             \item \texttt{Setup}: Number of attributes in the system
             \item \texttt{Encrypt}: Number of attributes associated with ciphertext
             \item \texttt{KeyGen}: Number of leafs in Access Tree
-            \item \texttt{Decrypt}: Number of leafs in Access Tree; Ciphertext encrypted with all attributes
+            \item \texttt{Decrypt}: \begin{itemize}
+                \item Timing: Number of leaves in flat access tree
+                \item RAM: Depth of perfect binary access tree
+            \end{itemize}
         \end{itemize}
-
-        \column{.45\textwidth}
+    \end{minipage}
+    \begin{minipage}{.4\textwidth}
         \input{figures/evaluation-tree}
-    \end{columns}
+    \end{minipage}
 \end{frame}
 
 \begin{frame}
