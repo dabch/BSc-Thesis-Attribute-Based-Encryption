@@ -6,22 +6,23 @@
         lbl_b/.style={align=center, below},
         year_b/.style={align=center, above, yshift=0.1cm},
     ]
+
     \draw[dashed, very thick] (-1,0) -- (0,0) (17.25,0) -- ++(0.75,0);
     \draw[very thick] (0,0) -- (17.25, 0);
     
-    \draw (1,0) node [circ] {} node [year_a] {2005} -- ++(0, 1) node [lbl_a] {Fuzzy IBE\\First mention of ABE};
+    \onslide<2->{\draw (1,0) node [circ] {} node [year_a] {2005} -- ++(0, 1) node [lbl_a] {Fuzzy IBE\\First mention of ABE};}
 
-    \draw (2,0) node [circ] {} node [year_b] {2006} -- ++(0, -1) node [lbl_b] {First expressive\\ABE scheme};
+    \onslide<3->{\draw (2,0) node [circ] {} node [year_b] {2006} -- ++(0, -1) node [lbl_b] {First expressive\\ABE scheme};}
 
-    \draw (3,0) node [circ] {} node [year_a] {2007} -- ++(0, 2.5) node [lbl_a] {Pairing implementation\\for PC hardware};
+    \onslide<4->{\draw (3,0) node [circ] {} node [year_a] {2007} -- ++(0, 2.5) node [lbl_a] {Pairing implementation\\for PC hardware};}
 
-    \draw (7, 0) node [circ] {} node [year_b] {2011} -- ++(0, -1) node [lbl_b] {Pairing implementation\\on 8-bit MCU\\(reduced security level)};
+    \onslide<5->{\draw (7, 0) node [circ] {} node [year_b] {2011} -- ++(0, -1) node [lbl_b] {Pairing implementation\\on 8-bit MCU\\(reduced security level)};}
     
-    \draw (11,0) node [circ] {} node [year_a] {2015} -- ++(0, 1) node [lbl_a] {Pairing-free\\ABE scheme\\\&\\ABE implementation\\on smartphones};
+    \onslide<6->{\draw (11,0) node [circ] {} node [year_a] {2015} -- ++(0, 1) node [lbl_a] {Pairing-free\\ABE scheme\\\&\\ABE implementation\\on smartphones};}
 
-    \draw (12,0) node [circ] {} node [year_b] {2016} -- ++(0, -1) node [lbl_b] {ABE implementation\\on constrained sensor\\\&\\ABE implementation\\on powerful IoT nodes};
+    \onslide<7->{\draw (12,0) node [circ] {} node [year_b] {2016} -- ++(0, -1) node [lbl_b] {ABE implementation\\on constrained sensor\\\&\\ABE implementation\\on powerful IoT nodes};}
 
-    \draw (15,0) node [circ] {} node [year_a] {2019} -- ++(0, 1) node [lbl_a] {Attack on pairing-\\free ABE};
+    \onslide<8->{\draw (15,0) node [circ] {} node [year_a] {2019} -- ++(0, 1) node [lbl_a] {Attack on pairing-\\free ABE};}
 
     \draw[color=TUMOrange] (17, 0) node [circ] {} node [year_b] {2021} -- ++(0, -1) node [lbl_b] {This project};
 
