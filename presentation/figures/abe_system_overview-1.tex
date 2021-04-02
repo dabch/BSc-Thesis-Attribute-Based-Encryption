@@ -1,0 +1,78 @@
+\begin{figure}
+    \centering
+    \begin{subfigure}[t]{0.45\textwidth}
+        \centering
+        \begin{tikzpicture}[actor/.style={draw, minimum width=1.5cm}]
+            \node[actor] (a) at (-1,0) {Alice};
+            \node[actor] (b) at (1,0) {Bob};
+            \node[actor] (kgc) at (0,1.5) {KGC};
+        
+            \node[above, align=center] at (kgc.north) {$\{PK, MK\}:=\text{Setup}()$};
+
+            \node[below, align=center] at (a.south) {$\{m, \omega\}$\\};
+            \node[below, align=center] at (b.south) {$\{\}$};
+
+            \draw[->] (a) -- (kgc) node (lbl_a) [pos=0.5, left, olive] {$S_A$};
+            \draw (lbl_a.west) +(-0.25,0) pic [scale=0.5, olive] {tree};
+
+            \draw[->] (b) -- (kgc) node (lbl_b) [pos=0.5, right, blue] {$S_B$};
+            \draw (lbl_b.east) +(0.25,0) pic [scale=0.5, blue] {tree};
+
+        \end{tikzpicture}
+        \caption{Setup phase I: Generation of parameters}
+    \end{subfigure}
+    ~~
+    \begin{subfigure}[t]{0.45\textwidth}
+        \centering
+        \begin{tikzpicture}[actor/.style={draw, minimum width=1.5cm}]
+            \node[actor] (a) at (-1,0) {Alice};
+            \node[actor] (b) at (1,0) {Bob};
+            \node[actor] (kgc) at (0,1.5) {KGC};
+
+            \node[above, align=center] at (kgc.north) {$\{PK, MK\}$\\$\textcolor{olive}{k_A} := \text{KeyGen}(PK, MK, \textcolor{olive}{S_A})$\\$\textcolor{blue}{k_B} := \text{KeyGen}(PK, MK, \textcolor{blue}{S_B})$};
+
+            \node[below, align=center] at (a.south) {{\{$PK$, $\textcolor{olive}{k_A}$\}}\\$\{m, \omega\}$};
+            \node[below, align=center] at (b.south) {\{$PK$, $\textcolor{blue}{k_B}$\}};
+
+            \draw[->] (kgc) -- (a) node (lbl_a) [pos=0.5, left] {\{$PK$, $\textcolor{olive}{k_A}$\}};
+            \draw (lbl_a.north) +(0.35,0) pic [scale=0.05, olive] {key};
+            \draw[->] (kgc) -- (b) node (lbl_b) [pos=0.5, right] {\{$PK$, $\textcolor{blue}{k_B}$\}};
+            \draw (lbl_b.north) +(0.35,0) pic [scale=0.05, blue] {key};
+
+            % \draw[->] (kgc) edge node [left] {\{$PK$, $\textcolor{olive}{k_A}$\}} (a);
+            % \draw[->] (kgc) edge node [right] {\{$PK$, $\textcolor{blue}{k_B}$\}} (b);
+
+        \end{tikzpicture}
+        \caption{Setup phase II: Issuing of keys}
+    \end{subfigure}
+    % \begin{minipage}{0.01\textwidth}
+    %     ~
+    % \end{minipage}
+    % \begin{minipage}[bt][][c]{0.35\textwidth}
+    %     \centering
+    %     \begin{tikzpicture}[matrixstyle/.style={
+    %         matrix of nodes,
+    %         nodes in empty cells,
+    %         column sep      = 0mm,
+    %         row sep         = 2mm,
+    %         draw,
+    %         nodes={
+    %             inner sep=1mm,outer sep=1mm,
+    %             minimum size=5mm,
+    %             anchor=center,
+    %             text centered,
+    %             text width=1cm,
+    %             execute at begin node={\small\setlength{\baselineskip}{1em}} % WTF.. see https://tex.stackexchange.com/questions/223065/how-to-increase-line-spacing-in-tikz-node
+    %         }
+    %     }]
+    %         \matrix (m) [matrixstyle] at (0,0) {
+    %             $PK$ & \node[align=left, text width=3.5cm] {Public Key (same\\for all participants)};\\
+    %             $MK$ & \node[align=left, text width=3.5cm] {Master Secret (known\\only to the \acrshort{kgc})};\\
+    %             $k_A, k_B$ & \node[align=left, text width=3.5cm] {Private\\Decryption Keys};\\
+    %             $S_A, S_B$ & \node[align=left, text width=3.5cm] {Access Structures};\\
+    %             $m$ & \node[align=left, text width=3.5cm] {Plaintext message};\\
+    %             $\omega$ & \node[align=left, text width=3.5cm] {Set of attributes};\\
+    %         };
+    %     \end{tikzpicture}
+    % \end{minipage}
+\end{figure}
