@@ -80,7 +80,10 @@
 
 \begin{frame}[c]
     \frametitle{What for?}
-    \input{../thesis/figures/01_system_architecture}
+    \centering
+    \input{figures/abe_use_case}
+
+    \alert{\large $\rightarrow$ Encryption on the MCU is most important!}
 \end{frame}
 
 \section{Background}
@@ -94,12 +97,12 @@
 
 \begin{frame}[c]
     \frametitle{ABE interaction overview}
-    \input{figures/02_abe_system_overview.tex}
+    \input{figures/abe_system_overview-1}
 \end{frame}
 
 \begin{frame}[c]
     \frametitle{ABE interaction overview}
-    \input{figures/02_abe_system_overview-2.tex}
+    \input{figures/abe_system_overview-2}
 \end{frame}
 
 \begin{frame}[c]
@@ -240,9 +243,10 @@
 \end{frame}
 
 \section{Implemented ABE Schemes}
-\begin{frame}[c]
+\begin{frame}
     \frametitle{Implemented ABE schemes}
-    \begin{columns}[c]\centering
+    \vspace{2.5cm}
+    \begin{columns}[t]\centering
         \column{.49\textwidth}
         \begin{block}{\centering GPSW}
             \centering
@@ -270,7 +274,7 @@
 
 \section{Implementation}
 
-\begin{frame}
+\begin{frame}[c]
     \frametitle{Hard- and Software}
     \begin{columns}[c]
         \column{0.5\textwidth}
@@ -384,6 +388,50 @@
     \frametitle{Results: Flash use}
     \centering
     \input{figures/diagram_flash.tex}
+\end{frame}
+
+\begin{frame}[t]
+    \frametitle{Discussion of the results}
+    \centering
+    \vspace{1.5cm}
+    \begin{columns}[t]
+        \column{.49\textwidth}
+        \begin{block}{\centering GPSW}
+            \begin{itemize}
+                \item Encryption takes up to 8.5\,s, decryption up to 80\,s
+                \item RAM shortage puts hard limit on policy size (two levels), even if using \textbf{entire} available RAM!
+            \end{itemize}
+        \end{block}
+        \column{.49\textwidth}
+        \begin{block}{\centering YCT}
+            \begin{itemize}
+                \item Encryption takes up to 5\,s, decryption up to 12\,s
+                \item No issues with RAM use
+                \item Possibly worse security than GPSW (without pairings)
+            \end{itemize}
+        \end{block}
+    \end{columns}
+    \vspace{0.5cm}
+    \begin{minipage}{.485\textwidth}
+        \begin{itemize}
+            \color{TUMOrange}
+            \setbeamertemplate{itemize item}[arrow]
+            \item<2-> ABE operations require considerable portion of resources
+            \item<3-> YCT does much better than GPSW
+            \item<4-> Encryption is feasible with both, decryption only with YCT
+        \end{itemize}
+    \end{minipage}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Summary \& Conclusion}
+    What I did$\dots$\\
+    $\dots$ understand and present ABE\\
+    $\dots$ port the \texttt{rabe-bn} pairing library to the SoC\\
+    $\dots$ implement two ABE schemes\\
+    $\dots$ evaluate their performance\\
+    
+
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
