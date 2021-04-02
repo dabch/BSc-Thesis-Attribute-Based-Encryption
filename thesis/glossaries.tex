@@ -103,11 +103,11 @@
 
 \newglossaryentry{security-level}{
   name={security level},
-  description={ % TODO check this and find a citation
+  description={
     measure of the strength of a cryptographic scheme, usually given in bits.
-    A security level of $n$ bits means that the most efficient attack needs to perform at least around $2^n$ operations to break the scheme.
+    A security level of $n$\,bits means that the most efficient attack needs to perform at least around $2^n$ operations to break the scheme.
     Note that this does not directly translate to the size of the used parameters: 
-    to guarantee a security level of $n$ bits, usually the the size of the field underlying our elliptic curve (i.e. the number of bits of its modulus) needs to be \emph{at least} $2n$, sometimes much larger},
+    to guarantee a security level of $n$\,bits, usually the the size of the field underlying our elliptic curve (i.e. the number of bits needed to store a curve point) needs to be \emph{at least} $2n$, sometimes much larger},
 }
 
 \newacronym[description={single instruction, multiple data. Vectorized CPU instruction that processes several pieces of data at once}]{simd}{SIMD}{single instruction multiple data}
@@ -122,7 +122,7 @@
 
 \newglossaryentry{crate}{
   name={crate},
-  description={bundle of Rust code that groups some related functionality together. Can be published to \url{https://crates.io} to share with other developers},
+  description={bundle of Rust code that groups some related functionality together. Can be published to \href{https://crates.io}{\texttt{crates.io}} to share with other developers},
 }
 
 \newacronym[description={pseudorandom function. Function that has a (seemingly) random relation between its in- and outputs. Usually hash functions are used as PRF}]{prf}{PRF}{pseudorandom function}

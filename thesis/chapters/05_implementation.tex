@@ -52,7 +52,6 @@ These data structures are statically allocated and expect their desired capacity
 
 \section{Porting \texttt{rabe-bn} to the SoC}
 
-% TODO link the modified library github somewhere
 The implementation of \texttt{rabe-bn} unfortunately relied on the standard library (mostly through the use of heap-allocated dynamic vectors, i.e. \texttt{std::vec::Vec}) and is thus not suited for bare-metal applications.
 Rust provides the dependency-free and platform-agnostic \texttt{core} library as an alternative to the standard library.
 This library does not depend on an operating system or dynamic memory allocation, and thus does not include heap-allocated data structures (like \texttt{std::vec::Vec}).
@@ -61,11 +60,11 @@ Therefore, I rewrote the \texttt{rabe-bn} library to introduce a cargo-feature \
 If this feature is disabled, the \texttt{core} library and stack-allocated collections of fixed size from the \texttt{heapless} crate are used instead.
 
 Some further modifications were necessary to implement the \texttt{core::fmt::Display} trait for the \texttt{Gt} struct in a bare-metal compatible manner.
-The implementation of this trait was used in conjunction with \acrshort{sha3} as a \gls{kdf} to create an AES key from curve points.
+The implementation of this trait is used to derive an AES key from curve points, see Section~\ref{sec:kdf}.
 The behavior of the \texttt{core::fmt::Display} implementation stayed exactly the same to ensure interoperability with the original \texttt{rabe-bn} library.
-% TODO Stefans Feedback einarbeiten: Besser beschreiben wie Key abgeleitet wird!
 
 With these modifications, the \texttt{rabe-bn} library runs on the SoC.
+The modified library can be found at \url{https://github.com/dabch/rabe-bn}.
 
 \section{Random Number Generation}
 Regular Rust programs use the \texttt{rand} \gls{crate}'s \verb+ThreadRng+ struct to generate random numbers.
@@ -139,7 +138,7 @@ This results in faster encryption and decryption for long ciphertexts because AE
 % In our implementation, the \acrshort{abe} scheme generates a secret curve point (i.e. either \verb+rabe_bn::G1+ or \verb+rabe_bn::Gt+).
 % From this, an AES key is derived and then used to encrypt the plaintext with AES-CCM.
 
-\subsubsection{Key derivation}
+\subsubsection{Key derivation}\label{sec:kdf}
 Both schemes output a randomly generated curve point to use as symmetric key.
 The binary representation of these curve points is much longer than the 256-bit key AES expects.
 Therefore, the curve point is run through a \gls{kdf}, which can be seen in Listing~\ref{lst:kdf}.

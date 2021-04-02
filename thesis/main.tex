@@ -1,10 +1,10 @@
 \RequirePackage[l2tabu,orthodox]{nag}
 
-% TODO: decide if one-sided/two-sided
+% decide if one-sided/two-sided
 %\documentclass[headsepline,footsepline,footinclude=false,fontsize=11pt,paper=a4,listof=totoc,bibliography=totoc,BCOR=12mm,DIV=12]{scrbook} % two-sided
 \documentclass[headsepline,footsepline,footinclude=false,oneside,fontsize=11pt,paper=a4,listof=totoc,bibliography=totoc]{scrbook} % one-sided
 
-% TODO: change citation style in settings
+% change citation style in settings
 \input{settings}
 \input{glossaries}
 
@@ -30,8 +30,7 @@ Cortex M Prozessoren}
     hidelinks, 
     pdftitle={\getTitle},
     pdfauthor={\getAuthor},
-    bookmarks=true,
-    pdfpagemode=FullScreen,
+    % bookmarks=true,
 }
 
 \begin{document}

@@ -12,15 +12,14 @@ In addition to computation time, memory size is a major bottleneck for pairing-b
 % With less memory, even computation of a single pairing fails because of insufficient RAM.
 
 In the use case presented in the introduction, the constrained node only needs to encrypt data with \acrshort{abe}.
-For a small or medium number of attributes, this definitely is feasible:
-RAM size was sufficient even with the pairing-based GPSW scheme and up to 30 attributes.
+For a small or medium number of attributes, this is feasible, but it does take up a significantly portion of the available resources.
 The runtime is in the order of a few seconds and only increases linearly as more attributes are added.
 For use cases where such a delay is not practical, re-use of the encapsulated symmetric key might mitigate the issue.
 
 With decryption, the case is different: 
 No problems were encountered with the pairing-free YCT scheme.
 With GPSW, however, encryption failed when using \glspl{access-tree} with more than two layers due to too little RAM.
-Also, runtimes were longer than for encryption and increased much more significantly with growing policy size.
+Also, runtimes were much longer than for encryption and increased much faster with growing policy size.
 While very long runtimes might sometimes be acceptable, the RAM limitation poses a hard limit.
 
 If decryption with large policies is necessary on the SoC, it is therefore advisable to choose YCT over GPSW.
@@ -30,5 +29,3 @@ Further research in this area is needed.\\
 In short, \acrfull{abe} seems feasible on the considered hardware, especially if only encryption is needed and the number of attributes isn't too large.
 Still, \acrshort{abe} comes at a high price in runtimes and memory consumption.
 Especially decryption with the pairing-based scheme is infeasible because runtimes are very long and only \glspl{access-tree} with few layers can be used.
-
-% TODO something along the lines of "ABE takes up significant portion of the available resourcces"
