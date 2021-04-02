@@ -178,7 +178,7 @@
 \subsection{Elliptic Curves}
 
 \begin{frame}[c]
-    \frametitle{Elliptic Curves}
+    \frametitle{Elliptic Curves \only<2->{(standard stuff)}}
     \begin{center}
         \Large
         $E(\mathbb{Z}_p) := \{(x, y)~|~x,y \in \mathbb{Z}_p \text{ and } y^2 = x^3 + a x + b \bmod{p}\} \cup \{\mathcal{O}\}$
@@ -187,9 +187,11 @@
 \end{frame}
 
 \begin{frame}[c]
-    \frametitle{Bilinear pairings}
+    \frametitle{Bilinear pairings (not-so-standard stuff)}
     \begin{center}
-        \input{figures/pairings.tex}        
+        \input{figures/pairings.tex}  \\
+        \vspace{0.5cm}
+        \onslide<2->{\alert{\large$\rightarrow$ very expensive to calculate (\textasciitilde1500\,ms on our MCU)}}
     \end{center}
 \end{frame}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -218,7 +220,7 @@
             \begin{itemize}
                 \item Proposed by Goyal, Pandey, Sahai and Waters in 2006
                 \item First expressive ABE scheme
-                \item Thoroughly analyzed and often implemented / benchmarked
+                \item Thoroughly analyzed and frequently implemented / benchmarked
             \end{itemize}
         \end{block}
 
@@ -264,13 +266,14 @@
     \frametitle{Implementation: Challenges}
     \begin{block}{How to represent access trees without dynamic memory allocation?}
         % Naive implementation:
+        \begin{center}
+            \begin{minipage}{0.7\textwidth}
         \begin{lstlisting}[caption={Naive implementation (uses standard library)}]
             enum AccessTree<'a> {
                 Node(u64, std::vec::Vec<AccessTree<'a>>),
                 Leaf(&'a str),
             }
         \end{lstlisting}
-        % Refined implementation: 
         \begin{lstlisting}[caption={Refined implementation}]
             type AccessTree<'a, 'b> = &'b [AccessNode<'a>];
             enum AccessNode<'a> {
@@ -278,6 +281,8 @@
                 Leaf(&'a str),
             }
             \end{lstlisting}
+            \end{minipage}
+        \end{center}
     \end{block}
 \end{frame}
 
