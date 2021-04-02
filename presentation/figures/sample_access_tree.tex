@@ -9,7 +9,7 @@
 
     \begin{tikzpicture}[inner/.style={circle}, l/.style={font=\small}]
         \tikzstyle{every node}=[draw];
-        \draw (0,0) node[inner] {$\lor$} child {node[l] {professor}} child {node[inner] {$\land$} child {node[l] {PhD}} child {node[l] {student}}};
+        \draw (0,0) node[inner] {\only<-2>{$\lor$}\only<3->{1}} child {node[l] {professor}} child {node[inner] {\only<-2>{$\land$}\only<3->{2}} child {node[l] {PhD}} child {node[l] {student}}};
         % \draw (0,0) node {2} child {{node {A}} child {node {1} child {B} child {C}}};
     \end{tikzpicture}}
 \end{minipage}

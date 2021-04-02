@@ -1,16 +1,14 @@
-\begin{figure}
-    \centering
-    \begin{tikzpicture}
-        \begin{axis} [axis lines=center, xlabel=$x$, ylabel=$p(x)$, ymin=0]
-            \addplot [domain=-0.1:5.05, smooth, thick, color=TUMBlauDunkel] { \PolynomialSSS(x)};
-            \fill[color=TUMBlauDunkel] (axis cs:0,\PolynomialSSS(0)) circle [radius=2pt] node [right] {(0,~s)};
-            \fill[color=TUMOrange] (axis cs:1,\PolynomialSSS(1)) circle [radius=2pt] node [right] {(1,~10)};
-            \fill[color=TUMOrange] (axis cs:2,\PolynomialSSS(2)) circle [radius=2pt] node [right] {(2,~6)};
-            \fill[color=TUMOrange] (axis cs:3,\PolynomialSSS(3)) circle [radius=2pt] node [above] {(3,~2)};
-            \fill[color=TUMOrange] (axis cs:4,\PolynomialSSS(4)) circle [radius=2pt] node [right] {(4,~4)};
-            \fill[color=TUMOrange] (axis cs:5,\PolynomialSSS(5)) circle [radius=2pt] node [left] {(5,~18)};
-          \end{axis}
-    \end{tikzpicture}
-    \caption{Polynomial $(5,4)$-threshold secret sharing for secret \textcolor{TUMBlauDunkel}{$s$}. The points in \textcolor{TUMOrange}{orange} are the secret shares.}
-    \label{fig:sss}
-\end{figure}
+\centering
+\begin{tikzpicture}
+    \begin{axis} [axis lines=center, xlabel=$x$, ylabel=$p(x)$, ymin=0]
+        \addplot [domain=-0.1:5.05, smooth, thick, color=TUMBlauDunkel] { \PolynomialSSS(x)};
+        \fill[color=TUMBlauDunkel] (axis cs:0,\PolynomialSSS(0)) circle [radius=2pt] node [right] {(0,~s)};
+        \fill[color=TUMOrange] (axis cs:1,\PolynomialSSS(1)) circle [radius=2pt] node [right] {(1,~10)};
+        \fill[color=TUMOrange] (axis cs:2,\PolynomialSSS(2)) circle [radius=2pt] node [right] {(2,~6)};
+        \fill[color=TUMOrange] (axis cs:3,\PolynomialSSS(3)) circle [radius=2pt] node [above] {(3,~2)};
+        \fill[color=TUMOrange] (axis cs:4,\PolynomialSSS(4)) circle [radius=2pt] node [right] {(4,~4)};
+        \fill[color=TUMOrange] (axis cs:5,\PolynomialSSS(5)) circle [radius=2pt] node [left] {(5,~18)};
+        \end{axis}
+\end{tikzpicture}
+
+Polynomial $(4,5)$-threshold secret sharing for secret \textcolor{TUMBlauDunkel}{$s$}.
