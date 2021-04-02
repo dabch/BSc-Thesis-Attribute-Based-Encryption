@@ -296,7 +296,7 @@ Some schemes include a proxy-reencryption mechanism that allows an untrusted thi
 \section{Elliptic Curves}
 \label{sec:ec}
 
-The mathematics of modern cryptosystems (including, but not limited to ABE) work any group that satisfies the axioms (see below), and elliptic curves are just one of them.
+The mathematics of modern cryptosystems (including, but not limited to ABE) work any group that satisfies the axioms (see below), and \glspl{ec} are just one of them.
 Because \Glspl{ec} allow for shorter key lengths than, e.g. groups modulo a prime, they have become very popular for use in cryptography.
 Exact definitions and notations differ, these are taken from the textbook \emph{Introduction to Modern Cryptography} by Katz and Lindell~\cite{katz_introduction_2015}.
 
@@ -333,7 +333,7 @@ If $p$ is prime, then $\langle \mathbb{Z}^*_p, \cdot_p, 1 \rangle$ is a group wi
 \subsection{Elliptic Curves}
 
 \begin{definition}
-    Given a prime $p \geq 5$ and $a, b \in \mathbb{Z}_p$ with $4a^2 + 27b^2 \neq 0 \bmod{p}$, the Elliptic Curve over $\mathbb{Z}_p$ is:~\cite{katz_introduction_2015}
+    Given a prime $p \geq 5$ and $a, b \in \mathbb{Z}_p$ with $4a^2 + 27b^2 \neq 0 \bmod{p}$, the \gls{ec} over $\mathbb{Z}_p$ is:~\cite{katz_introduction_2015}
     \begin{equation}
         E(\mathbb{Z}_p) := \{(x, y)~|~x,y \in \mathbb{Z}_p \text{ and } y^2 = x^3 + a x + b \bmod{p}\} \cup \{\mathcal{O}\}
     \end{equation}
@@ -351,7 +351,7 @@ Figure~\ref{fig:ecc-point-addition} shows the four different cases.
 Using this intersecting line, we can define an operation on curve points:
 \begin{definition}
     \label{def:point-add}
-    Given an Elliptic Curve $E(\mathbb{Z}_p)$, we define a binary operation called \emph{(point) addition} and denoted by $+$:~\cite{katz_introduction_2015}\\
+    Given an \gls{ec} $E(\mathbb{Z}_p)$, we define a binary operation called \emph{(point) addition} and denoted by $+$:~\cite{katz_introduction_2015}\\
     Let $P_1, P_2 \in E(\mathbb{Z}_p)$.
 
     \begin{itemize}
@@ -366,7 +366,7 @@ Using this intersecting line, we can define an operation on curve points:
 
 \begin{figure}
     \includegraphics[width=\textwidth]{figures/ecc_point_addition.pdf}
-    \caption[Elliptic Curve point addition]{Elliptic curve point addition\\(Image by \href{https://commons.wikimedia.org/wiki/File:ECClines-2.svg}{SuperManu}, licensed under \href{https://creativecommons.org/licenses/by-sa/3.0/deed.en}{Creative Commons}.)}
+    \caption[Elliptic curve point addition]{Elliptic curve point addition\\(Image by \href{https://commons.wikimedia.org/wiki/File:ECClines-2.svg}{SuperManu}, licensed under \href{https://creativecommons.org/licenses/by-sa/3.0/deed.en}{Creative Commons}.)}
     \label{fig:ecc-point-addition}
 \end{figure}
 
@@ -382,7 +382,7 @@ That is exactly the definition of group exponentiation, applied to our additive 
 
 \subsection{Groups on Elliptic Curves}
 \begin{theorem}
-    The points of an Elliptic Curve $E(\mathbb{Z}_p)$ plus the addition law as stated in Definition~\ref{def:point-add} form an abelian (commutative) group~\cite{katz_introduction_2015, washington_elliptic_2008}:
+    The points of an \gls{ec} $E(\mathbb{Z}_p)$ plus the addition law as stated in Definition~\ref{def:point-add} form an abelian (commutative) group~\cite{katz_introduction_2015, washington_elliptic_2008}:
 \end{theorem}
 \begin{proof}
     A formal proof is outside the scope of this thesis, but here's some informal reasoning about the group axioms:
@@ -394,12 +394,12 @@ That is exactly the definition of group exponentiation, applied to our additive 
     \end{itemize}
 \end{proof}
 
-Of particular interest to cryptography are \emph{cyclic} groups on elliptic curves:
+Of particular interest to cryptography are \emph{cyclic} groups on \glspl{ec}:
 \begin{definition}
     An (additive) group $\mathbb{G}$ is cyclic if there is an element $g \in \mathbb{G}$ that generates $\mathbb{G}$, i.e. $\mathbb{G} = \langle g \rangle = \{k \cdot g | k \in \mathbb{Z}\}$.
 \end{definition}
 
-Translated to our elliptic curves, this means that there is a generator point $P \in E(\mathbb{Z}_p)$, such that every point $Q \in E(\mathbb{Z}_p)$ can be obtained by repeatedly adding $P$ to itself using the point addition from Definition~\ref{def:point-add}.
+Translated to our \glspl{ec}, this means that there is a generator point $P \in E(\mathbb{Z}_p)$, such that every point $Q \in E(\mathbb{Z}_p)$ can be obtained by repeatedly adding $P$ to itself using the point addition from Definition~\ref{def:point-add}.
 
 \begin{theorem}\cite{katz_introduction_2015}
     Let $\mathbb{G}$ be a finite group of order $n$, i.e. $|\mathbb{G}| = n$.
@@ -414,8 +414,8 @@ Translated to our elliptic curves, this means that there is a generator point $P
 There is an important consequence to this fact: If a group has prime order, all points except the identity are generators.
 This stems from the fact that a prime number has exactly two divisors: One (the order of the identity) and itself (the order of all other points).
 
-Again, translated to Elliptic Curves this means that if the number of points $\#E(\mathbb{Z}_p)$ on a curve is prime, all points except $\mathcal{O}$ are generators.
-These cyclic elliptic curve groups are exactly the groups we are interested in for doing actual cryptography.
+Again, translated to \glspl{ec} this means that if the number of points $\#E(\mathbb{Z}_p)$ on a curve is prime, all points except $\mathcal{O}$ are generators.
+These cyclic \gls{ec} groups are exactly the groups we are interested in for doing actual cryptography.
 The ease of finding generators is one reason, but not the only one. 
 For a detailed explanation, see \cite[p.~321]{katz_introduction_2015}.
 
@@ -465,13 +465,13 @@ $\mathbb{G}_1$ and $\mathbb{G}_2$ are written additively, $\mathbb{G}_T$ is writ
 \end{definition}
 
 There are a few different concrete pairing functions, e.g. the Weil pairing, Tate pairing and the Ate pairing~\cite{kiraz_still_2016}.
-Usually the source groups $\mathbb{G}_1$ and $\mathbb{G}_2$ are subgroups of certain elliptic curves \cite{kiraz_still_2016} and the target $\mathbb{G}_T$ is a finite field (\emph{not} another point on a curve)~\cite{blake_advances_2005}.
+Usually the source groups $\mathbb{G}_1$ and $\mathbb{G}_2$ are subgroups of certain \glspl{ec} \cite{kiraz_still_2016} and the target $\mathbb{G}_T$ is a finite field (\emph{not} another point on a curve)~\cite{blake_advances_2005}.
 
 \subsection{Use of elliptic curves and pairings in ABE}
 Bilinear pairings have given rise to a whole new class of cryptographic algorithms, the \emph{pairing-based cryptography}.
 For example, pairings are used to construct \gls{ibe}, a three-party \gls{dh}~\cite{joux_one_2000} or short \glspl{dss}~\cite{boneh_short_2001}.
 
-Most \acrshortpl{abes} make use of bilinear pairings, and even the pairing-free scheme (see next section) needs an implementation of the elliptic curve operations.
+Most \acrshortpl{abes} make use of bilinear pairings, and even pairing-free schemes (see next section) need an implementation of the \glspl{ec} operations.
 These operations are the building blocks of the \acrshortpl{abes} presented in Chapter~\ref{chapter:constructions} and by far the most expensive operations performed by the schemes.
 Therefore, the performance of an \acrshort{abe} implementation greatly depends on the performance of the \gls{ec} and pairing implementation.
 For this reason, pairing implementations are considered in Chapter~\ref{chap:related-work} and our own pairing implementation is evaluated separately in Chapter~\ref{chap:evaluation}.
