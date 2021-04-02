@@ -8,7 +8,7 @@
 \end{figure}
 
 
-\begin{figure}
+\only<1>{\begin{figure}
     \begin{tikzpicture}
         \tikzstyle{every node}=[circle, draw];
         \tikzstyle{level 1}=[sibling distance=3cm, level distance=1cm];
@@ -16,4 +16,18 @@
         \draw (0,0) node (root) [anchor=south] {2} child {node {2} child {node {A}} child  {node {B}}} child {node {2} child {node {C}} child  {node {D}}};
     \end{tikzpicture}
     \caption*{Perfect binary access tree}
-\end{figure}
+\end{figure}}
+
+\only<2>{\begin{figure}
+    \begin{tikzpicture}
+        \tikzstyle{every node}=[circle, draw];
+        \tikzstyle{level 1}=[sibling distance=4cm, level distance=1cm];
+        \tikzstyle{level 2}=[sibling distance=2cm, level distance=1.5cm];
+        \tikzstyle{level 3}=[sibling distance=1cm, level distance=1.5cm];
+        \draw (0,0) node (root) [anchor=south] {2} 
+            child {node {2} child { node {2} child {node {A}} child {node {B}}} child {node {2} child {node {C}} child {node {D}}}}
+            child {node {2} child { node {2} child {node {D}} child {node {E}}} child { node {2} child {node {F}} child {node {G}}}
+        };
+    \end{tikzpicture}
+    \caption*{Perfect binary access tree}
+\end{figure}}

@@ -268,19 +268,19 @@
         % Naive implementation:
         \begin{center}
             \begin{minipage}{0.7\textwidth}
-        \begin{lstlisting}[caption={Naive implementation (uses standard library)}]
-            enum AccessTree<'a> {
-                Node(u64, std::vec::Vec<AccessTree<'a>>),
-                Leaf(&'a str),
-            }
-        \end{lstlisting}
-        \begin{lstlisting}[caption={Refined implementation}]
-            type AccessTree<'a, 'b> = &'b [AccessNode<'a>];
-            enum AccessNode<'a> {
-                Node(u64, heapless::Vec<u8, consts::U16>),
-                Leaf(&'a str),
-            }
-            \end{lstlisting}
+                \begin{lstlisting}[caption={Naive implementation (uses standard library)}]
+                    enum AccessTree<'a> {
+                        Node(u64, std::vec::Vec<AccessTree<'a>>),
+                        Leaf(&'a str),
+                    }
+                \end{lstlisting}
+            \begin{lstlisting}[caption={Refined implementation}]
+                type AccessTree<'a, 'b> = &'b [AccessNode<'a>];
+                enum AccessNode<'a> {
+                    Node(u64, heapless::Vec<u8, consts::U16>),
+                    Leaf(&'a str),
+                }
+                \end{lstlisting}
             \end{minipage}
         \end{center}
     \end{block}
