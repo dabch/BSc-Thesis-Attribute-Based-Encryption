@@ -17,34 +17,17 @@ pub type G2 = rabe_bn::G1;
 pub type Gt = rabe_bn::Gt;
 pub type F = rabe_bn::Fr;
 
-///
-/// Differences to the original paper by Goyal, Pandey, Sahai and Waters:
-/// - use of asymmetric pairing (G1 x G2 -> Gt instead of G1 x G1 -> G2)
-///   - when decrypting, the leaf node secret shares are combined with that of the attribute
-///   - for less computational cost when encrypting, swap the pairing arguments in decryptNode
-///   - i.e. the ciphertext's attributes are elements of G1, and the secret shares are elements of G2
-///   - G1 has 96 Bytes, G2 has 192 Bytes and Gt 384 Bytes -> makes a big difference for runtimes and ciphertext size.
-///
-/// with G1 and G2 swapped (S = 16):
-/// sizeof(GpswAbeCiphertext) = 2376
-/// sizeof(GpswAbePrivate) = 40
-/// sizeof(GpswAbePublic) = 680
-/// sizeof(PrivateKey) = 3288
-///
-/// without swapping (S = 16):
-/// sizeof(GpswAbeCiphertext) = 3912
-/// sizeof(GpswAbePrivate) = 40
-/// sizeof(GpswAbePublic) = 680
-/// sizeof(PrivateKey) = 1752
 
-/// Represents the full parameters of an ABE scheme, known in full only to the KGC
+
+/// Private parameters of the ABE scheme, known in only to the KGC
 #[derive(Debug)]
 pub struct GpswAbePrivate<'attr, 'own> {
   atts: &'own FnvIndexMap<&'attr str, F, S>,
   // pk: G,
   master_secret: F,
 }
-/// represents the public ABE parameters, known to all participants and used for encryption, decryption and the like
+
+/// Public ABE parameters, known to all participants and required used for encryption
 #[derive(Debug)]
 pub struct GpswAbePublic<'attr, 'own> {
   g1: G1,
@@ -52,28 +35,34 @@ pub struct GpswAbePublic<'attr, 'own> {
   atts: &'own FnvIndexMap<&'attr str, G2, S>,
   pk: Gt,
 }
+
 /// Represents a ciphertext as obtained by encrypt() and consumed by decrypt()
 /// Contains both the actual (symetrically) encrypted data and all data required to reconstruct the
 /// symmetric keys given a private key created under a matching access structure.
 #[derive(Debug, PartialEq, Eq)]
 struct GpswAbeGroupCiphertext<'attr> {
   e: Gt, // actual encrypted group element
-  //   mac: Tag<aead::consts::U10>, // mac over the cleartext (TODO better encrypt-then-mac?)
-  //   nonce: [u8; 13],
   e_i: FnvIndexMap<&'attr str, G2, S>, // attributes and their respective curve elements
 }
 
+/// Ciphertext obtained by encrypting with GPSW
+/// 
+/// This is a hybrid ciphertext consisting of the key encapsulation (ABE-encrypted symmetric key) and the
+/// symmetrically encrypted data. 
 #[derive(Debug, PartialEq, Eq)]
 pub struct GpswAbeCiphertext<'attr, 'data>(GpswAbeGroupCiphertext<'attr>, kem::Ciphertext<'data>);
 
 /// Represents a private key obtained by keygen() and used to decrypt ABE-encrypted data
+/// 
 /// This data structure mirrors the recursive nature of access structures to ease implementation
 /// of decryption. The secret shared (D_u in the original paper) allowing decryption are embedded
 /// in the leaves of the tree.
 //#[derive(Debug)]
 pub struct PrivateKey<'attr, 'own>(AccessStructure<'attr, 'own>, FnvIndexMap<u8, G1, S>);
 
-/// Corresponds to the `(A) Setup` algorithm in the original paper. Sets up an encryption scheme with a fixed set of attributes and
+/// Setup of the ABE instance.
+/// 
+/// Sets up an encryption scheme with a fixed set of attributes and
 /// generates both public and private parameter structs. This is typically run exactly once by the KGC.
 pub fn setup<'attr, 'es>(
   att_names: &[&'attr str],
@@ -113,6 +102,8 @@ where
   )
 }
 
+/// Generates a decryption key.
+/// 
 /// Generate a private key for a given access structure, which allows a user holding the key to decrypt a ciphertext iff its
 /// attributes satisfy the given access structure.
 pub fn keygen<'es, 'attr, 'key>(
@@ -182,11 +173,11 @@ fn keygen_node<'key>(
   }
 }
 
-/// Encrypt a plaintext under a set of attributes so that it can be decrypted only with a matching key
-/// TODO for now this does not actually encrypt any data. It just generates a random curve element c_prime (whose
-/// coordinates would be used as encryption and message authentication key), which is then reconstructible under a
-/// matching key.
-/// This is the only part of our cryptosystem that needs to run on the Cortex M4 in the end.
+/// Encrypt a plaintext under a set of attributes so that it can be decrypted only with a matching key.
+/// 
+/// Encrypts data using a hybrid approach, i.e. a random curve point is chosen and encrypted under the ABE scheme.
+/// This curve point is then run through a KDF to obtain an AES key, which is used to encrypt the actual payload with
+/// AES-256 in CCM mode.
 
 pub fn encrypt<'attr, 'es, 'key, 'data>(
   params: &GpswAbePublic<'attr, 'es>,
@@ -301,7 +292,6 @@ where
   }
 }
 
-/// Decrypt a ciphertext using a given private key. At this point, doesn't actually do any decryption, it just reconstructs the point used as encryption/mac key.
 fn decrypt_group_element<'attr, 'key>(
   ciphertext: &GpswAbeGroupCiphertext<'attr>,
   key: &PrivateKey<'attr, 'key>,
@@ -319,6 +309,10 @@ where
   Ok(ciphertext.e * y_to_s.inverse())
 }
 
+/// Decrypt an ABE-encrypted ciphertext.
+/// 
+/// Decrypts a ciphertext encrypted under the ABE scheme and returns the plaintext if decryption was successful.
+/// If it failed, the ciphertext is returned such that it may be decrypted again with a different key.
 pub fn decrypt<'attr, 'key, 'data>(
   ciphertext: GpswAbeCiphertext<'attr, 'data>,
   key: &PrivateKey<'attr, 'key>,
