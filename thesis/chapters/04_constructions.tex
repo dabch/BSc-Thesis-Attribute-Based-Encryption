@@ -47,6 +47,15 @@ Also, choose uniformly at random the master private key $y \in \mathbb{Z}_p$, fr
 Publish $Params=(Y, T_1, \dots, T_n)$ as the public parameters, privately save $MK = (y, t_1, \dots, t_n)$ as the master key.
 \\
 
+\emph{Encrypt(M, $\omega$, Params)}~\cite{goyal_attribute-based_2006}.
+Input: Message $M \in \mathbb{G}_T$, set of \glspl{attribute} $\omega$ and public parameters $Params$. 
+
+Choose $s \in \mathbb{Z}_q$ at random and compute $E' = M \cdot Y^s$.
+For each attribute $i \in \omega$ compute $E_i = s \cdot T_i$.
+
+Return the ciphertext as $E = (\omega, E', \{E_i | i \in \omega\})$
+\\
+
 \emph{KeyGen($\Gamma$, MK)}~\cite{goyal_attribute-based_2006}.
 Input: \gls{access-tree} $\Gamma$ and master key $MK$.
 
@@ -56,15 +65,7 @@ For the root $r$, set $q_r(0) = s$ and randomly choose $d_r -1$ other points to 
 Then, for any other node $u$, including leaf nodes, set $q_u(0) = q_{\text{parent}(x)}(\text{index}(x))$ and choose $d_u -1$ other points at random to define the polynomial. 
 For all leaf nodes $u$, create a secret share $D_u = q_x(0) \cdot t_i^{-1} \cdot Q$ where $i = \text{att}(x)$.
 
-The set of these secret shares is the decryption key $D = \{D_u | u \text{ leaf node of } \Gamma\}$.\\
-
-\emph{Encrypt(M, $\omega$, Params)}~\cite{goyal_attribute-based_2006}.
-Input: Message $M \in \mathbb{G}_T$, set of \glspl{attribute} $\omega$ and public parameters $Params$. 
-
-Choose $s \in \mathbb{Z}_q$ at random and compute $E' = M \cdot Y^s$.
-For each attribute $i \in \omega$ compute $E_i = s \cdot T_i$.
-
-Return the ciphertext as $E = (\omega, E', \{E_i | i \in \omega\})$
+The set of these secret shares is the decryption key $D = \{D_u | u \text{ leaf node of } \Gamma\}$.
 \\
 
 \emph{Decrypt(E, D)}~\cite{goyal_attribute-based_2006}.
@@ -141,6 +142,18 @@ Also, choose uniformly at random the master private key $s \in \mathbb{Z}_q^*$, 
 Publish $Params=(PK, P_1, \dots, P_n)$ as the public parameters, privately save $MK = (s, s_1, \dots, s_n)$ as the private master key.
 \\
 
+\emph{Encrypt(m, $\omega$, Params)}~\cite{yao_lightweight_2015}.
+Input: Message $m$, set of attributes $\omega$ and public parameters $Params$.
+
+Randomly choose $k \in \mathbb{Z}_q^*$ and compute $C' = k \cdot PK$. If $C' = \mathcal{O}$, repeat until $C' \neq \mathcal{O}$.
+$C' = (k_x, k_y)$ are the coordinates of the point $C'$. $k_x$ is used as the encryption key and $k_y$ as the integrity key.
+
+Then compute $C_i = k \cdot P_i$ for all attributes $i \in \omega$.
+
+Encrypt the actual message as $c = \text{Enc}(m, k_x)$, generate a Message Authentication Code $\text{mac}_m = \text{HMAC}(m, k_y)$.
+
+Return the ciphertext $CM = (\omega, c, \text{mac}_m, \{C_i | i \in \omega\})$\\
+
 \emph{KeyGen($\Gamma$, MK)}~\cite{yao_lightweight_2015}.
 Input: \glspl{access-tree} $\Gamma$ and master key $MK$.
 
@@ -153,19 +166,8 @@ Then, for any other node $u$ (including leafs), set $q_u(0) = q_{\text{parent}(u
 
 Whenever $u$ is a leaf node, use $q_u(x)$ to define a secret share $D_u = \frac{q_u(0)}{s_i}$; where $i = \text{attr}(u)$, $s_i$ the randomly chosen secret number from \emph{Setup} and $s_i^{-1}$ the inverse of $s_i$ in $\mathbb{Z}_q^*$.
 
-Return the generated key as $D = (\{D_u | u \text{ leaf node of } \Gamma\}, \{r_0, r_1, \dots \})$.\\
-
-\emph{Encrypt(m, $\omega$, Params)}~\cite{yao_lightweight_2015}.
-Input: Message $m$, set of attributes $\omega$ and public parameters $Params$.
-
-Randomly choose $k \in \mathbb{Z}_q^*$ and compute $C' = k \cdot PK$. If $C' = \mathcal{O}$, repeat until $C' \neq \mathcal{O}$.
-$C' = (k_x, k_y)$ are the coordinates of the point $C'$. $k_x$ is used as the encryption key and $k_y$ as the integrity key.
-
-Then compute $C_i = k \cdot P_i$ for all attributes $i \in \omega$.
-
-Encrypt the actual message as $c = \text{Enc}(m, k_x)$, generate a Message Authentication Code $\text{mac}_m = \text{HMAC}(m, k_y)$.
-
-Return the ciphertext $CM = (\omega, c, \text{mac}_m, \{C_i | i \in \omega\})$\\
+Return the generated key as $D = (\{D_u | u \text{ leaf node of } \Gamma\}, \{r_0, r_1, \dots \})$.
+\\
 
 \emph{Decrypt(CM, D, Params)}~\cite{yao_lightweight_2015}. Input: Ciphertext $CM$, decryption key $D$ and public parameters $Params$.
 
