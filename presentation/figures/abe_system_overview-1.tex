@@ -29,7 +29,7 @@
             \node[actor] (b) at (1,0) {Bob};
             \node[actor] (kgc) at (0,1.5) {KGC};
 
-            \node[above, align=center] at (kgc.north) {$\{PK, MK\}$\\$\textcolor{olive}{k_A} := \text{KeyGen}(PK, MK, \textcolor{olive}{S_A})$\\$\textcolor{blue}{k_B} := \text{KeyGen}(PK, MK, \textcolor{blue}{S_B})$};
+            \node[above, align=center] at (kgc.north) {$\{PK, MK\}$\\$\textcolor{olive}{k_A} := \text{KeyGen}(MK, \textcolor{olive}{S_A})$\\$\textcolor{blue}{k_B} := \text{KeyGen}(MK, \textcolor{blue}{S_B})$};
 
             \node[below, align=center] at (a.south) {{\{$PK$, $\textcolor{olive}{k_A}$\}}\\$\{m, \omega\}$};
             \node[below, align=center] at (b.south) {\{$PK$, $\textcolor{blue}{k_B}$\}};
