@@ -79,6 +79,46 @@ This generator, however, is quite slow and speed can differ greatly: With bias c
 To alleviate this, the hardware \acrshort{rng} is only used to seed a ChaCha20 pseudorandom number generator (crate \texttt{rand\_chacha}~\cite{noauthor_rand_chacha_nodate}).
 This is essentially the same construction as the current implementation of \texttt{ThreadRng}~\cite{noauthor_rust_nodate}.
 
+\section{Library API}
+The schemes are implemented in crates that export the relevant types (see section~\ref{sec:abe-algs-impl}) and the four \acrshort{abe} functions \texttt{setup()}, \texttt{encrypt()}, \texttt{keygen()} and \texttt{decrypt()}.
+
+Listing~\ref{lst:abe-signatures} gives a short overview of the four function signatures.
+The parameter \texttt{rng} allows the caller to pass a custom \acrlong{rng} and thus makes the library independent from the standard library \acrshort{rng}.
+
+\texttt{setup()} requires the caller to create and pass a reference to two \texttt{FnvIndexMap}s to avoid passing these back on the stack.
+
+\texttt{encrypt()} and \texttt{decrypt()} return a \texttt{Result} type because they can fail: 
+With both, the underlying AES library might return an error, which is passed on to the caller of our library.
+Decryption might also fail because the key is not satisfied by the attributes in the ciphertext.
+
+\begin{lstlisting}[float=h!,caption={Exported function signatures of the GPSW scheme},label={lst:abe-signatures}]
+pub fn setup<'attr, 'es>(
+    att_names: &[&'attr str], 
+    public_map: &'es mut FnvIndexMap<&'attr str, G2, S>, 
+    private_map: &'es mut FnvIndexMap<&'attr str, F, S>, 
+    rng: &mut dyn RngCore
+) -> (GpswAbePrivate<'attr, 'es>, GpswAbePublic<'attr, 'es>) 
+
+pub fn encrypt<'attr, 'es, 'key, 'data>(
+    params: &GpswAbePublic<'attr, 'es>, 
+    atts: &[&'attr str], 
+    data: &'data mut [u8], 
+    rng: &mut dyn RngCore
+) -> Result<GpswAbeCiphertext<'attr, 'data>, ()> 
+
+pub fn keygen<'es, 'attr, 'key>(
+    params: &GpswAbePrivate<'attr, 'es>, 
+    master_key: &GpswAbePublic<'attr, 'es>, 
+    access_structure: AccessStructure<'attr, 'key>, 
+    rng: &mut dyn RngCore
+) -> PrivateKey<'attr, 'key> 
+
+pub fn decrypt<'attr, 'key, 'data>(
+    ciphertext: GpswAbeCiphertext<'attr, 'data>, 
+    key: &PrivateKey<'attr, 'key>
+) -> Result<&'data [u8], GpswAbeCiphertext<'attr, 'data>> 
+\end{lstlisting}
+
 \section{Aspects common to both ABE schemes}
 
 These aspects of the implementation are common to both ABE schemes and therefore outsourced into a separate \verb+abe_utils+ crate.

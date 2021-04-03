@@ -1,4 +1,4 @@
-//! Implementation of the KP-ABE scheme by Goyal, Pandey Saha and Waters, [available here](https://dl.acm.org/doi/abs/10.1145/1180405.1180418).
+//! Implementation of the KP-ABE scheme by Goyal, Pandey, Sahai and Waters, [available here](https://dl.acm.org/doi/abs/10.1145/1180405.1180418).
 //! 
 //! Differences to the original paper by Goyal, Pandey, Sahai and Waters:
 //! - use of asymmetric pairing (G1 x G2 -> Gt instead of G1 x G1 -> G2)
