@@ -24,33 +24,32 @@ For a real-world use-case of this library in the medical field, see Figure~\ref{
 It is assumed that the sensor (e.g. an ECG or blood glucose sensor) is unable to communicate with the internet directly.
 Therefore, the data is sent to a gateway by \acrfull{ble} and then uploaded to the cloud.
 
-The goal of this project is to enable end-to-end \acrlong{abe}:
-Measurements are encrypted on the sensor before they are transmitted over \acrshort{ble} and only decrypted when read by an authorized client (e.g. the attending doctor).
-In this system, the sensor exclusively needs to encrypt data; decryption, key generation and setup are not required on the constrained node, which is the case in many \acrshort{iot} applications.
+Note that in this use case, the sensor exclusively needs to encrypt data.
+Decryption is not required on the constrained node, which is the case in many \acrshort{iot} applications.
 
-The end-to-end \acrshort{abe} approach does not require trust in the gateway or cloud provider.
-Trusting them would be an unreasonable assumption in many scenarios.
-
-An alternative to encryption with \acrshort{abe} on the sensor would be outsourcing the \acrshort{abe} operations to the gateway:
-The sensor and gateway share a secret key, which is used to secure the communication over \acrshort{ble}.
-The gateway then decrypts the symmetrically encrypted data and re-encrypts it using \acrshort{abe}.
-This approach does not require \acrshort{abe} on the sensor, only on the gateway.
-The latter is assumed to be much more powerful than the sensor.
-However, the gateway must be trusted in this scenario.
-
-An alternative using only \glslink{privkes}{symmetric cryptography} would be to let the cloud server enforce access control:
-All participants exchange a secret key with the cloud server.
+Without \acrshort{abe}, the cloud server could enforce access control:
+All participants exchange secret keys with the cloud server.
 The sensor then uses this key to encrypt the data, which only the cloud server can read.
 When a user wants to access some data, they request it at the cloud server.
 If the cloud server grants their request, the server re-encrypts the data with the respective user's key and transmits it to them.
-This approach removes trust in the gateway and requires only \glslink{privkes}{symmetric encryption} for all participants, which is much faster than \acrshort{abe}.
+This approach requires only \glslink{privkes}{symmetric encryption}, which is much faster than \acrshort{abe}.
 The disadvantage is that the cloud server knows all data in plain text. It thus needs to be trusted and represents a single point of failure.
 
-End-to-end \acrshort{abe} removes trust in the gateway and the cloud server, but it does not remove the single point of failure:
-A malicious \acrfull{kgc} could issue keys that allow decryption of arbitrary data (see Section~\ref{sec:kgc}).
+To remove trust in the cloud server without performing \acrshort{abe} on the sensor, we could outsource the \acrshort*{abe} operations to the gateway.
+The latter is assumed to be much more powerful than the sensor.
+Communication over \acrshort{ble} is secured by \glslink{privkes}{symmetric encryption}.
+The gateway decrypts the data and re-encrypts it using \acrshort{abe} before uploading it to the cloud.
+However, this approach requires the gateway to be trustworthy.
+
+Unfortunately, trusting either the gateway or the cloud provider is an unreasonable assumption in many scenarios.
+Therefore, we'd like to employ end-to-end \acrlong{abe}:
+Measurements are encrypted with \acrshort{abe} on the sensor before they are transmitted over \acrshort{ble} and only decrypted when read by an authorized client (e.g. the attending doctor).
+
+End-to-end \acrshort{abe} eliminates trust in the gateway and the cloud server, but it does not remove the single point of failure:
+A malicious \acrfull{kgc} could issue keys that allow decryption of arbitrary data (see section~\ref{sec:kgc}).
 However, the \acrshort{kgc} is only required to setup the \acrshort{abe} system and issue the participant's keys.
 It is not involved in any encryption or decryption operations.
-The \acrshort{kgc} does not need to be online during the use of the system and could e.g. be located on an air-gapped network and only be connected when new a users joins the system. 
+The \acrshort{kgc} could e.g. be located on an air-gapped network and only be connected for a short time when new a user joins the system. 
 This greatly reduces the attack surface.
 % ~\\
 
