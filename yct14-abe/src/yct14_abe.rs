@@ -27,7 +27,7 @@ type GIntermediate = G;
 pub type F = Fr;
 
 /// Private parameters of the ABE scheme, known in only to the KGC
-pub struct YaoABEPrivate<'attr, 'own> {
+pub struct YctAbePrivate<'attr, 'own> {
   // gen: G,
   atts: &'own FnvIndexMap<&'attr str, F, S>,
   // pk: G,
@@ -35,7 +35,7 @@ pub struct YaoABEPrivate<'attr, 'own> {
 }
 
 /// Public ABE parameters, known to all participants and required for encryption
-pub struct YaoABEPublic<'attr, 'own> {
+pub struct YctAbePublic<'attr, 'own> {
   // gen: G,
   atts: &'own FnvIndexMap<&'attr str, G, S>,
   pk: G,
@@ -46,14 +46,14 @@ pub struct YaoABEPublic<'attr, 'own> {
 /// Contains both the actual (symetrically) encrypted data and all data required to reconstruct the
 /// symmetric keys given a private key created under a matching access structure.
 #[derive(Debug, PartialEq, Eq)]
-struct YaoABEGroupCiphertext<'attr>(FnvIndexMap<&'attr str, G, S>); // attributes and their respective curve elements
+struct YctAbeGroupCiphertext<'attr>(FnvIndexMap<&'attr str, G, S>); // attributes and their respective curve elements
 
 /// Ciphertext obtained by encrypting with GPSW
 /// 
 /// This is a hybrid ciphertext consisting of the key encapsulation (ABE-encrypted symmetric key) and the
 /// symmetrically encrypted data. 
 #[derive(Debug, PartialEq, Eq)]
-pub struct YaoAbeCiphertext<'attr, 'data>(YaoABEGroupCiphertext<'attr>, kem::Ciphertext<'data>);
+pub struct YctAbeCiphertext<'attr, 'data>(YctAbeGroupCiphertext<'attr>, kem::Ciphertext<'data>);
 
 /// Represents a private key obtained by keygen() and used to decrypt ABE-encrypted data
 /// 
@@ -76,7 +76,7 @@ pub fn setup<'attr, 'es>(
   public_map: &'es mut FnvIndexMap<&'attr str, G, S>,
   private_map: &'es mut FnvIndexMap<&'attr str, F, S>,
   rng: &mut dyn RngCore,
-) -> (YaoABEPrivate<'attr, 'es>, YaoABEPublic<'attr, 'es>)
+) -> (YctAbePrivate<'attr, 'es>, YctAbePublic<'attr, 'es>)
 where
   'attr: 'es,
 {
@@ -96,13 +96,13 @@ where
   pk.normalize(); // master public key, corresponds to `PK`
 
   (
-    YaoABEPrivate {
+    YctAbePrivate {
       // gen: g,
       atts: private_map,
       // pk,
       master_secret,
     },
-    YaoABEPublic {
+    YctAbePublic {
       // gen: g,
       atts: public_map,
       pk,
@@ -115,7 +115,7 @@ where
 /// Generate a private key for a given access structure, which allows a user holding the key to decrypt a ciphertext iff its
 /// attributes satisfy the given access structure.
 pub fn keygen<'attr, 'es, 'key>(
-  master_key: &YaoABEPrivate,
+  master_key: &YctAbePrivate,
   access_structure: AccessStructure<'attr, 'key>,
   rng: &mut dyn RngCore,
 ) -> Result<PrivateKey<'attr, 'key>, ()>
@@ -146,7 +146,7 @@ where
 
 /// internal recursive helper to ease key generation
 fn keygen_node<'attr, 'es, 'key>(
-  master_key: &YaoABEPrivate<'attr, 'es>,
+  master_key: &YctAbePrivate<'attr, 'es>,
   tree_arr: AccessStructure<'key, 'key>,
   tree_ptr: u8,
   parent_poly: &Polynomial,
@@ -206,11 +206,11 @@ fn index_prf(r: [u8; 8], i: F) -> F {
 /// This curve point is then run through a KDF to obtain an AES key, which is used to encrypt the actual payload with
 /// AES-256 in CCM mode.
 pub fn encrypt<'attr, 'es, 'data>(
-  params: &YaoABEPublic<'attr, 'es>,
+  params: &YctAbePublic<'attr, 'es>,
   atts: &[&'attr str],
   data: &'data mut [u8],
   rng: &mut dyn RngCore,
-) -> Result<YaoAbeCiphertext<'attr, 'data>, ()>
+) -> Result<YctAbeCiphertext<'attr, 'data>, ()>
 where
   'attr: 'es,
   'es: 'data,
@@ -242,8 +242,8 @@ where
     Ok(c) => c,
     Err(_) => return Err(()),
   };
-  Ok(YaoAbeCiphertext(
-    YaoABEGroupCiphertext(att_cs),
+  Ok(YctAbeCiphertext(
+    YctAbeGroupCiphertext(att_cs),
     kem_ciphertext,
   ))
 }
@@ -327,14 +327,14 @@ where
 /// Decrypts a ciphertext encrypted under the ABE scheme and returns the plaintext if decryption was successful.
 /// If it failed, the ciphertext is returned such that it may be decrypted again with a different key.
 pub fn decrypt<'attr, 'key, 'data>(
-  ciphertext: YaoAbeCiphertext<'attr, 'data>,
+  ciphertext: YctAbeCiphertext<'attr, 'data>,
   key: &PrivateKey<'attr, 'key>,
-) -> Result<&'data [u8], YaoAbeCiphertext<'attr, 'data>>
+) -> Result<&'data [u8], YctAbeCiphertext<'attr, 'data>>
 where
   'attr: 'key,
   'key: 'data,
 {
-  let YaoAbeCiphertext(kem_cipher, data_cipher) = ciphertext;
+  let YctAbeCiphertext(kem_cipher, data_cipher) = ciphertext;
   let PrivateKey(access_structure, secret_shares, r_per_level) = key;
 
   let res = decrypt_node(
@@ -346,7 +346,7 @@ where
     r_per_level,
   );
   let mut c_prime = match res {
-    None => return Err(YaoAbeCiphertext(kem_cipher, data_cipher)),
+    None => return Err(YctAbeCiphertext(kem_cipher, data_cipher)),
     Some(p) => p,
   };
 
@@ -354,7 +354,7 @@ where
   // let key = c_prime.to_affine().to_encoded_point(false).to_untagged_bytes().unwrap();
   match kem::decrypt(&c_prime, data_cipher) {
     Ok(data) => Ok(data),
-    Err(ct) => Err(YaoAbeCiphertext(kem_cipher, ct)),
+    Err(ct) => Err(YctAbeCiphertext(kem_cipher, ct)),
   }
 }
 
