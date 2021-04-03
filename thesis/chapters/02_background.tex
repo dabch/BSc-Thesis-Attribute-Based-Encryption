@@ -56,7 +56,7 @@ With a \gls{small-universe} construction, the size of the public parameters usua
 
 \subsection{Formal definition of an ABE Scheme}\label{sec:definition-es}
 
-We will define a \acrshort{kp-abe} scheme here, for the difference between \acrshort{cp-abe} and \acrshort{kp-abe} and formal definitions of Access Trees, see the next sections.
+We will define a \acrshort{kp-abe} scheme here, for the difference between \acrshort{cp-abe} and \acrshort{kp-abe} and formal definitions of \glspl{access-tree}, see the next sections.
 
 \begin{definition}
     A (Key-Policy) \Acrlong{abes} consists of the following four algorithms~\cite{goyal_attribute-based_2006}:
@@ -127,7 +127,7 @@ Intuitively, the monotonicity of an access structure means that adding an attrib
 \input{figures/02_sample_access_tree}
 
 Explicitly specifying an \gls{access-structure} is not feasible, as its size may be exponential in the size of the attribute universe.
-Therefore, we will use the construction of \emph{Access Trees} defined by Goyal~et~al.~\cite{goyal_attribute-based_2006}.
+Therefore, we will use the construction of \emph{access trees} defined by Goyal~et~al.~\cite{goyal_attribute-based_2006}.
 \Glspl{access-tree} are similar to the tree representation of boolean formulas, but slightly more powerful:
 Each leaf of this tree is labelled with an attribute.
 Each inner node has a number of children and is labelled with an integer. 
@@ -140,11 +140,11 @@ For an attribute universe of $U = \{A, B, C, D\}$ this would realize the \gls{ac
 \begin{definition}
     Access Tree~\cite{goyal_attribute-based_2006}.
 
-    An interal node $x$ of an access tree is defined by its children and a threshold value $d_x$.
+    An interal node $x$ of an \gls{access-tree} is defined by its children and a threshold value $d_x$.
     The threshold value satisfies $0 < d_x \leq num_x$ with $num_x$ being the number of children.
     A leaf node $x$ is defined by an attribute and a threshold value $k_x = 1$.
 
-    The parent of a node $x$ in the access tree is denoted by $\text{parent}(x)$.
+    The parent of a node $x$ in the \gls{access-tree} is denoted by $\text{parent}(x)$.
     If $x$ is a leaf node, $\text{att}(x)$ denotes the attribute associated with $x$; otherwise it is undefined.
     The children of a node $x$ are numbered from $1$ to $num_x$. Then, $\text{index}(y)$ denotes the unique index of $y$ among the children of its parent node.
 \end{definition}
@@ -152,8 +152,8 @@ For an attribute universe of $U = \{A, B, C, D\}$ this would realize the \gls{ac
 \begin{definition}
     Satisfying Access Trees~\cite{goyal_attribute-based_2006}.
 
-    Let $\mathcal{T}$ be an access tree with root r and $\mathcal{T}_x$ the subtree with $x$ as its root.
-    If a set of attributes $\gamma$ satisfies the access tree $\mathcal{T}_x$, we write $\mathcal{T}_x(\gamma) = 1$; otherwise $\mathcal{T}_x(\gamma) = 0$.\\
+    Let $\mathcal{T}$ be an \gls{access-tree} with root r and $\mathcal{T}_x$ the subtree with $x$ as its root.
+    If a set of attributes $\gamma$ satisfies the \gls{access-tree} $\mathcal{T}_x$, we write $\mathcal{T}_x(\gamma) = 1$; otherwise $\mathcal{T}_x(\gamma) = 0$.\\
     If $x$ is a leaf node, then $\mathcal{T}_x(\gamma) = 1$ if and only if $\text{attr}(x) \in \gamma$.
     
     If $x$ is an internal node, then $\mathcal{T}_x = 1$ if and only if $d_x$ or more of the children $x'$ of $x$ return $\mathcal{T}_{x'}(\gamma) = 1$.
@@ -283,11 +283,11 @@ See also Figure~\ref{fig:sss} for illustration.
 In practice, the numbers would be far bigger and calculations would not be performed over the real numbers, but rather a finite field modulo a prime~\cite{shamir_how_1979}.
 
 \subsection{Secret Sharing in Attribute Based Encryption}\label{sec:lss-in-access-trees}
-To realize an Access Tree that ``gives away'' a secret if and only if it is satsified by a set of attributes, we can recursively apply Shamir's Secret Sharing scheme:
+To realize an \gls{access-tree} that ``gives away'' a secret if and only if it is satsified by a set of attributes, we can recursively apply Shamir's Secret Sharing scheme:
 
 \input{figures/02_access_tree_shamir}
 
-We use a secret-sharing polynomial on each internal node of the Access Tree.
+We use a secret-sharing polynomial on each internal node of the \gls{access-tree}.
 For a node $x$ with threshold $d_x$ and $\text{num}_x$ children, we define a $(d_x, \text{num}_x)$-threshold scheme and embed one share of the secret in each child.
 We begin in the root, and set $s$ as the secret we want to embed in the tree.
 For all other nodes, we set $s$ as the secret share received from the parent node.
@@ -302,7 +302,7 @@ For the internal nodes $x$, the use of a $(d_x, \text{num}_x)$-threshold scheme 
 Following this recursive definition up to the root, we can see that our secret $s$ embedded in the root can be reconstructed if and only if $\omega$ satisfies the acess tree.
 
 See Figure~\ref{fig:sample-access-tree-shamir} for an illustration with the tree from Figure~\ref{fig:sample-access-tree}:
-Two $(k,n)$-threshold schemes are employed, one for each internal node of the access tree.
+Two $(k,n)$-threshold schemes are employed, one for each internal node of the \gls{access-tree}.
 $p_1(x)$ is the polynomial of the root's $(2,3)$-threshold scheme, sharing $s$, the secret to be embedded in the tree (i.e. $p_1(0) = s$).
 $p_2(x)$ is the polynomial for the $(1,2)$-threshold scheme belonging to the node labelled ``1'' and shares the value $p_1(3)$ that it received from the $(2,3)$-threshold scheme of the layer above (i.e. $p_2(0) = p_1(3)$).
 

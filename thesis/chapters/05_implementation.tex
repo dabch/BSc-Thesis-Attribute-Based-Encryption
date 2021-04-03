@@ -124,10 +124,10 @@ pub fn decrypt<'attr, 'key, 'data>(
 These aspects of the implementation are common to both ABE schemes and therefore outsourced into a separate \verb+abe_utils+ crate.
 
 \subsection{Representation of Access Trees}
-The Rust type system is very well suited to represent the type of tree structures we need for Access Trees.
+The Rust type system is very well suited to represent the type of tree structures we need for \glspl{access-tree}.
 A simple implementation might look like the one in Listing~\ref{lst:access-tree-naive}. 
 
-\begin{lstlisting}[float=h,caption={Simple Implementation of Access Trees (using the standard library)},label={lst:access-tree-naive}]
+\begin{lstlisting}[float=h,caption={Simple Implementation of \glspl{access-tree} (using the standard library)},label={lst:access-tree-naive}]
 enum AccessTree<'a> {
     // threshold, vector of children
     Node(u64, std::vec::Vec<AccessTree<'a>>),
@@ -141,14 +141,14 @@ The \texttt{std::vec::Vec} is allocated on the heap and thus only a pointer to t
 This pointer has constant size.
 
 A \texttt{heapless::Vec} is not located on the heap, but directly inside the \texttt{AccessTreeNode}.
-Even if there is a limit on the number of children a single inner node might have, there is no limit to the depth of the access tree.
+Even if there is a limit on the number of children a single inner node might have, there is no limit to the depth of the \gls{access-tree}.
 Therefore, an \texttt{AccessTreeNode} has to be arbitrarily large because it might need to hold an arbitrary number of child nodes.
 
-Because of this, Access Trees were implemented as a flat slice of nodes as in Listing~\ref{lst:access-tree-heapless}. 
-The vector of children doesn't hold references to the children themselves, but only their index within the vector of Access Tree nodes.
+Because of this, \glspl{access-tree} were implemented as a flat slice of nodes as in Listing~\ref{lst:access-tree-heapless}. 
+The vector of children doesn't hold references to the children themselves, but only their index within the vector of \gls{access-tree} nodes.
 This again introduces an indirection (like the heap pointer in the simple implementation) and allows the enums to have constant size.
 
-\begin{lstlisting}[float=h,caption={Refined implementation of Access Trees (works without standard library)},label={lst:access-tree-heapless}]
+\begin{lstlisting}[float=h,caption={Refined implementation of \glspl{access-tree} (works without standard library)},label={lst:access-tree-heapless}]
 type AccessTree<'a, 'b> = &'b [AccessNode<'a>];
 enum AccessNode<'a> {
     // threshold, vector of child indexes
@@ -160,7 +160,7 @@ enum AccessNode<'a> {
 
 Listing~\ref{lst:access-tree-example} shows the \gls{access-tree} from Figure~\ref{fig:sample-access-tree} in this representation.
 
-\begin{lstlisting}[float=h,caption={Sample access tree in the heapless Rust representation},label={lst:access-tree-example}]
+\begin{lstlisting}[float=h,caption={Sample \gls{access-tree} in the heapless Rust representation},label={lst:access-tree-example}]
 let access_tree: AccessTree = &[
     AccessNode::Node(2, Vec::from_slice(&[1, 2, 3]).unwrap()),
     AccessNode::Leaf("A"),
