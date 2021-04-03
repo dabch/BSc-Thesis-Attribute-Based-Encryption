@@ -31,7 +31,7 @@ pub struct GpswAbePrivate<'attr, 'own> {
   master_secret: F,
 }
 
-/// Public ABE parameters, known to all participants and required used for encryption
+/// Public ABE parameters, known to all participants and required for encryption
 #[derive(Debug)]
 pub struct GpswAbePublic<'attr, 'own> {
   g1: G1,
@@ -41,6 +41,7 @@ pub struct GpswAbePublic<'attr, 'own> {
 }
 
 /// Represents a ciphertext as obtained by encrypt() and consumed by decrypt()
+/// 
 /// Contains both the actual (symetrically) encrypted data and all data required to reconstruct the
 /// symmetric keys given a private key created under a matching access structure.
 #[derive(Debug, PartialEq, Eq)]

@@ -16,49 +16,60 @@ use abe_utils::{kem, polynomial::Polynomial};
 
 pub use ccm::aead::Error;
 
+/// The size of attribute lists, maps etc.
+/// 
+/// This has to be set at compilation time at the moment.
+/// TODO once const generics land: Make the schemes generic over the sizes. This will increase usability a great lot!
 pub type S = consts::U32;
 
 pub type G = G1;
 type GIntermediate = G;
 pub type F = Fr;
 
-/// Represents the full parameters of an ABE scheme, known in full only to the KGC
-//#[derive(Debug)]
+/// Private parameters of the ABE scheme, known in only to the KGC
 pub struct YaoABEPrivate<'attr, 'own> {
   // gen: G,
   atts: &'own FnvIndexMap<&'attr str, F, S>,
   // pk: G,
   master_secret: F,
 }
-/// represents the public ABE parameters, known to all participants and used for encryption, decryption and the like
-//#[derive(Debug)]
+
+/// Public ABE parameters, known to all participants and required for encryption
 pub struct YaoABEPublic<'attr, 'own> {
   // gen: G,
   atts: &'own FnvIndexMap<&'attr str, G, S>,
   pk: G,
 }
+
 /// Represents a ciphertext as obtained by encrypt() and consumed by decrypt()
+/// 
 /// Contains both the actual (symetrically) encrypted data and all data required to reconstruct the
 /// symmetric keys given a private key created under a matching access structure.
 #[derive(Debug, PartialEq, Eq)]
 struct YaoABEGroupCiphertext<'attr>(FnvIndexMap<&'attr str, G, S>); // attributes and their respective curve elements
 
+/// Ciphertext obtained by encrypting with GPSW
+/// 
+/// This is a hybrid ciphertext consisting of the key encapsulation (ABE-encrypted symmetric key) and the
+/// symmetrically encrypted data. 
 #[derive(Debug, PartialEq, Eq)]
 pub struct YaoAbeCiphertext<'attr, 'data>(YaoABEGroupCiphertext<'attr>, kem::Ciphertext<'data>);
 
 /// Represents a private key obtained by keygen() and used to decrypt ABE-encrypted data
+/// 
 /// This data structure mirrors the recursive nature of access structures to ease implementation
 /// of decryption. The secret shared (D_u in the original paper) allowing decryption are embedded
 /// in the leaves of the tree.
-//#[derive(Debug)]
 pub struct PrivateKey<'attr, 'own>(
   AccessStructure<'attr, 'own>,
   FnvIndexMap<u8, F, consts::U64>,
   [[u8; 8]; 32],
 );
-// pub struct PrivateKey<'attr, 'own>(AccessStructure<'attr, 'own>, FnvIndexMap<u8, F, consts::U64>);
 
-/// Corresponds to the `(A) Setup` phase in the original paper. Sets up an encryption scheme with a fixed set of attributes and
+
+/// Setup of the ABE instance.
+/// 
+/// Sets up an encryption scheme with a fixed set of attributes and
 /// generates both public and private parameter structs. This is typically run exactly once by the KGC.
 pub fn setup<'attr, 'es>(
   att_names: &[&'attr str],
@@ -99,6 +110,8 @@ where
   )
 }
 
+/// Generates a decryption key.
+/// 
 /// Generate a private key for a given access structure, which allows a user holding the key to decrypt a ciphertext iff its
 /// attributes satisfy the given access structure.
 pub fn keygen<'attr, 'es, 'key>(
@@ -187,11 +200,11 @@ fn index_prf(r: [u8; 8], i: F) -> F {
   F::interpret(mac_res.as_slice().try_into().unwrap())
 }
 
-/// Encrypt a plaintext under a set of attributes so that it can be decrypted only with a matching key
-/// TODO for now this does not actually encrypt any data. It just generates a random curve element c_prime (whose
-/// coordinates would be used as encryption and message authentication key), which is then reconstructible under a
-/// matching key.
-/// This is the only part of our cryptosystem that needs to run on the Cortex M4 in the end.
+/// Encrypt a plaintext under a set of attributes so that it can be decrypted only with a matching key.
+/// 
+/// Encrypts data using a hybrid approach, i.e. a random curve point is chosen and encrypted under the ABE scheme.
+/// This curve point is then run through a KDF to obtain an AES key, which is used to encrypt the actual payload with
+/// AES-256 in CCM mode.
 pub fn encrypt<'attr, 'es, 'data>(
   params: &YaoABEPublic<'attr, 'es>,
   atts: &[&'attr str],
@@ -309,7 +322,10 @@ where
   }
 }
 
-/// Decrypt a ciphertext using a given private key. At this point, doesn't actually do any decryption, it just reconstructs the point used as encryption/mac key.
+/// Decrypt an ABE-encrypted ciphertext.
+/// 
+/// Decrypts a ciphertext encrypted under the ABE scheme and returns the plaintext if decryption was successful.
+/// If it failed, the ciphertext is returned such that it may be decrypted again with a different key.
 pub fn decrypt<'attr, 'key, 'data>(
   ciphertext: YaoAbeCiphertext<'attr, 'data>,
   key: &PrivateKey<'attr, 'key>,
