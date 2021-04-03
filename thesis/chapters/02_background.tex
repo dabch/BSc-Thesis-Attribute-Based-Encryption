@@ -4,14 +4,15 @@ This chapter introduces \acrlong{abe} and the relevant mathematical background f
 \input{figures/02_key_use_comparison}
 
 \section{Confidentiality with Classic Symmetric and Asymmetric Cryptography}
-Today's conventional cryptography knows two main classes of cryptosystems: \glspl{privkes} and \glspl{pkes}. See Figure~\ref{fig:key-use} for an illustration of the differences.
+Today's conventional cryptography knows two main classes of encryption schemes: \glslink{privkes}{symmetric} and \glspl{pkes}. See Figure~\ref{fig:key-use} for an illustration of the differences.
 
 Consider $n$ participants wanting to communicate securely (i.e. no user can read encrypted messages between two other users).
 Using a \gls{privkes}, each participant would need to agree on a unique key with every other participant, resulting in a total number of $\frac{n(n-1)}{2}$ keys.
 The users would need to exchange these keys secretly, e.g. by meeting in person.
-Using an \gls{pkes} removes the need for secret key exchange because the encryption keys can be published. It also reduces the number of keys to only $n$, because each participant could obtain every other participant's public key and send messages to them.
+Using an \gls{pkes} removes the need for secret key exchange because the encryption keys can be published.
+It also reduces the total number of keys to only $n$, because each participant could obtain every other participant's public key and use it to send them encrypted messages.
 
-Another problem remains, however: Encrypting a single message to a large number of participants requires encrypting it with everyone's public key separately.
+Another problem remains, however: Encrypting a single message to several recipients requires encrypting it with everyone's public key separately.
 For a large number of recipients, this is inefficient.
 So, for example, to encrypt a message for all students of a certain university, we would need to obtain each student's public key and encrypt the message with each key separately.
 
@@ -48,7 +49,7 @@ This differs from traditional public-key encryption schemes, where any user can 
 
 Regarding the \glsdesc{universe} (called the \emph{\gls{universe}}), there are two possibilities:
 In a \gls{large-universe} construction, all possible strings can be used as attributes~\cite{goyal_attribute-based_2006}.
-In a \gls{small-universe} construction, the universe of attributes is explicitly fixed when the system is instantiated, i.e. when the \acrshort{kgc} runs the \emph{Setup} algorithm (see below, section~\ref{sec:definition-es})~\cite{goyal_attribute-based_2006}.
+In a \gls{small-universe} construction, the universe of attributes is explicitly fixed when the system is instantiated, i.e. when the \acrshort{kgc} runs the \emph{Setup} algorithm (see below, Section~\ref{sec:definition-es})~\cite{goyal_attribute-based_2006}.
 With a \gls{small-universe} construction, the size of the public parameters usually grows with the size of the \gls{universe}~\cite{goyal_attribute-based_2006}.
 
 \subsection{Formal definition of an ABE Scheme}\label{sec:definition-es}
@@ -73,6 +74,8 @@ The definition of a \acrshort{cp-abe} scheme is identical, except that \emph{Enc
 How exactly these algorithms work in concrete ABE schemes will be discussed in Chapter~\ref{chapter:constructions}.
 
 \subsection{KP-ABE and CP-ABE}\label{sec:cp-vs-kp}
+\input{figures/02_cp_kp_abe}
+
 
 Two components are necessary to specify a group of keys that shall be able to decrypt a ciphertext:
 A list of attributes that are present, and a policy that defines a combination of required attributes. 
@@ -104,9 +107,6 @@ With \acrshort{kp-abe}, policies are handled by the \acrshort{kgc}, which is in 
 % For example, imagine a \acrshort{kp-abe} system in which it is common practice to label all ciphertexts with an attribute corresponding to the version number of the encryption software used.
 % If the \acrshort{kgc} were to give out a key containing a monotone \gls{access-structure} satisfied by just a single attribute corresponding to a commonly-used version of this software, this key could be used to decrypt any ciphertext - completely disregarding any other attributes that might be associated with it.
 
-
-\input{figures/02_cp_kp_abe}
-
 \subsection{Access Structures}\label{sec:access-structures}
 Access structures formally determine which sets of attributes are required to reconstruct the ciphertext under \acrshort{abe}.
 This definition is adapted from \cite{beimel_secure_1996} to our setting of allowed attribute sets, instead of allowed parties.
@@ -125,9 +125,11 @@ Intuitively, the monotonicity of an access structure means that adding an attrib
 
 Explicitly specifying an \gls{access-structure} is not feasible, as its size may be exponential in the size of the attribute universe.
 Therefore, we will use the construction of \emph{Access Trees} from Goyal~et~al.~\cite{goyal_attribute-based_2006}.
-Each leaf of this tree is labelled with an attribute, and each interior node is labelled with an integer, the threshold for it to be satisfied~\cite{goyal_attribute-based_2006}.
+\Glspl{access-tree} are similar to the tree representation of boolean formulas, but slightly more powerful:
+Each leaf of this tree is labelled with an attribute.
+Each interior node has a number of children and is labelled with an integer, the number of children that need to be satisfied in order to satisfy the interior node~\cite{goyal_attribute-based_2006}.
 
-Figure~\ref{fig:sample-access-tree} illustrates an example for an Access Tree. It is satisfied by any set of attributes that contains two of $A, B$ and either $C$ or $D$.
+Figure~\ref{fig:sample-access-tree} illustrates an example for an \gls{access-tree}. It is satisfied by any set of attributes that contains two of $A, B$ and either $C$ or $D$.
 That is, $\{A,B\}$ would satsify the tree, just as $\{B, D\}$ would, but $\{C, D\}$ would not be sufficient.
 For an attribute universe of $U = \{A, B, C, D\}$ this would realize the \gls{access-structure} $\mathcal{A} = \{\{A, B, C, D\}, \{A, B, C\}, \{A, B, D\},\{A, C, D\}, \{B, C, D\}, \{A, B\},\{A, C\},\{A,D\}, \{B, C\},\{B, D\}\}$
 
@@ -153,6 +155,31 @@ The set of attribute sets that satisfy a tree $\mathcal{T}$ is then the access s
 Note that $\mathcal{A}$ has to be monotone. It is not possible to specify the \emph{absence} of an attribute in the tree.
 
 Using the threshold-gate construction, we can express \emph{A AND B} as a node with two children $A$ and $B$ and threshold $2$, and express \emph{A OR B} as a node with two children $A$ and $B$ and threshold $1$~\cite{yao_lightweight_2015}.
+
+\subsection{Revocation}
+So far, it is not possible to take away privileges from a user:
+Once the private key has been issued, it can not be taken back.
+A user's capabilities can only be extended (e.g. by issuing a key with additional attributes or with a more permissive policy).
+This is is an problem, e.g. if their private key is compromised~\cite{boldyreva_identity-based_2008}.
+
+The simplest approach is to simply renew the keys of valid users from time to time~\cite{boldyreva_identity-based_2008}.
+When a user is revoked, their key will not be updated any longer. Thus any ciphertexts encrypted after the next key update will not be readable for the revoked user~\cite{boldyreva_identity-based_2008}.
+This is inefficient because it requires the \acrshort{kgc} to update or re-issue one key per valid user and needs a secure channel to the \acrshort{kgc}~\cite{boldyreva_identity-based_2008}.
+
+Attrapadung and Imai~\cite{attrapadung_attribute-based_2009} differentiate between \emph{direct} and \emph{indirect revocation}: 
+With direct revocation, the list of revoked users is directly specified by the encrypting party (i.e. the encryption takes a ''black list'' of revoked users).
+Indirect revocation achieves revocation by means of updating the keys of valid users, as described in the naive approach above.
+
+Direct revocation requires the encryptor to know the list of revoked users \cite{attrapadung_attribute-based_2009} (i.e. the encrypting party is responsible for correct revocation of the users on the revocation list).
+This can be a major drawback, especially in large systems or when encryptors are severely constrained (as in our case, \acrshort{iot} devices).
+With indirect revocation, the encryptor does not need to do anything except use the most recent version of the public parameters~\cite{attrapadung_attribute-based_2009}.
+
+The advantage of direct revocation, however, is that it works instantly: As soon as an encryptor knows about the revocation of a user, they will include them on their revocation list for future encryptions.
+With indirect revocation, a revoked user can decrypt all ciphertexts created until the next key update is distributed by the \acrshort{kgc}~\cite{attrapadung_attribute-based_2009}.
+
+In either case, ciphertexts encrypted before a user's revocation becomes effective, remains readable using the revoked key.
+Some schemes include a proxy-reencryption mechanism that allows an untrusted third party to update ciphertexts such that they cannot be decrypted by revoked users~\cite{manna_sea-brew_2021}.
+
 
 % \subsection{Linear Secret Sharing Schemes and Span Programs}\label{sec:lsss} % reference Shamirs Secret Sharing as an example for LSSS (or the oother way round)
 % Instead of the \gls{access-tree} construction, nowadays most \acrshortpl{abes} use monotone \acrfullpl{msp} to describe any \gls{access-structure} realizable by \acrfull{lsss}.
@@ -197,7 +224,7 @@ Using the threshold-gate construction, we can express \emph{A AND B} as a node w
 This secret sharing scheme based on polynomial interpolation was first introduced by Adi Shamir in 1979~\cite{shamir_how_1979}.
 It allows a secret $s$, which is generally just a number, to be shared among $n$ participants.
 The shares are computed such that $s$ can be reconstructed if, and only if, at least $k$ participants meet and combine their shares.
-Such a theme is then called a $(k,n)$-threshold scheme.~\cite{shamir_how_1979}
+Such a scheme is then called a $(k,n)$-threshold scheme~\cite{shamir_how_1979}.
 
 \subsection{Lagrange interpolation}
 Shamir's scheme makes use of a property of polynomials: A polynomial of degree $d$ is unambiguously determined by $d+1$ points $(x_i, y_i)$.
@@ -269,30 +296,6 @@ Two $(k,n)$-threshold schemes are employed, one for each internal node of the ac
 $p_1(x)$ is the polynomial of the root's $(2,3)$-threshold scheme, sharing $s$, the secret to be embedded in the tree (i.e. $p_1(0) = s$).
 $p_2(x)$ is the polynomial for the $(1,2)$-threshold scheme belonging to the node labelled ``1'' and shares the value $p_1(3)$ that it received from the $(2,3)$-threshold scheme of the layer above (i.e. $p_2(0) = p_1(3)$).
 
-\section{Revocation}
-So far, it is not possible to take away privileges from a user:
-Once the private key has been issued, it can not be taken back.
-A user's capabilities can only be extended (e.g. by issuing a key with additional attributes or with a more permissive policy).
-This is is an problem, e.g. if their private key is compromised~\cite{boldyreva_identity-based_2008}.
-
-The simplest approach is to simply renew the keys of valid users from time to time~\cite{boldyreva_identity-based_2008}.
-When a user is revoked, their key will not be updated any longer. Thus any ciphertexts encrypted after the next key update will not be readable for the revoked user~\cite{boldyreva_identity-based_2008}.
-This is inefficient because it requires the \acrshort{kgc} to update or re-issue one key per valid user and needs a secure channel to the \acrshort{kgc}~\cite{boldyreva_identity-based_2008}.
-
-Attrapadung and Imai~\cite{attrapadung_attribute-based_2009} differentiate between \emph{direct} and \emph{indirect revocation}: 
-With direct revocation, the list of revoked users is directly specified by the encrypting party (i.e. the encryption takes a ''black list'' of revoked users).
-Indirect revocation achieves revocation by means of updating the keys of valid users, as described in the naive approach above.
-
-Direct revocation requires the encryptor to know the list of revoked users \cite{attrapadung_attribute-based_2009} (i.e. the encrypting party is responsible for correct revocation of the users on the revocation list).
-This can be a major drawback, especially in large systems or when encryptors are severely constrained (as in our case, \acrshort{iot} devices).
-With indirect revocation, the encryptor does not need to do anything except use the most recent version of the public parameters~\cite{attrapadung_attribute-based_2009}.
-
-The advantage of direct revocation, however, is that it works instantly: As soon as an encryptor knows about the revocation of a user, they will include them on their revocation list for future encryptions.
-With indirect revocation, a revoked user can decrypt all ciphertexts created until the next key update is distributed by the \acrshort{kgc}~\cite{attrapadung_attribute-based_2009}.
-
-In either case, ciphertext encrypted before a user's revocation becomes effective, remains readable using the revoked key.
-Some schemes include a proxy-reencryption mechanism that allows an untrusted third party to update ciphertexts such that they cannot be decrypted by revoked users~\cite{manna_sea-brew_2021}.
-
 \section{Elliptic Curves}
 \label{sec:ec}
 
@@ -308,7 +311,7 @@ Exact definitions and notations differ, these are taken from the textbook \emph{
         \item Existence of inverse: For every $g \in \mathbb{G}$ there exists an \emph{inverse} element $h \in \mathbb{G}$ such that $g \circ h = e = h \circ g$.
         \item Associativity: For all $g_1, g_2, g_3 \in \mathbb{G}$, $(g_1 \circ g_2) \circ g_3 = g_1 (\circ g_2 \circ g_3)$.
     \end{itemize}
-    When $\mathbb{G}$ has a finite number of elements, the group $\mathbb{G}$ is called finite and $|\mathbb{G}|$ denotes the order of the group.
+    If $\mathbb{G}$ has a finite number of elements, the group $\mathbb{G}$ is called finite and $|\mathbb{G}|$ denotes the order of the group.
 
     A group $\mathbb{G}$ with operation $\circ$ is called \emph{abelian} or commutative if, in addition, the following holds:
     \begin{itemize}
@@ -333,7 +336,7 @@ If $p$ is prime, then $\langle \mathbb{Z}^*_p, \cdot_p, 1 \rangle$ is a group wi
 \subsection{Elliptic Curves}
 
 \begin{definition}
-    Given a prime $p \geq 5$ and $a, b \in \mathbb{Z}_p$ with $4a^2 + 27b^2 \neq 0 \bmod{p}$, the \gls{ec} over $\mathbb{Z}_p$ is:~\cite{katz_introduction_2015}
+    Given a prime $p \geq 5$ and $a, b \in \mathbb{Z}_p$ with $4a^2 + 27b^2 \neq 0 \bmod{p}$, the \gls{ec} over $\mathbb{Z}_p$ is~\cite{katz_introduction_2015}:
     \begin{equation}
         E(\mathbb{Z}_p) := \{(x, y)~|~x,y \in \mathbb{Z}_p \text{ and } y^2 = x^3 + a x + b \bmod{p}\} \cup \{\mathcal{O}\}
     \end{equation}
@@ -341,7 +344,8 @@ If $p$ is prime, then $\langle \mathbb{Z}^*_p, \cdot_p, 1 \rangle$ is a group wi
 
 $a$ and $b$ are called the curve parameters, and the requirement that $4a^2 + 27b^2 \neq 0 \bmod{p}$ makes sure that the curve has no repeated roots~\cite{katz_introduction_2015}.
 The curve is simply the set of points $(x, y) \in \mathbb{Z}_p \times \mathbb{Z}_p$ that satisfy the curve equation $y^2 = x^3 + a x + b \bmod{b}$.
-One special point is added, the \emph{point at infinity} denoted by $\mathcal{O}$. This will help define the point addition as a group operation in the next paragraph.~\cite{katz_introduction_2015}
+One special point is added, the \emph{point at infinity} denoted by $\mathcal{O}$.
+This will help define the point addition as a group operation in the next paragraph~\cite{katz_introduction_2015}.
 
 \subsection{Point Addition}
 Now, it is possible to show that every line intersecting a curve $E(\mathbb{Z}_p)$ intersects it in exactly three points, if you (1) count tangential intersections double and (2) count any vertical line as intersecting the curve in the point at infinity $\mathcal{O}$~\cite{katz_introduction_2015}.
@@ -468,10 +472,11 @@ There are a few different concrete pairing functions, e.g. the Weil pairing, Tat
 Usually the source groups $\mathbb{G}_1$ and $\mathbb{G}_2$ are subgroups of certain \glspl{ec} \cite{kiraz_still_2016} and the target $\mathbb{G}_T$ is a finite field (\emph{not} another point on a curve)~\cite{blake_advances_2005}.
 
 \subsection{Use of elliptic curves and pairings in ABE}
-Bilinear pairings have given rise to a whole new class of cryptographic algorithms, the \emph{pairing-based cryptography}.
+Elliptic curves are already widely used in \glslink{pkes}{asymmetric cryptography}.
+Bilinear pairings, on the other hand, are relatively new and have given rise to a whole new class of cryptographic algorithms, the \emph{pairing-based cryptography}.
 For example, pairings are used to construct \gls{ibe}, a three-party \gls{dh}~\cite{joux_one_2000} or short \glspl{dss}~\cite{boneh_short_2001}.
 
-Most \acrshortpl{abes} make use of bilinear pairings, and even pairing-free schemes (see next section) need an implementation of the \glspl{ec} operations.
+Most \acrshortpl{abes} make use of bilinear pairings, and even pairing-free schemes (see next section) need an implementation of the \gls{ec} operations.
 These operations are the building blocks of the \acrshortpl{abes} presented in Chapter~\ref{chapter:constructions} and by far the most expensive operations performed by the schemes.
 Therefore, the performance of an \acrshort{abe} implementation greatly depends on the performance of the \gls{ec} and pairing implementation.
 For this reason, pairing implementations are considered in Chapter~\ref{chap:related-work} and our own pairing implementation is evaluated separately in Chapter~\ref{chap:evaluation}.

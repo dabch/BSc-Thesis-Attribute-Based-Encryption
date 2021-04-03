@@ -32,7 +32,7 @@ This property is realized by means of a $(k, n)$-threshold secret sharing scheme
 Sahai and Water's construction can already be seen as an \acrshort{abes} with very limited expressiveness, i.e. it only works with ''k-out-of-n'' access structures~\cite{goyal_attribute-based_2006}.
 
 In 2006, Goyal, Pandey, Sahai and Waters~\cite{goyal_attribute-based_2006} extended this into the first expressive \acrshort{kp-abe} scheme using the \gls{access-tree} construction described in Chapter~\ref{chapter:background}.
-Their main construction uses \glspl{access-tree} and a \glslink{small-universe}{small attribute universe}, but they also give a \gls{large-universe} construction.
+Their main construction uses \glslink{small-universe}{small attribute universe}, but they also give a \gls{large-universe} construction.
 
 The first expressive \acrshort{cp-abe} scheme was proposed by Bethencourt, Sahai and Waters in~\cite{bethencourt_ciphertext-policy_2007}.
 It is also a large-universe construction and uses \glspl{access-tree}.
@@ -62,11 +62,11 @@ Their scheme only uses a single group and no bilinear pairing.
 Instead of encrypting a group element that encodes a message, their scheme yields a random group element which is then used as a key for a symmetric encryption algorithm~\cite{yao_lightweight_2015}.
 
 In \cite{tan_enhancement_2019} a cryptanalysis of the scheme in \cite{yao_lightweight_2015} is performed.
-It is shown that the scheme is not secure, but the authors propose an effective fix and prove its security.
+It is shown that the scheme is not secure, but the authors propose a fix and prove its security.
 They also extend the scheme to allow for key delegation (i.e. a hierarchical \acrshort{kp-abe} scheme)~\cite{tan_enhancement_2019}.
 
 \cite{sowjanya_efficient_2020} presents a pairing-free \acrshort{abes} with indirect revocation.
-It is an adaptation of the schemes in \cite{yao_lightweight_2015,tan_enhancement_2019}, see also \cite{herranz_attacking_2020}.
+It is an adaptation of the schemes in \cite{yao_lightweight_2015,tan_enhancement_2019}.
 
 All three of these schemes were attacked by Herranz in \cite{herranz_attacking_2020} (one attack for all three schemes is given, as they are very similar).
 \cite{herranz_attacking_2020} argues that it is not possible to build secure \acrshortpl{abes} in the (non-bilinear) discrete-logarithm setting (i.e. on elliptic curves without bilinear pairings).
@@ -79,7 +79,7 @@ This implementation runs sufficiently fast on standard PC hardware, e.g. it take
 
 ~
 
-Implementations of \acrshort{abe} on standard PC hardware are well-studied \cite{bethencourt_ciphertext-policy_2007,akinyele_charm_2013,green_functional_nodate}; for an overview see~\cite{zickau_applied_2016}.
+Implementations of \acrshort{abe} on standard PC hardware are well-studied \cite{akinyele_charm_2013,bethencourt_ciphertext-policy_2007,green_functional_nodate}; for an overview see~\cite{zickau_applied_2016}.
 
 In \cite{akinyele_self-protecting_2010}, a pairing-based \acrshort{abe} scheme is evaluated on a standard computer and an ARM-based smartphone (iPhone 4).
 On the smartphone, only decryption is implemented because encryption is not needed in their scenario.
@@ -99,7 +99,7 @@ As such, the authors conclude that \acrshort{abe} is indeed feasible on smartpho
 
 \section{Implementation on constrained devices}
 
-Despite pairings being very computationally demanding, there exist libraries even for the smalles microcontrollers:
+Despite pairings being very computationally demanding, there exist implementations even for the smallest microcontrollers:
 For example, the \emph{TinyPBC} library~\cite{aranha_tinypbc_nodate}.
 It takes a minimum of 1.9\,s to compute a pairing on a 7\,MHz ATmega128L processor with optimized assembly code~\cite{oliveira_tinypbc_2011}. 
 Their choice of elliptic curves, however, only provides a security level of 80 bits.
@@ -114,7 +114,7 @@ Only the pairing implementation is tested and evaluated, the authors do not impl
 The authors of \cite{ambrosin_feasibility_2015} test their \acrshort{abe} implementation on \gls{iot} devices in \cite{ambrosin_feasibility_2016}.
 They evaluate the performance of the same library on full-fledged \acrshort{iot} devices (among others, on a Raspberry Pi Zero with 1\,GHz ARM11 CPU) and conclude that \acrshort{abe} is feasible on these devices, too.
 However, they note that especially lower security levels are suitable and that the penalty for increasing the security level is very high (e.g. increasing the security level from 80 to 128 bits without increasing the encryption time requires reduction of the number of attributes by a factor of 10)~\cite{ambrosin_feasibility_2016}.
-In contrast to the setting in this thesis, their hardware is significantly more powerful and runs a full operating system.
+In contrast to this thesis, their hardware is significantly more powerful and runs a full operating system.
 
 The setting in \cite{borgh_attribute-based_2016} is much closer to ours: \acrshort{abe} is implemented bare-metal (i.e. without operating system) on a sensor equipped with an STM32L151VCT6 SoC with a maximum clock frequency of 32\,MHz.
 They use the pairing library \emph{RELIC Toolkit}~\cite{aranha_relic_nodate} at a security level of 128 bits and evaluate a C implementation of the \acrshort{cp-abe} scheme in \cite{waters_ciphertext-policy_2011}.

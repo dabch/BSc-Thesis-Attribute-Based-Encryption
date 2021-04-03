@@ -4,7 +4,7 @@
 \chapter{Introduction}\label{chapter:introduction}
 
 \acrfull{abe} promises to provide security while improving flexibility over standard cryptosystems.
-Its approach of combining \glspl{attribute} and \glslink{access-policy}{policies} describing admissible attribute combinations is closer to traditional notions of access control (e.g. RBAC) than conventional encryption~\cite{bethencourt_ciphertext-policy_2007}.
+Its approach of combining \glspl{attribute} and \glslink{access-policy}{policies} describing characteristics of admissible decryption keys is closer to traditional notions of access control (e.g. RBAC) than conventional encryption~\cite{bethencourt_ciphertext-policy_2007}.
 
 This increased flexibility is also desirable for \acrshort{iot} applications.
 However, the \acrfull{iot} is especially affected by the trade-off between cost and security:
@@ -13,7 +13,7 @@ Many traditional security measures, even some standard cryptographic algorithms,
 Compared to standard cryptography, most \acrshortpl{abes} demand even more resources~\cite{wang_performance_2014}.
 Thus, the feasibility of \acrshort{abe} on constrained \acrshort{iot} nodes is disputed~\cite{ambrosin_feasibility_2016,ambrosin_feasibility_2015,borgh_attribute-based_2016,girgenti_feasibility_2019,wang_performance_2014}.
 
-The objective of this thesis is to assess to what extent \acrshort{abe} can be practically applied on ARM Cortex M4 processors.
+The objective of this thesis is to assess to what extent \acrshort{abe} can be practically applied on such constrained devices running ARM Cortex-M4 processors.
 To this end, an \acrshort{abe} library is developed using the Rust programming language.
 This library is then tested and evaluated on the nRF52840 SoC with a 64\,MHz ARM Cortex M4 processor and 256\,KB of RAM.
 In addition, this thesis aims to give an easy-to-understand explanation of \acrshort{abe} and how it can be implemented.
