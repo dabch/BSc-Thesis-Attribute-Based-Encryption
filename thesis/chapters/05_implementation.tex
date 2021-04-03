@@ -33,7 +33,8 @@ The 256-bit modulus of the BN curve used in \texttt{rabe-bn} was originally beli
 Due to the discovery of better attacks on the underlying cryptographic assumptions, the estimate for the security level has been revised down to 100 bits~\cite{yonezawa_pairing-friendly_2019}.
 
 The library provides four structs: \texttt{G1}, \texttt{G2} and \texttt{Gt}, elements of the groups $\mathbb{G}_1$, $\mathbb{G}_2$ and $\mathbb{G}_T$, respectively.
-Let their orders be $r$, then \texttt{Fr} represents an element of the field $\mathbb{F}_r$.
+These groups all have the same order $r$.
+\texttt{Fr} represents an element of the field $\mathbb{F}_r$.
 
 For the elliptic curve groups (structs \texttt{G1} and \texttt{G2}), additive notation is used and the \texttt{*} operator is overloaded.
 This means that point-scalar multiplication can be simply written in Rust code as \verb$group_element * scalar$.
@@ -41,8 +42,8 @@ The target group (struct \texttt{Gt}) uses multiplicative notation.
 For this reason, the description of the schemes in Chapter~\ref{chapter:constructions} has also been adapted to use compatible notation.
 
 \subsection*{nRF52840 HAL crate}
-For easier access to the peripherals of the SoC, the \acrfull{hal} \gls{crate} \texttt{nrf52840-hal} was also used.
-It provides simplified access to the hardware \acrfull{rng} and the timers.
+For easier access to the peripherals of the SoC, the \acrfull{hal} \gls{crate} \texttt{nrf52840-hal}~\cite{noauthor_nrf52840-hal_nodate} was also used.
+It provides simplified access to the hardware \acrfull{rng} and hardware timers.
 Access to the timers was not necessary for implementing the \acrshort{abe} library, but was used to measure the runtimes of the \acrshort{abe} algorithms.
 
 \subsection*{\texttt{heapless} crate}
@@ -52,7 +53,7 @@ These data structures are statically allocated and expect their desired capacity
 
 \section{Porting \texttt{rabe-bn} to the SoC}
 
-The implementation of \texttt{rabe-bn} unfortunately relied on the standard library (mostly through the use of heap-allocated dynamic vectors, i.e. \texttt{std::vec::Vec}) and is thus not suited for bare-metal applications.
+The implementation of \texttt{rabe-bn} unfortunately relies on the standard library (mostly through the use of heap-allocated dynamic vectors, i.e. \texttt{std::vec::Vec}) and is thus not suited for bare-metal applications.
 Rust provides the dependency-free and platform-agnostic \texttt{core} library as an alternative to the standard library.
 This library does not depend on an operating system or dynamic memory allocation, and thus does not include heap-allocated data structures (like \texttt{std::vec::Vec}).
 
@@ -64,7 +65,7 @@ The implementation of this trait is used to derive an AES key from curve points,
 The behavior of the \texttt{core::fmt::Display} implementation stayed exactly the same to ensure interoperability with the original \texttt{rabe-bn} library.
 
 With these modifications, the \texttt{rabe-bn} library runs on the SoC.
-The modified library can be found at \url{https://github.com/dabch/rabe-bn}.
+The modified library can be accessed at \url{https://github.com/dabch/rabe-bn}.
 
 \section{Random Number Generation}
 Regular Rust programs use the \texttt{rand} \gls{crate}'s \verb+ThreadRng+ struct to generate random numbers.
@@ -73,9 +74,9 @@ Regular Rust programs use the \texttt{rand} \gls{crate}'s \verb+ThreadRng+ struc
 Therefore, this generator is unavailable on the SoC.
 Instead we use the hardware \acrshort{rng}.
 The \texttt{nrf52840-hal} crate directly implements the trait \texttt{rand::RngCore} for the hardware \acrshort{rng}, which makes it relatively easy to use.
-This generator, however, is quite slow and speed can differ greatly: With bias correction enabled (required for uniform distribution of the generated data), typically around 120$\mu$s per byte~\cite{noauthor_nrf52840_nodate}.
+This generator, however, is quite slow and speed can differ greatly: With bias correction enabled (required for uniform distribution of the generated data), typically around 120$\mu$s per byte~\cite{nordic_semiconductor_nrf52840_nodate}.
 
-To alleviate this, the hardware \acrshort{rng} is only used to seed a ChaCha20 pseudorandom number generator (crate \texttt{rand\_chacha}).
+To alleviate this, the hardware \acrshort{rng} is only used to seed a ChaCha20 pseudorandom number generator (crate \texttt{rand\_chacha}~\cite{noauthor_rand_chacha_nodate}).
 This is essentially the same construction as the current implementation of \texttt{ThreadRng}~\cite{noauthor_rust_nodate}.
 
 \section{Aspects common to both ABE schemes}
@@ -101,7 +102,7 @@ This pointer has constant size.
 
 A \texttt{heapless::Vec} is not located on the heap, but directly inside the \texttt{AccessTreeNode}.
 Even if there is a limit on the number of children a single inner node might have, there is no limit to the depth of the access tree.
-Therefore, an \texttt{AccessTreeNode} might be arbitrarily large because the \texttt{heapless::Vec} might need to hold an arbitrary number of child nodes.
+Therefore, an \texttt{AccessTreeNode} has to be arbitrarily large because it might need to hold an arbitrary number of child nodes.
 
 Because of this, Access Trees were implemented as a flat slice of nodes as in Listing~\ref{lst:access-tree-heapless}. 
 The vector of children doesn't hold references to the children themselves, but only their index within the vector of Access Tree nodes.
@@ -139,7 +140,7 @@ This results in faster encryption and decryption for long ciphertexts because AE
 % From this, an AES key is derived and then used to encrypt the plaintext with AES-CCM.
 
 \subsubsection{Key derivation}\label{sec:kdf}
-Both schemes output a randomly generated curve point to use as symmetric key.
+With both schemes, a curve point is used as symmetric key.
 The binary representation of these curve points is much longer than the 256-bit key AES expects.
 Therefore, the curve point is run through a \gls{kdf}, which can be seen in Listing~\ref{lst:kdf}.
 
@@ -160,7 +161,7 @@ fn kdf<G: core::fmt::Display>(inp: &G) -> GenericArray<u8, consts::U32> {
 \end{lstlisting}
 
 The \verb+kdf()+ function takes any struct that implements the \texttt{core::fmt::Display} trait and outputs a 256-bit byte array (exactly the size needed for an AES key).
-\texttt{Display} is a formatting trait for user-facing output, i.e. it would be used to format a struct when something is printed to the console.
+\texttt{Display} is a formatting trait for user-facing output, i.e. it is used to print a structure to the console.
 Normally, \texttt{Display} is used to turn a struct into a \verb+String+, but those are implemented in the standard library and thus not available on the SoC.
 Therefore, the naive approach of using \texttt{Display} to turn our curve point into a \texttt{String} and then hashing the \texttt{String} does not work.
 
@@ -224,7 +225,7 @@ impl Polynomial {
 \section{Implementation of the four ABE algorithms}
 \subsection{Setup}
 The implementations of the setup algorithm are close to the descriptions given in Chapter~\ref{chapter:constructions}.
-See Listing~\ref{lst:struct-pubkey} for the structures representing the public and private parameters generated by Setup of GPSW.
+See Listing~\ref{lst:struct-pubkey} for the structures holding the public and private parameters generated by Setup of GPSW.
 
 \begin{lstlisting}[caption={Private and public system parameters structs for GPSW},label={lst:struct-pubkey}]
 /// Private parameters, known only to KGC
@@ -246,6 +247,7 @@ As mentioned before, encryption is done in a hybrid manner.
 The implementations of both schemes provide a struct containing the \acrshort{abe} ciphertext according to Chapter~\ref{chapter:constructions}.
 Combined with the symmetric ciphertext, this forms a hybrid ciphertext.
 See Listing~\ref{lst:struct-cipher} for the GSPW version of the \acrshort{abe} ciphertext (\verb+GpswAbeGroupCiphertext+) and the combined hybrid ciphertext (\verb+GpswAbeCiphertext+).
+Encryption of the AES key with \acrshort{abe} is implemented as described in Chapter~\ref{chapter:constructions}.
 
 \begin{lstlisting}[caption={ABE ciphertext structure for GPSW},label={lst:struct-cipher}, breaklines=true]
 struct GpswAbeGroupCiphertext<'attr> {
