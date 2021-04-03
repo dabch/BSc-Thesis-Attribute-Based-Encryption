@@ -70,8 +70,8 @@ For Setup, the number of attributes refers to the total number of attributes in 
 For Encrypt, the number of attributes refers to the number of attributes under which a ciphertext is encrypted.
 
 For KeyGen, the number of attributes refers to the number of leaf nodes in the used access policy.
-The \glspl{access-tree} consists only of a root node and the given number of children, i.e. the root node has up to 30 children. 
-To ensure that all leaves have to be evaluated, the threshold is set to the number of children (the root acts as an \emph{AND} node).
+The \glspl{access-tree} are flat, i.e. they consists only of a root node and the given number of children.
+To ensure that all leaves have to be evaluated, the root's threshold is set to the number of children (i.e. it acts as an \emph{AND} node).
 This approach is also found in other evaluations of \acrshort{abe}~\cite{girgenti_feasibility_2019}.
 
 For Decrypt, the same access policies from KeyGen are used to decrypt a ciphertext encrypted with all system attributes.
@@ -85,7 +85,7 @@ These timings are included in Appendix~\ref{sec:appendix_laptop}.
 
 RAM use was only measured for encryption and decryption. 
 For encryption it is constant and included in Figure~\ref{fig:abe-performance-diagrams-ram} only for reference.
-The RAM use of key generation and decryption depends mostly on the depth of the access tree.
+The RAM use of decryption depends mostly on the depth of the access tree.
 For this reason, the flat policies from the timing evaluation could not be re-used for RAM evaluation.
 Instead, \glspl{access-tree} in the shape of \glspl{perfect-binary-tree} were employed.
 That means that all nodes have exactly two children and all leaves are on the lowest level of the tree.
@@ -102,8 +102,8 @@ The presented values represent the maximum stack memory use during the entire ru
 It is assumed that RAM use on the laptop is representative for RAM use on the SoC.
 This is in line with other evaluations of \acrshort{abe}~\cite{borgh_attribute-based_2016}. 
 Decryption with the same policies on the SoC confirmed the assumption:
-With three- and four-layer policies, decryption failed on the SoC, but it worked with one- and two-layer policies.
-The RAM use on the laptop is below 256\,KB (the RAM size of the SoC) for the two-layer policy, but above 256\,KB for the three-layer policy.
+With three- and four-level policies, decryption failed on the SoC, but it worked with one- and two-level policies.
+The RAM use on the laptop is below 256\,KB (the RAM size of the SoC) for the two-level policy, but above 256\,KB for the three-level policy.
 
 \subsubsection{Flash size measurements}
 \input{figures/06_diagrams_flash}
@@ -131,8 +131,8 @@ Again, YCT is much faster at 12\,s for the largest policy. GPSW requires 80\,s f
 
 The RAM use also shows a large advantage for YCT:
 With GPSW, a single-level policy already uses up more than three times more RAM than YCT; this difference only increases with more policy levels.
-With three or more levels, decryption fails entirely on the SoC because there is not enough RAM.
 Assuming RAM use on the laptop is representative for the SoC, the single-level policy already requires more than two thirds of the total RAM on the sensor.
+With three or more levels, decryption fails entirely on the SoC because there is not enough RAM.
 YCT does not have this problem: Even with a four-level policy, it uses only the equivalent of about a quarter of the total RAM.
 
 The difference in flash size is not as big, but the GPSW scheme still requires about 70\,\% more flash storage than the YCT scheme.
@@ -155,16 +155,16 @@ GPSW uses secret shares from $\mathbb{G}_2$, for which operations take considera
 This is also the case for decryption: YCT only requires exponentation and point addition in $\mathbb{G}_1$, whereas GPSW performs pairings, multiplications and exponentiations in $\mathbb{G}_T$.
 
 The RAM consumption of decryption with GPSW is a limiting factor on the SoC:
-Decryption with policies of more than two layers fails because of too little memory.
-Unlike the timing results, this poses a hard limit on the size of \glspl{access-policy}.
-Also, in our evaluation, the \acrshort{abe} library was able to use all of the available RAM on the SoC.
+Decryption with policies of more than two levels fails because of too little memory.
+This poses a hard limit on the size of \glspl{access-policy}.
+Also, in our evaluation, the \acrshort{abe} library was able to use  the entire RAM on the SoC.
 In a real-world use case, the application employing \acrshort{abe} might already occupy a considerable portion of the available RAM, leaving too little space even for decryption with small \glspl{access-tree}.
-The pairing-free YCT scheme uses much less RAM.
+The pairing-free YCT scheme uses much less RAM and is thus less affected by these issues.\\
 
 If some latency is acceptable, doing encryption with \acrshort{abe} on the SoC is feasible if the number of attributes is not very large.
 The pairing-free YCT scheme performs better, but the pairing-free GPSW scheme is still good enough for encryption.
 
-With decryption, the YCT scheme is to be preferred:
+If decryption on the SoC is necessary, the YCT scheme is to be preferred:
 With GPSW, decryption takes considerably more time and uses a large amount of RAM.
 This results in the mentioned hard limit on the policy depth, which is not present with YCT.
 
@@ -198,7 +198,7 @@ If the messages should be decryptable on their own, the \acrshort{abe}-encrypted
 The downside is that all messages encrypted with the same symmetric key naturally have the same attributes or access policy attached (i.e. reduced granularity).
 Also, if the symmetric key is compromised (possibly while it is stored to encrypt the next message), all messages encrypted with that key will be compromised.
 
-This approach does not reduce the ciphertext size because the \acrshort{abe}-encrypted key is copied into each ciphertext.
+This approach does not reduce the ciphertext size if the \acrshort{abe}-encrypted key is copied into each ciphertext.
 If this is an issue (e.g. due to low-power wireless transmission), the \acrshort{abe}-encrypted key may be transmitted separately from the symmetrically encrypted messages.
 Then both the symmetric ciphertext of and the respective \acrshort{abe}-encrypted key must be present to decrypt a message.
 
@@ -207,6 +207,6 @@ However, it was not evaluated for this thesis, because it doesn't represent ``tr
 ~\\
 
 The two schemes implemented in the library are \acrshort{kp-abe} schemes, currently no \acrshort{cp-abe} schemes are implemented.
-\acrshort{cp-abe} on constrained devices is covered in~\cite{borgh_attribute-based_2016}, but is otherwise left as future work.
+\acrshort{cp-abe} on constrained devices is covered in~\cite{borgh_attribute-based_2016}, but further evaluation is left as future work.
 The implemented schemes also don't support key revocation or a \gls{large-universe} of attributes. 
 Implementation and evaluation of those is also left for future projects.
