@@ -10,6 +10,10 @@ use rand::{Rng, RngCore};
 
 pub use ccm::aead::Error;
 
+/// The size of attribute lists, maps etc.
+/// 
+/// This has to be set at compilation time at the moment.
+/// TODO once const generics land: Make the schemes generic over the sizes. This will increase usability a great lot!
 pub type S = consts::U32;
 
 pub type G1 = rabe_bn::G2;
