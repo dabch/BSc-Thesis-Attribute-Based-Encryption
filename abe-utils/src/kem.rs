@@ -11,7 +11,11 @@ use rand::{RngCore, Rng};
 
 type Ccm = ccm::Ccm<Aes256, ccm::consts::U10, ccm::consts::U13>;
 
-
+/// Symmetric ciphertext (data encrypted under AES-CCM)
+/// 
+/// Ciphertext structure holding information on data encrypted with AES-CCM.
+/// The plaintext is encrypted in-place because no additional memory can be allocated.
+/// This struct just keeps a pointer to the data and saves the nonce and auth tag.
 #[derive(Debug, PartialEq, Eq)]
 pub struct Ciphertext<'data> {
     data: &'data mut [u8],
@@ -31,11 +35,15 @@ impl<W: Digest> core::fmt::Write for Wrapper<W> {
     }
 }
 
+/// Encrypt with a byte slice as key
+/// 
+/// The slice can have any length and is hashed before it is used as key.
 pub fn encrypt_bytes<'a>(key: &[u8], plaintext: &'a mut [u8], rng: &mut dyn RngCore) -> Result<Ciphertext<'a>, AeadError> {
     let aes_key = kdf_bytes(key);
     encrypt_with_aes_key(&aes_key, plaintext, rng)
 }
 
+/// Encrypt with any struct implementing `core::fmt::Display` as key
 pub fn encrypt<'a, G: Display>(key: &G, plaintext: &'a mut [u8], rng: &mut dyn RngCore) -> Result<Ciphertext<'a>, AeadError> {
     let aes_key = kdf(key);
     encrypt_with_aes_key(&aes_key, plaintext, rng)
@@ -55,11 +63,15 @@ fn encrypt_with_aes_key<'a>(aes_key: &GenericArray<u8, consts::U32>, plaintext: 
     )
 }
 
+/// Decrypt with any struct implementing `core::fmt::Display` as key
 pub fn decrypt<'a, G: Display>(key: &G, ciphertext: Ciphertext<'a>) -> Result<&'a mut [u8], Ciphertext<'a>> {
     let aes_key = kdf(key);
     decrypt_with_aes_key(&aes_key, ciphertext)
 }
 
+/// Decrypt with a byte slice as key
+/// 
+/// The slice can have any length and is hashed before it is used as key.
 pub fn decrypt_bytes<'a>(key: &[u8], ciphertext: Ciphertext<'a>) -> Result<&'a mut [u8], Ciphertext<'a>> {
     let aes_key = kdf_bytes(key);
     decrypt_with_aes_key(&aes_key, ciphertext)

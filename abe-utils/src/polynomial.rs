@@ -24,8 +24,9 @@ impl Polynomial {
     Polynomial(coefficients)
   }
 
-  /// Calculates the langrage base polynomials l_i(x) for given set of indices omega and the index i.
-  /// As we only ever need to interpolate p(0), no value for x may be passed.
+  /// Calculates the langrage base polynomials l_i(x) for given set of indices omega and the index i at x=0
+  /// 
+  /// As we only ever need to interpolate p(0), x=0 is hardcoded.
   pub fn lagrange_of_zero(i: &F, omega: &Vec<F, STree>) -> F {
     //println!("LAGRANGE: {:?}\n{:?}", i, omega);
     let r = omega.iter()

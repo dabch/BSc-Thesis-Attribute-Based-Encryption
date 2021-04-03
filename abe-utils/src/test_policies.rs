@@ -1,3 +1,6 @@
+/// Perfect binary tree policies for evaluation.
+/// 
+/// Use attributes "att01" to "att30"
 #[macro_export]
 macro_rules! policies_deep_binary {
     () => {
@@ -69,7 +72,11 @@ macro_rules! policies_deep_binary {
         ]
     };
 }
-
+/// Perfect ternary tree policies for evaluation.
+/// 
+/// Ternary tree = three childen per inner node. 
+/// 
+/// Use attributes "att01" to "att30"
 #[macro_export]
 macro_rules! policies_deep_ternary {
     () => {
@@ -141,7 +148,9 @@ AccessNode::Leaf("att27"),
 };
 }
 
-
+/// Flat policies for evaluation.
+/// 
+/// Use attributes "att01" to "att30"
 #[macro_export]
 macro_rules! policies_flat {
     () => {

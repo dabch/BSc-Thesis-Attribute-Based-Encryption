@@ -4,7 +4,8 @@ pub type S = consts::U8;
 
 pub type SSystem = consts::U32;
 
-/// represents an access structure that defines the powers of a key.
+/// represents nodes of the access tree
+/// 
 /// This is passed to keygen() by the KGC, and then embedded in the private key issued to the user.
 #[derive(Debug)]
 pub enum AccessNode<'attr> {
@@ -13,12 +14,18 @@ pub enum AccessNode<'attr> {
 }
 
 /// Represents an access structure defined as a threshold-tree
+/// 
 // Implementation: Array of 256 AccessNodes, the first one is the root
 // size of this is 10248 bytes (!)
 // pub type AccessStructure<'a> = Vec<AccessNode<'a>, consts::U256>; 
 pub type AccessStructure<'attr, 'own> = &'own [AccessNode<'attr>];
 
 
+/// Pre-calculates a minimal subset of attributes that satisfies a subtree
+/// 
+/// This is used during decryption to eliminate unnecessary pairing evaluations. 
+/// Goes through the tree and figures out a subset of the tree that can be satisfied by the given attributes while requiring the least number of leaf nodes.
+/// This reduces the number of pairings to a minimum and also reduces the degree of interpolated polynomials (i.e. speeds up lagrange).
 pub fn prune_dec<'attr, 'key, T> (
     tree_arr: AccessStructure<'attr, 'key>,
     tree_ptr: u8,
