@@ -412,26 +412,44 @@
         \end{block}
     \end{columns}
     \vspace{0.5cm}
-    \begin{minipage}{.485\textwidth}
+    \begin{minipage}{.5\textwidth}
         \begin{itemize}
             \color{TUMOrange}
             \setbeamertemplate{itemize item}[arrow]
             \item<2-> ABE operations require considerable portion of resources
-            \item<3-> YCT does much better than GPSW
+            \item<3-> YCT scheme without pairings has much better performance
             \item<4-> Encryption is feasible with both, decryption only with YCT
         \end{itemize}
     \end{minipage}
 \end{frame}
 
-\begin{frame}
-    \frametitle{Summary \& Conclusion}
-    What I did$\dots$\\
-    $\dots$ understand and present ABE\\
-    $\dots$ port the \texttt{rabe-bn} pairing library to the SoC\\
-    $\dots$ implement two ABE schemes\\
-    $\dots$ evaluate their performance\\
+\begin{frame}[c]
+    \frametitle{Summary \& Key Takeways}
     
+    % \begin{minipage}{.49\textwidth}        
+        In the thesis, I $\dots$
 
+        \pause
+        $\dots$ present the mechanisms behind ABE \textcolor{TUMGruen}{\checkmark} \pause \alert{$\rightarrow$ ABE is suited to improve access control in many scenarios!}
+
+        \pause $\dots$ ported the \texttt{rabe-bn} pairing library to the SoC \textcolor{TUMGruen}{\checkmark} \pause \alert{$\rightarrow$ pairing computation works on the SoC, but is still demanding}\\
+        \pause \phantom{$\dots$ ported the \texttt{rabe-bn} pairing library to the SoC \textcolor{TUMGruen}{\checkmark}} \alert{$\rightarrow$ RAM is bottleneck for pairing-based implementations}
+
+        \pause $\dots$ built a bare-metal implementation of two ABE schemes \textcolor{TUMGruen}{\checkmark} \pause \alert{$\rightarrow$ programming without OS is doable, but challenging \smiley}
+
+        \pause $\dots$ evaluated their performance on a Cortex-M4 SoC \textcolor{TUMGruen}{\checkmark} \pause \alert{$\rightarrow$ ABE is feasible but remains very expensive}\\        
+        \pause \phantom{$\dots$ evaluated their performance on a Cortex-M4 SoC \textcolor{TUMGruen}{\checkmark}} \alert{$\rightarrow$ Encryption is okay with pairing-free and pairing-based schemes}\\
+        \pause \phantom{$\dots$ evaluated their performance on a Cortex-M4 SoC \textcolor{TUMGruen}{\checkmark}} \alert{$\rightarrow$ Decryption with pairing-based scheme not so much \frownie}
+
+
+    % \end{minipage}
+    % \begin{minipage}{.49\textwidth}
+    %     Key Takeaways$\dots$\\
+    %     $\dots$ ABE is suited for many applications because of its great flexibility\\
+    %     $\dots$ ABE is feasible on Cortex-M4 SoCs but remains expensive\\
+    %     $\dots$ Many use cases only require encryption on the SoC, which is much easier\\
+    %     $\dots$ Bilinear pairings remain a big hurdle and pairing-free schemes can present alternatives (if secure)
+    % \end{minipage}
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
