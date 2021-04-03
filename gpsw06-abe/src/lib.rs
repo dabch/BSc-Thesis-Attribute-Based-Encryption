@@ -9,7 +9,7 @@
 //! - hybrid encryption of the actual plaintext using AES-CCM + key encapsulation with ABE
 //!
 //! with G1 and G2 swapped (S = 16):
-//! ```
+//! ```text
 //! sizeof(GpswAbeCiphertext) = 2376
 //! sizeof(GpswAbePrivate) = 40
 //! sizeof(GpswAbePublic) = 680
@@ -17,7 +17,7 @@
 //! ```
 //! 
 //! without swapping (S = 16):
-//! ```
+//! ```text
 //! sizeof(GpswAbeCiphertext) = 3912
 //! sizeof(GpswAbePrivate) = 40
 //! sizeof(GpswAbePublic) = 680
