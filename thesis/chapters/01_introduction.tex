@@ -4,7 +4,7 @@
 \chapter{Introduction}\label{chapter:introduction}
 
 \acrfull{abe} promises to provide security while improving flexibility over standard cryptosystems.
-Its approach of combining \glspl{attribute} and \glslink{access-policy}{policies} describing characteristics of admissible decryption keys is closer to traditional notions of access control (e.g. RBAC) than conventional encryption~\cite{bethencourt_ciphertext-policy_2007}.
+Its approach of combining \glspl{attribute} and \glslink{access-policy}{policies} describing characteristics of admissible decryption keys is closer to traditional notions of access control (e.g. Role-Based Access Control) than conventional encryption~\cite{bethencourt_ciphertext-policy_2007}.
 
 This increased flexibility is also desirable for \acrfull{iot} applications.
 However, the \acrshort{iot} is especially affected by the trade-off between cost and security:
@@ -20,7 +20,7 @@ In addition, this thesis aims to give an easy-to-understand explanation of \acrs
 
 \input{figures/01_system_architecture}
 
-For a real-world use-case of this library in the medical field, see Figure~\ref{fig:system-architecture}.
+For a real-world use case of such an \acrshort{abe} library in the medical field, see Figure~\ref{fig:system-architecture}. % TODO? describe the figure in words as well?
 It is assumed that the sensor (e.g. an ECG or blood glucose sensor) is unable to communicate with the internet directly.
 Therefore, the data is sent to a gateway by \acrfull{ble} and then uploaded to the cloud.
 

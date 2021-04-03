@@ -4,7 +4,7 @@ This chapter introduces \acrlong{abe} and the relevant mathematical background f
 \input{figures/02_key_use_comparison}
 
 \section{Confidentiality with Classic Symmetric and Asymmetric Cryptography}
-Today's conventional cryptography knows two main classes of encryption schemes: \glslink{privkes}{symmetric} and \glspl{pkes}. See Figure~\ref{fig:key-use} for an illustration of the differences.
+Today's conventional cryptography knows two main classes of encryption schemes: \glslink{privkes}{symmetric} and \glslink{pkes}{asymmetric encryption}. See Figure~\ref{fig:key-use} for an illustration of the differences.
 
 Consider $n$ participants wanting to communicate securely (i.e. no user can read encrypted messages between two other users).
 Using a \gls{privkes}, each participant would need to agree on a unique key with every other participant, resulting in a total number of $\frac{n(n-1)}{2}$ keys.
@@ -13,8 +13,8 @@ Using an \gls{pkes} removes the need for secret key exchange because the encrypt
 It also reduces the total number of keys to only $n$, because each participant could obtain every other participant's public key and use it to send them encrypted messages.
 
 Another problem remains, however: Encrypting a single message to several recipients requires encrypting it with everyone's public key separately.
-For a large number of recipients, this is inefficient.
-So, for example, to encrypt a message for all students of a certain university, we would need to obtain each student's public key and encrypt the message with each key separately.
+For a large number of recipients, this is inefficient:
+To encrypt a message for all students of a certain university, we would need to obtain each student's public key and encrypt the message with each key separately.
 
 Even worse, what if we want to encrypt data for any student of said university, even if they \emph{haven't joined the university yet}?
 In this case, our only option using classic cryptography would be to have some trusted instance keep a plaintext copy and re-encrypt the data for any new student when they join the university.
@@ -27,7 +27,9 @@ In Figure~\ref{fig:key-use}, this is represented by a tree.
 The combination of attributes may be as restrictive or permissive as needed.
 It is possible to create ciphertexts that can be read by almost all members of an \acrshort{abes}, and ciphertexts that can be read by nobody except a few selected participants.
 
-Figure~\ref{fig:abe-system} shows a small \acrshort{abe} system with the \acrshort{kgc} initializing the system and issuing keys, and two users sharing an encrypted message.
+Figure~\ref{fig:abe-system} shows how the participants interact in a small \acrshort{abe} system.
+Details are explained in the following sections.
+
 \subsection{Attributes and the Key Generation Center}\label{sec:kgc}
 
 \input{figures/02_abe_system_overview}
@@ -71,7 +73,7 @@ We will define a \acrshort{kp-abe} scheme here, for the difference between \acrs
 
 The definition of a \acrshort{cp-abe} scheme is identical, except that \emph{Encrypt(PK, m, S)} takes an \gls{access-structure} $S$ and \emph{KeyGen(PK, MK, $\omega$)} takes a set of attributes.
 
-How exactly these algorithms work in concrete ABE schemes will be discussed in Chapter~\ref{chapter:constructions}.
+How these algorithms work in concrete ABE schemes will be discussed in Chapter~\ref{chapter:constructions}.
 
 \subsection{KP-ABE and CP-ABE}\label{sec:cp-vs-kp}
 \input{figures/02_cp_kp_abe}
@@ -93,10 +95,10 @@ An example use case for \acrshort{cp-abe} in a hospital setting would be sending
 This could be specified by an \gls{access-policy} as (\texttt{hospital-name} AND (\texttt{doctor} OR (\texttt{patient} AND \texttt{received-treatment-x}) OR (\texttt{nurse} AND \texttt{department-y})).
 
 With \acrshort{kp-abe}, on the other hand, the encryptor doesn't have direct control over who will be able to access the data, except for the choice of attributes under which they encrypt the plaintext~\cite{bethencourt_ciphertext-policy_2007}.
-In the hospital setting from above, \acrshort{kp-abe} could be employed in a different use case: For encrypted storage of a patient's medical record, the patient's name could be used as an attribute in \acrshort{kp-abe}.
+In the hospital setting, \acrshort{kp-abe} could be employed in a different use case: For encrypted storage of a patient's medical record, the patient's name could be used as an attribute in \acrshort{kp-abe}.
 If the patient sees a new doctor, they could simply have their key policy extended to include the patient's attribute.
 With \acrshort{cp-abe}, seeing a new doctor would require re-encrypting the entire data under a new access policy.
-Note that this scenario is very close to our use case from Figure~\ref{fig:system-architecture}.
+Note that this scenario is similar to our use case from Figure~\ref{fig:system-architecture}.
 
 With \acrshort{kp-abe}, instead of the encryptor, the \acrlong{kgc} must be trusted with intelligently deciding which key to give to the decrypting party~\cite{bethencourt_ciphertext-policy_2007}.
 This property can be desirable: Consider a constrained IoT device as an encryptor, which can reliably transmit data, but not receive.
@@ -109,8 +111,9 @@ With \acrshort{kp-abe}, policies are handled by the \acrshort{kgc}, which is in 
 
 \subsection{Access Structures}\label{sec:access-structures}
 Access structures formally determine which sets of attributes are required to reconstruct the ciphertext under \acrshort{abe}.
-This definition is adapted from \cite{beimel_secure_1996} to our setting of allowed attribute sets, instead of allowed parties.
-\begin{definition}Access Structure~\cite{beimel_secure_1996}.\\
+This definition is adapted from \citeauthor{beimel_secure_1996}~\cite{beimel_secure_1996} to our setting of allowed attribute sets, instead of allowed parties.
+\begin{definition}Access Structure~\cite{beimel_secure_1996}:
+
     Let $U = \{A_1, \dots, A_n\}$ be the universe of attributes.
     A set $\mathcal{A} \subseteq 2^{U}$ is monotone if for all $B \in \mathcal{A}$ and $C \supseteq B$,  $C \in \mathcal{A}$.
     An access structure $\mathcal{A}$ is a non-empty subset of $2^U$, i.e. $\mathcal{A} \in 2^U \backslash \{\emptyset\}$. A monotone access structure is an access structure that is monotone.
@@ -124,45 +127,49 @@ Intuitively, the monotonicity of an access structure means that adding an attrib
 \input{figures/02_sample_access_tree}
 
 Explicitly specifying an \gls{access-structure} is not feasible, as its size may be exponential in the size of the attribute universe.
-Therefore, we will use the construction of \emph{Access Trees} from Goyal~et~al.~\cite{goyal_attribute-based_2006}.
+Therefore, we will use the construction of \emph{Access Trees} defined by Goyal~et~al.~\cite{goyal_attribute-based_2006}.
 \Glspl{access-tree} are similar to the tree representation of boolean formulas, but slightly more powerful:
 Each leaf of this tree is labelled with an attribute.
-Each interior node has a number of children and is labelled with an integer, the number of children that need to be satisfied in order to satisfy the interior node~\cite{goyal_attribute-based_2006}.
+Each inner node has a number of children and is labelled with an integer. 
+This integer represents the number of children that need to be satisfied in order to satisfy the inner node~\cite{goyal_attribute-based_2006}.
 
 Figure~\ref{fig:sample-access-tree} illustrates an example for an \gls{access-tree}. It is satisfied by any set of attributes that contains two of $A, B$ and either $C$ or $D$.
 That is, $\{A,B\}$ would satsify the tree, just as $\{B, D\}$ would, but $\{C, D\}$ would not be sufficient.
 For an attribute universe of $U = \{A, B, C, D\}$ this would realize the \gls{access-structure} $\mathcal{A} = \{\{A, B, C, D\}, \{A, B, C\}, \{A, B, D\},\{A, C, D\}, \{B, C, D\}, \{A, B\},\{A, C\},\{A,D\}, \{B, C\},\{B, D\}\}$
 
 \begin{definition}
-    Access Tree~\cite{goyal_attribute-based_2006}.\\
+    Access Tree~\cite{goyal_attribute-based_2006}.
+
     An interal node $x$ of an access tree is defined by its children and a threshold value $d_x$.
-    If $x$ has $num_x$ children, then its threshold value satisfies $0 < d_x \leq num_x$.
+    The threshold value satisfies $0 < d_x \leq num_x$ with $num_x$ being the number of children.
     A leaf node $x$ is defined by an attribute and a threshold value $k_x = 1$.
 
     The parent of a node $x$ in the access tree is denoted by $\text{parent}(x)$.
     If $x$ is a leaf node, $\text{att}(x)$ denotes the attribute associated with $x$; otherwise it is undefined.
-    The children of a node $x$ are numbered from $1$ to $num_x$. Then $\text{index}(y)$ denotes the unique index of $y$ among the children of its parent node.
+    The children of a node $x$ are numbered from $1$ to $num_x$. Then, $\text{index}(y)$ denotes the unique index of $y$ among the children of its parent node.
 \end{definition}
 
 \begin{definition}
-    Satisfying Access Trees~\cite{goyal_attribute-based_2006}.\\
+    Satisfying Access Trees~\cite{goyal_attribute-based_2006}.
+
     Let $\mathcal{T}$ be an access tree with root r and $\mathcal{T}_x$ the subtree with $x$ as its root.
     If a set of attributes $\gamma$ satisfies the access tree $\mathcal{T}_x$, we write $\mathcal{T}_x(\gamma) = 1$; otherwise $\mathcal{T}_x(\gamma) = 0$.\\
-    If $x$ is a leaf node, then $\mathcal{T}_x(\gamma) = 1$ if and only if $\text{attr}(x) \in \gamma$.\\
+    If $x$ is a leaf node, then $\mathcal{T}_x(\gamma) = 1$ if and only if $\text{attr}(x) \in \gamma$.
+    
     If $x$ is an internal node, then $\mathcal{T}_x = 1$ if and only if $d_x$ or more of the children $x'$ of $x$ return $\mathcal{T}_{x'}(\gamma) = 1$.
 \end{definition}
 The set of attribute sets that satisfy a tree $\mathcal{T}$ is then the access structure it represents: $\mathcal{A} = \{\gamma \in 2^U | \mathcal{T}(\gamma) = 1\}$.
 Note that $\mathcal{A}$ has to be monotone. It is not possible to specify the \emph{absence} of an attribute in the tree.
 
-Using the threshold-gate construction, we can express \emph{A AND B} as a node with two children $A$ and $B$ and threshold $2$, and express \emph{A OR B} as a node with two children $A$ and $B$ and threshold $1$~\cite{yao_lightweight_2015}.
+Using the \gls{access-tree} construction, we can express \emph{A AND B} as a node with two children $A$ and $B$ and threshold $2$, and express \emph{A OR B} as a node with two children $A$ and $B$ and threshold $1$~\cite{yao_lightweight_2015}.
 
 \subsection{Revocation}
-So far, it is not possible to take away privileges from a user:
+So far, it is not possible to take privileges away from a user:
 Once the private key has been issued, it can not be taken back.
-A user's capabilities can only be extended (e.g. by issuing a key with additional attributes or with a more permissive policy).
-This is is an problem, e.g. if their private key is compromised~\cite{boldyreva_identity-based_2008}.
+A user's capabilities can only be extended (e.g. by giving out a key with additional attributes).
+This is is a problem, e.g. if their private key is compromised~\cite{boldyreva_identity-based_2008}.
 
-The simplest approach is to simply renew the keys of valid users from time to time~\cite{boldyreva_identity-based_2008}.
+The simplest solution is to simply renew the keys of valid users from time to time~\cite{boldyreva_identity-based_2008}.
 When a user is revoked, their key will not be updated any longer. Thus any ciphertexts encrypted after the next key update will not be readable for the revoked user~\cite{boldyreva_identity-based_2008}.
 This is inefficient because it requires the \acrshort{kgc} to update or re-issue one key per valid user and needs a secure channel to the \acrshort{kgc}~\cite{boldyreva_identity-based_2008}.
 
@@ -172,7 +179,7 @@ Indirect revocation achieves revocation by means of updating the keys of valid u
 
 Direct revocation requires the encryptor to know the list of revoked users \cite{attrapadung_attribute-based_2009} (i.e. the encrypting party is responsible for correct revocation of the users on the revocation list).
 This can be a major drawback, especially in large systems or when encryptors are severely constrained (as in our case, \acrshort{iot} devices).
-With indirect revocation, the encryptor does not need to do anything except use the most recent version of the public parameters~\cite{attrapadung_attribute-based_2009}.
+With indirect revocation, the encryptor does not need to do anything except using the most recent version of the public parameters~\cite{attrapadung_attribute-based_2009}.
 
 The advantage of direct revocation, however, is that it works instantly: As soon as an encryptor knows about the revocation of a user, they will include them on their revocation list for future encryptions.
 With indirect revocation, a revoked user can decrypt all ciphertexts created until the next key update is distributed by the \acrshort{kgc}~\cite{attrapadung_attribute-based_2009}.
@@ -221,9 +228,11 @@ Some schemes include a proxy-reencryption mechanism that allows an untrusted thi
 % The role of the variables in the definition will be taken by attributes in our context, i.e. each row will be labelled by an attribute or the negation of an attribute~\cite{goyal_attribute-based_2006}.
 
 \section{Shamir's Secret Sharing}
-This secret sharing scheme based on polynomial interpolation was first introduced by Adi Shamir in 1979~\cite{shamir_how_1979}.
-It allows a secret $s$, which is generally just a number, to be shared among $n$ participants.
-The shares are computed such that $s$ can be reconstructed if, and only if, at least $k$ participants meet and combine their shares.
+To implement \acrshort{abe}, we need a way to embed secrets in \glspl{access-tree}.
+For this, a secret sharing scheme introduced by \citeauthor{shamir_how_1979}~\cite{shamir_how_1979} is used.
+
+Secret sharing schemes allows a secret $s$, which is generally just a number, to be shared among $n$ participants.
+The shares are computed such that $s$ can be reconstructed if and only if at least $k$ participants meet and combine their shares.
 Such a scheme is then called a $(k,n)$-threshold scheme~\cite{shamir_how_1979}.
 
 \subsection{Lagrange interpolation}
@@ -271,16 +280,17 @@ Using the lagrange basis polynomials, we can then reconstruct $p(x)$ and thus th
 \end{definition}
 
 See also Figure~\ref{fig:sss} for illustration.
-In practice, the numbers would be far bigger and calculations wouldn't be performed over the real numbers, but rather a finite field modulo a prime~\cite{shamir_how_1979}.
+In practice, the numbers would be far bigger and calculations would not be performed over the real numbers, but rather a finite field modulo a prime~\cite{shamir_how_1979}.
 
 \subsection{Secret Sharing in Attribute Based Encryption}\label{sec:lss-in-access-trees}
-To realize an Access Tree that ,,gives away'' a secret if and only if it is satsified by a set of attributes, we can recursively apply Shamir's Secret Sharing scheme:
+To realize an Access Tree that ``gives away'' a secret if and only if it is satsified by a set of attributes, we can recursively apply Shamir's Secret Sharing scheme:
 
 \input{figures/02_access_tree_shamir}
 
 We use a secret-sharing polynomial on each internal node of the Access Tree.
 For a node $x$ with threshold $d_x$ and $\text{num}_x$ children, we define a $(d_x, \text{num}_x)$-threshold scheme and embed one share of the secret in each child.
-Begin in the root, and set $s$ as the secret we want to embed in the tree. For all other nodes, set $s$ as the secret share received from the parent node.
+We begin in the root, and set $s$ as the secret we want to embed in the tree.
+For all other nodes, we set $s$ as the secret share received from the parent node.
 
 If the child is a leaf, we modify the share such that it can only be used if the relevant attribute is present (how exactly this is done differs between \acrshort{cp-abe} and \acrshort{kp-abe}).
 
@@ -289,7 +299,7 @@ We have built our tree in such a way that the share embedded in a leaf node $u$ 
 That means, a leaf node's secret share can be used if and only if the set of attributes satisfies this leaf node.
 
 For the internal nodes $x$, the use of a $(d_x, \text{num}_x)$-threshold scheme ensures that the secret embedded in $x$ can be reconstructed if and only if the secret shares of at least $d_x$ child nodes can be used, i.e. at least $d_x$ child nodes are satisfied.
-Following this recursive definition up to the root, we can see that our secret $s$ embedded in the root can be reconstructed exactly if $\omega$ satisfies the Acess Tree.
+Following this recursive definition up to the root, we can see that our secret $s$ embedded in the root can be reconstructed if and only if $\omega$ satisfies the acess tree.
 
 See Figure~\ref{fig:sample-access-tree-shamir} for an illustration with the tree from Figure~\ref{fig:sample-access-tree}:
 Two $(k,n)$-threshold schemes are employed, one for each internal node of the access tree.
