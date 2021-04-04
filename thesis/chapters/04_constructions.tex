@@ -13,13 +13,14 @@ It is also considered a rather efficient scheme, compared to others that use bil
 The scheme by \citeauthor{yao_lightweight_2015} was chosen for its unique approach without bilinear pairings. Because pairings are computationally expensive, this promises better performance.
 
 \section{Goyal, Pandey, Sahai and Waters, 2006}
-This scheme was the first \acrshort{abes} with expressive \glspl{access-policy}. Policies are associated with the key (\acrshort{kp-abe}).
-It was described by Goyal, Pandey, Sahai and Waters \cite{goyal_attribute-based_2006} in 2006. This scheme will be referred to as GPSW.
+This scheme was described by Goyal, Pandey, Sahai and Waters \cite{goyal_attribute-based_2006} in 2006 and will be referred to as GPSW.
+It was the first \acrshort{abes} with expressive \glspl{access-policy}.
 
 Goyal~et.~al. extend the earlier work from Sahai and Waters~\cite{sahai_fuzzy_2005} to allow arbitrary access structures expressed by \glspl{access-tree}, not just ``k-out-of-n'' attributes.
 They are the first to use Shamir's Secret Sharing hierarchically in the \gls{access-tree} as described in section~\ref{sec:lss-in-access-trees}. 
 
-The GPSW scheme encrypts a message represented by a point of the bilinear pairing's target group $\mathbb{G}_T$.
+Policies are associated with the key (\acrshort{kp-abe}).
+The scheme encrypts messages represented by an element of the bilinear pairing's target group $\mathbb{G}_T$.
 It is a \gls{small-universe} construction.
 
 The definition of the scheme in this chapter differs from the original construction in the use of an asymmetric pairing ($e: \mathbb{G}_1 \times \mathbb{G}_2 \rightarrow \mathbb{G}_T$) instead of a symmetric pairing ($e: \mathbb{G}_1 \times \mathbb{G}_1 \rightarrow \mathbb{G}_T$).
@@ -29,24 +30,26 @@ There, the curve point on one side comes from the ciphertext, and the point on t
 Originally, a symmetric pairing is used, so the pairing inputs can be swapped freely.
 As we want to improve the speed of the encryption, we swap the two groups to use $\mathbb{G}_1$ for the group elements associated with ciphertexts.
 Elements of $\mathbb{G}_1$ are shorter than elements of $\mathbb{G}_2$ and thus the operations are faster to compute.
-
+\\
 % To speed up encryption and decryption, the plaintext is not encrypted with the GPSW \acrshort{abes} directly.
 % Instead, a random group element is chosen and encrypted under GPSW (i.e. a $k \in \mathbb{G}_T$).
 % This element is hashed to obtain an symmetric key, which is then used to encrypt the plaintext with AES-GCM (an \acrshort{aead} mode of operation).
 % The ciphertext now consists of the GPSW-encrypted group element plus the AES-GCM ciphertext.
 
-~\\
 
-Let $\mathbb{G}_1$ and $\mathbb{G}_2$ be bilinear groups of prime order $q$. Let $P$ be a generator of $\mathbb{G}_1$ and $Q$ be a generator of $\mathbb{G}_2$. Let $e: \mathbb{G}_1 \times \mathbb{G}_2 \rightarrow \mathbb{G}_T$ be a bilinear map.
+
+Let $\mathbb{G}_1$ and $\mathbb{G}_2$ be bilinear groups of prime order $q$.
+Let $P$ be a generator of $\mathbb{G}_1$ and $Q$ be a generator of $\mathbb{G}_2$.
+Let $e: \mathbb{G}_1 \times \mathbb{G}_2 \rightarrow \mathbb{G}_T$ be a bilinear pairing.
 
 Note that $\mathbb{G}_1$ and $\mathbb{G}_2$ are written additively, but $\mathbb{G}_T$ is written using multiplicative notation.
 This corresponds to the interface of the bilinear pairing library used in this thesis.\\
 
 \noindent \emph{Setup}~\cite{goyal_attribute-based_2006}.
 The attribute universe is defined as $\text{U} = \{1, 2, \dots, n\}$ and is fixed.
-For every attribute $i \in U$, choose uniformly at random a secret number $t_i \in \mathbb{Z}_q$.
+For every attribute $i \in U$, choose a secret number $t_i \in \mathbb{Z}_q$ uniformly at random.
 Then the public key of attribute $i$ is $T_i = t_1 \cdot P$.
-Also, choose uniformly at random the private $y \in \mathbb{Z}_p$, from which the public key $Y = e(P, Q)^y$ is derived.
+Also, choose a random private $y \in \mathbb{Z}_p$, from which the public $Y = e(P, Q)^y$ is derived.
 
 Publish $PK=(Y, T_1, \dots, T_n)$ as the public key, privately save $MK = (y, t_1, \dots, t_n)$ as the master key.
 \\
@@ -60,16 +63,16 @@ For each attribute $i \in \omega$ compute $E_i = s \cdot T_i$.
 Return the ciphertext as $E = (\omega, E', \{E_i | i \in \omega\})$
 \\
 
-\noindent \emph{KeyGen($\Gamma$, MK)}~\cite{goyal_attribute-based_2006}.
-Input: \gls{access-tree} $\Gamma$ and master key $MK$.
+\noindent \emph{KeyGen($\mathcal{T}$, MK)}~\cite{goyal_attribute-based_2006}.
+Input: \gls{access-tree} $\mathcal{T}$ and master key $MK$.
 
-For each node $u$ in the \gls{access-tree} $\Gamma$, recursively define polynomials $q_u(x)$ with degree $(d_u - 1)$, starting from the root.
+For each node $u$ in the \gls{access-tree} $\mathcal{T}$, recursively define polynomials $q_u(x)$ with degree $(d_u - 1)$, starting from the root.
 
 For the root $r$, set $q_r(0) = s$ and randomly choose $d_r -1$ other points to determine the polynomial $q_r(x)$.
 Then, for any other node $u$, including leaf nodes, set $q_u(0) = q_{\text{parent}(x)}(\text{index}(x))$ and choose $d_u -1$ other points at random to define the polynomial. 
 For all leaf nodes $u$, create a secret share $D_u = q_x(0) \cdot t_i^{-1} \cdot Q$ where $i = \text{att}(x)$.
 
-The set of these secret shares is the decryption key $D = \{D_u | u \text{ leaf node of } \Gamma\}$.
+The set of these secret shares is the decryption key $D = \{D_u | u \text{ leaf node of } \mathcal{T}\}$.
 \\
 
 \noindent \emph{Decrypt(E, D)}~\cite{goyal_attribute-based_2006}.
@@ -91,7 +94,7 @@ Let $S_u$ be an arbitrary $d_u$-sized subset of child nodes $v$ with $F_v \neq \
 Then compute with $i = \text{index}(z)$ and $S'_u = \{\text{index}(z) | z \in S_u\}$.
 \begin{equation}
     \begin{split}
-        F_u &= \prod_{z \in S_u} F_z^{\Delta_{i,S'_u}(0)}\\
+        \text{DecryptNode}(E, D, v) &= \prod_{z \in S_u} F_z^{\Delta_{i,S'_u}(0)}\\
         &= \prod_{z \in S_u} (e(P,Q)^{s\cdot q_z(0)})^{\Delta_{i,S'_u}(0)}\\
         &= \prod_{z \in S_u} (e(P,Q)^{s\cdot q_{\text{parent}(z)}(\text{index}(z))})^{\Delta_{i,S'_u}(0)}\\
         &= \prod_{z \in S_u} e(P,Q)^{s\cdot q_u(i) \cdot \Delta_{i,S'_u}(0)}\\
@@ -117,11 +120,11 @@ The following scheme was described by Yao, Chen and Tian \cite{yao_lightweight_2
 In 2019, Tan, Yeow and Hwang \cite{tan_enhancement_2019} proposed an enhancement, fixing a flaw in the scheme and extending it to be a hierarchical KP-ABE scheme.
 
 Yao, Chen and Tian's ABE scheme (hereafter written just YCT) is a KP-ABE scheme that does not use any bilinear pairing operations.
-Instead, the only operation performed on Elliptic Curves are point-scalar multiplication~\cite{yao_lightweight_2015}.
+Instead, the only operations performed on \glspl{ec} are point-scalar multiplication~\cite{yao_lightweight_2015}.
 % This makes it especially useful for our resource-constrained context, as bilinear pairings are significantly more costly in terms of computation and memory.
 
 As opposed to other ABE schemes based on pairings, YCT uses a hybrid approach similar to the Elliptic Curve Integrated Encryption Standard (ECIES):
-The actual encryption of the plaintext is done by a symmetric cipher, for which the key is derived from a curve point determined by the YCT scheme~\cite{yao_lightweight_2015}.
+The actual encryption of the plaintext is done by a \gls{privkes}, for which the key is derived from a curve point determined by the YCT scheme~\cite{yao_lightweight_2015}.
 If a key's \gls{access-structure} is satisfied by a certain ciphertext, this curve point and thus the symmetric encryption key can be reconstructed, allowing for decryption.
 
 The original description of this scheme uses the x- and y-coordinates as keys for separate encryption and authentication mechanisms.
@@ -133,7 +136,8 @@ For this, instead of $\text{index}(\cdot)$, the modified $\text{index}'(\cdot) =
 $r_l$ is a random seed value that differs for each layer $l$ of the \gls{access-tree}~\cite{tan_enhancement_2019}.
 In our implementation, HMAC-SHA3-512 is used as the \acrshort{prf}.\\
 
-Let $\mathbb{G}$ be a group of order $q$ with generator $G$. The four algorithms of the YCT scheme are defined as follows: \\
+Let $\mathbb{G}$ be a group of order $q$ with generator $G$. The four algorithms of the YCT scheme are defined as follows:
+\\
 
 \noindent \emph{Setup}~\cite{yao_lightweight_2015}.
 The attribute universe is defined as $\text{U} = \{1, 2, \dots, n\}$ and is fixed.
@@ -158,19 +162,19 @@ Encrypt the actual message as $c = \text{Enc}(m, k_x)$ and generate a Message Au
 
 Return the ciphertext $CM = (\omega, c, \text{mac}_m, \{C_i | i \in \omega\})$\\
 
-\noindent \emph{KeyGen($\Gamma$, MK)}~\cite{yao_lightweight_2015}.
-Input: \glspl{access-tree} $\Gamma$ and master key $MK$.
+\noindent \emph{KeyGen($\mathcal{T}$, MK)}~\cite{yao_lightweight_2015,tan_enhancement_2019}.
+Input: \glspl{access-tree} $\mathcal{T}$ and master key $MK$.
 
 For each layer $l = 0, 1, \dots$ of the \gls{access-tree}, generate a random seed value $r_l \in \mathcal{K}_{PRF}$ from the PRF's key space.
 
-For each node $u$ in the \gls{access-tree} $\Gamma$, recursively define polynomials $q_u(x)$ with degree $(d_u - 1)$, starting from the root.
+For each node $u$ in the \gls{access-tree} $\mathcal{T}$, recursively define polynomials $q_u(x)$ with degree $(d_u - 1)$, starting from the root.
 
 For the root $r$, set $q_r(0) = s$ and randomly choose $(d_r - 1)$ other points to determine the polynomial $q_r(x)$.
 Then, for any other node $u$ (including leafs), set $q_u(0) = q_{\text{parent}(u)}(\text{index}'(u))$ and choose $(d_u -1)$ other points for $q_u$, similar to above.
 
-Whenever $u$ is a leaf node, use $q_u(x)$ to define a secret share $D_u = \frac{q_u(0)}{s_i}$; where $i = \text{attr}(u)$, $s_i$ the randomly chosen secret number from \emph{Setup} and $s_i^{-1}$ the inverse of $s_i$ in $\mathbb{Z}_q^*$.
+Whenever $u$ is a leaf node, use $q_u(x)$ to define a secret share $D_u = q_u(0) \cdot s_i^{-1}$; where $i = \text{attr}(u)$, $s_i$ the randomly chosen secret number from \emph{Setup} and $s_i^{-1}$ the inverse of $s_i$ in $\mathbb{Z}_q^*$.
 
-Return the generated key as $D = (\{D_u | u \text{ leaf node of } \Gamma\}, \{r_0, r_1, \dots \})$.
+Return the generated key as $D = (\{D_u | u \text{ leaf node of } \mathcal{T}\}, \{r_0, r_1, \dots \})$.
 \\
 
 \noindent \emph{Decrypt(CM, D, PK)}~\cite{yao_lightweight_2015}. Input: Ciphertext $CM$, decryption key $D$ and public key $PK$.
@@ -207,7 +211,7 @@ Then $\text{DecryptNode}(CM, D, u)$ is defined as follows, where $i = \text{inde
 
 The equality $(*)$ holds because $\sum_{v \in \omega'_u} \Delta_{\omega'_u, i}(0) \cdot q_u(i) = q_u(0)$ is exactly the lagrange interpolation polynomial $q_u(x)$ at $x = 0$ with respect to the points $\{(index(v), q_v(0)) | v \in \omega_u\}$. 
 
-This means for the root $r$ of the \gls{access-tree} $\Gamma$, we have
+This means for the root $r$ of the \gls{access-tree} $\mathcal{T}$, we have
 \begin{equation*}
     \text{DecryptNode}(CM, D, r) =  q_r(0) \cdot k \cdot G = s \cdot k \cdot G = (k'_x, k'_y)
 \end{equation*}

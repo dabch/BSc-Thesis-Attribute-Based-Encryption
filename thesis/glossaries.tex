@@ -5,17 +5,17 @@
 {
         name={key generation center},
         text={Key Generation Center},
-        description={Trusted central authority that sets up an \acrshort{abes} and generates keys for users of an \acrshort{abes}. See Section~\ref{sec:kgc}}
+        description={Trusted central authority that sets up an \acrshort{abes} and generates keys for users of an \acrshort{abes}. See section~\ref{sec:kgc}}
 }
 
 \newglossaryentry{ec}{
   name={elliptic curve},
-  description={Algebraic structure that forms a \gls{group}, see Section~\ref{sec:ec}}
+  description={Algebraic structure that forms a \gls{group}. See section~\ref{sec:ec}}
 }
 
 \newglossaryentry{group}{
   name={group},
-  description={A set together with a binary operation that satisfies the group axioms, see Section~\ref{sec:group}}
+  description={A set together with a binary operation that satisfies the group axioms. See section~\ref{sec:group}}
 }
 
 \newglossaryentry{gls-kp-abe}{
@@ -34,18 +34,18 @@
 
 \newglossaryentry{access-policy}{
   name={access policy},
-  description={A policy that defines what combination of \glspl{attribute} shall be required to access data. Formalized by an access structure and usually realized by an access tree, see Section~\ref{sec:access-structures}},
+  description={A policy that defines what combination of \glspl{attribute} shall be required to access data. Formalized by an access structure and usually realized by an access tree. See section~\ref{sec:access-structures}},
   plural={access policies},
 }
 
 \newglossaryentry{access-structure}{
   name={access structure},
-  description={defines the attribute combinations that are required and sufficient to decrypt a ciphertext. See Section~\ref{sec:access-structures} and Section~\ref{sec:access-trees}}
+  description={defines the attribute combinations that are required and sufficient to decrypt a ciphertext. See section~\ref{sec:access-structures} and section~\ref{sec:access-trees}}
 }
 
 \newglossaryentry{access-tree}{
   name={access tree},
-  description={construction to realize (monotone) access structures. See Section~\ref{sec:access-trees}}
+  description={construction to realize (monotone) access structures. See section~\ref{sec:access-trees}}
 }
 
 \newglossaryentry{kdf}{name={key derivation function},description={function that derives a suitable cryptographic key from some other data, that may be too long or not in the right format to serve as a key. Usually, hash functions are used as KDF}}
@@ -137,3 +137,7 @@
   name={perfect binary tree},
   description={binary tree in which all inner nodes have exactly two children and all leaves have the same depth}
 }
+
+\newglossaryentry{field}{name={field},description={A set together with addition and multiplication operations that behave like they do over the real numbers (formalized by field axioms). Comparable to a \gls{group}, but with two operations instead of one}}
+
+\newglossaryentry{slice}{name={slice},description={Rust data type that represents a variable-length portion of an array. Slices are characterized by a pointer to their beginning and their length}}

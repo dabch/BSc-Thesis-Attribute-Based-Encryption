@@ -106,7 +106,7 @@ Their choice of elliptic curves, however, only provides a security level of 80 b
 This is significantly lower than the security level of the 224-bit MNT curve from the PBC library (around 128 bits)~\cite{akinyele_self-protecting_2010} and the curves used in this thesis (around 100 bits).
 
 Scott~\cite{scott_deployment_2020} provides a fast implementation of a 254-bit BN curve (the same as used in this thesis) in the \emph{MIRACL Core Cryptographic Library}~\cite{scott_miracl_nodate}.
-They also evaluate their library on the same SoC as used in this thesis (nRF52840, 64\,MHz ARM Cortex M4 CPU) and compute a pairing of the 254-bit BN curve in 635\,ms \cite[Table~4]{scott_deployment_2020}.
+They also evaluate their library on the same SoC as used in this thesis (nRF52840, 64\,MHz ARM Cortex-M4 CPU) and compute a pairing of the 254-bit BN curve in 635\,ms \cite[Table~4]{scott_deployment_2020}.
 Only the pairing implementation is tested and evaluated, the authors do not implement an \acrshort{abes}.
 
 ~

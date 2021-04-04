@@ -134,15 +134,17 @@ where
 }
 
 /// internal recursive helper to ease key generation
-fn keygen_node<'key>(
+fn keygen_node<'attr, 'key>(
   privkey: &GpswAbePrivate,
   pubkey: &GpswAbePublic,
-  tree_arr: AccessStructure<'key, 'key>,
+  tree_arr: AccessStructure<'attr, 'key>,
   tree_ptr: u8,
   parent_poly: &Polynomial,
   index: F,
   rng: &mut dyn RngCore,
-) -> Vec<(u8, G1), consts::U30> {
+) -> Vec<(u8, G1), consts::U30> 
+where 'attr: 'key 
+{
   // own polynomial at x = 0. Exactly q_parent(index).
   let q_of_zero = parent_poly.eval(index);
   let own_node = &tree_arr[tree_ptr as usize];

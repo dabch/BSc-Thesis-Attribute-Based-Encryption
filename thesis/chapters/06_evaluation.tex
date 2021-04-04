@@ -69,7 +69,7 @@ All time measurements were performed using a hardware timer on the nRF52840 SoC.
 The runtime of \acrshort{abe} operations is not constant, but depends on the number of attributes and / or the complexity of the used policy.
 
 For Setup, the number of attributes refers to the total number of attributes in the system.
-For Encrypt, the number of attributes refers to the number of attributes under which the ciphertext is encrypted.
+For Encrypt, it refers to the number of attributes under which the ciphertext is encrypted.
 
 For KeyGen, the number of attributes refers to the number of leaf nodes in the used access policy.
 The \glspl{access-tree} are flat, i.e. they consists only of a root node and the given number of children.
@@ -115,7 +115,7 @@ The sizes of the executable binaries were measured by calling \verb+cargo size -
 The values presented in Figure~\ref{fig:abe-performance-diagrams-flash} are the combined size of the \texttt{text}, \texttt{rodata} and \texttt{bss} segments.
 
 
-\subsection{Results}
+\subsection{Results} % TODO Rattenschwanz Seite 45
 The pairing-free YCT scheme is significantly faster than the pairing-based GPSW scheme in all four algorithms. 
 For both schemes, Setup takes about the same time as Encryption for the same number of attributes in the system or ciphertext, respectively.
 The runtime of Setup and Encrypt with GPSW is about 3.5\,s longer than with YCT, independent on the number of attributes.
@@ -134,7 +134,7 @@ Again, YCT is much faster at 12\,s for the largest policy with 30\,attributes. G
 The RAM usage also shows a large advantage for YCT:
 With GPSW, a single-level policy already uses up more than three times more RAM than YCT; this difference only increases with more policy levels.
 Assuming RAM use on the laptop is representative for the SoC, the single-level policy already requires more than two thirds of the total RAM on the sensor.
-With three or more levels, decryption fails entirely on the SoC because there is not enough RAM.
+With three or more levels, decryption fails entirely on the SoC because there is not enough memory.
 YCT does not have this problem: Even with a four-level policy, it uses only the equivalent of about a quarter of the total RAM.
 
 The difference in flash size is not as big, but the GPSW scheme still requires about 70\,\% more flash storage than the YCT scheme.
@@ -150,18 +150,19 @@ This contradicts the result from \cite{girgenti_feasibility_2019}, where the enc
 However, their conclusion is based on very small numbers of attributes for YCT due to a bug in the evaluated library~\cite{girgenti_feasibility_2019}.
 In addition, their SoC is significantly faster than ours (240\,MHz vs. 64\,MHz), thus the constant overhead of GPSW is smaller.
 
-For the KeyGen algorithm, the speed difference between YCT and GSPW is especially striking: 
-The runtime of the YCT KeyGen algorithm is in the order of a few hundred milliseconds whereas GPSW takes almost 20\,s with the largest policies.
-Again, looking at the schemes, the reason becomes evident: YCT's KeyGen only works on elements of $\mathbb{F}_r$, which are small and easy to calculate with.
-GPSW uses secret shares from $\mathbb{G}_2$, for which operations take considerably more time.
-This is also the case for decryption: YCT only requires exponentation and point addition in $\mathbb{G}_1$, whereas GPSW performs pairings, multiplications and exponentiations in $\mathbb{G}_T$.
+% For the KeyGen algorithm, the speed difference between YCT and GSPW is especially striking: 
+% The runtime of the YCT KeyGen algorithm is in the order of a few hundred milliseconds whereas GPSW takes almost 20\,s with the largest policies.
+% Again, looking at the schemes, the reason becomes evident: YCT's KeyGen only works on elements of $\mathbb{F}_r$, which are small and easy to calculate with.
+% GPSW uses secret shares from $\mathbb{G}_2$, for which operations take considerably more time.
+% This is also the case for decryption: YCT only requires exponentation and point addition in $\mathbb{G}_1$, whereas GPSW performs pairings, multiplications and exponentiations in $\mathbb{G}_T$.
 
 The RAM consumption of decryption with GPSW is a limiting factor on the SoC:
 Decryption with policies of more than two levels fails because of too little memory.
 This poses a hard limit on the size of \glspl{access-policy}.
 Also, in our evaluation, the \acrshort{abe} library was able to use  the entire RAM on the SoC.
 In a real-world use case, the application employing \acrshort{abe} might already occupy a considerable portion of the available RAM, leaving too little space even for decryption with small \glspl{access-tree}.
-The pairing-free YCT scheme uses much less RAM and is thus less affected by these issues.\\
+The pairing-free YCT scheme uses much less RAM and is thus less affected by these issues. % TODO Rattenschwanz 47
+\\
 
 If some latency is acceptable and the number of attributes is not too large, doing encryption with \acrshort{abe} on the SoC is feasible.
 The pairing-free YCT scheme is faster and requires less memory, but the pairing-free GPSW scheme still performs well enough.
@@ -182,7 +183,7 @@ The \acrshort{kgc} would probably be a specially protected PC or at least a more
 The implementations evaluated in this thesis offer room for improvement.
 For example if only encryption is needed on the SoC, the library could be split into two:
 A limited, bare-metal library that implements only encryption and runs on the SoC, and a full library that runs on the \acrshort{kgc} and other devices.
-This would enable \acrshort{abe} encryption on the sensor while allowing the full library to rely on a full-fledged operating system.
+This would enable \acrshort{abe} encryption on the sensor while allowing the full library to rely on a fully-fledged operating system.
 
 Regarding the results on the SoC, improvements could be made by improving the underlying pairing and elliptic curve implementation of the \texttt{rabe-bn} library.
 Even though the operations remain computationally expensive, other implementations do better:

@@ -1,11 +1,11 @@
 \chapter{Summary and Conclusion}
 
-In this thesis, I presented \acrlong{abe} and evaluated its practical feasibility on constrained \acrshort{iot} nodes.
-More specifically, I implemented an \acrfull{abe} library with two schemes and evaluated it on an ARM Cortex-M4 SoC.
-To this end, I had to modify the underlying elliptic curve and pairing library \texttt{rabe-bn} to run in a bare-metal environment.
+In this thesis, I presented \acrfull{abe} and evaluated its practical feasibility on constrained \acrshort{iot} nodes.
+More specifically, I implemented an \acrshort{abe} library with two schemes and evaluated it on an ARM Cortex-M4 SoC.
+To this end, I modified the underlying elliptic curve and pairing library \texttt{rabe-bn} to run without dynamic memory allocation.
 For the evaluation of the library, all four \acrshort{abe} algorithms (Encrypt, Decrypt, Setup and KeyGen) were tested on the embedded SoC.
 
-Computing the underlying primitives for \acrshort{abe} on the SoC is feasible, but comes at a rather high cost.
+Computing the bilinear pairings underlying most \acrshortpl{abes} on the SoC is feasible, but comes at a rather high cost.
 Comparison with other pairing implementations shows that there is some room for improvement here, but the the operations remain expensive.
 In addition to computation time, memory size is a major bottleneck for pairing-based implementations.
 % The GPSW scheme is limited to small and medium policies for key generation and decryption. 
@@ -18,14 +18,14 @@ For use cases where such a delay is not practical, re-use of the encapsulated sy
 
 With decryption, the case is different: 
 No problems were encountered with the pairing-free YCT scheme.
-With GPSW, however, encryption failed when using \glspl{access-tree} with more than two layers due to too little RAM.
+With the pairing-based GPSW scheme, however, encryption failed when using \glspl{access-tree} with more than two layers due to too little RAM.
 Also, runtimes were much longer than for encryption and increased much faster with growing policy size.
 While very long runtimes might sometimes be acceptable, the RAM limitation poses a hard limit.
 
-If decryption with large policies is necessary on the SoC, it is therefore advisable to choose YCT over GPSW.
-The security of pairing-free \acrshortpl{abes}, however, remains questionable, see~\cite{herranz_attacking_2020}.
+If decryption with large policies is necessary on the SoC, it is therefore advisable to choose the pairing-free YCT scheme.
+The security of \acrshort{abe} without pairings, however, remains questionable, see~\cite{herranz_attacking_2020}.
 Further research in this area is needed.\\
 
-In short, \acrfull{abe} seems feasible on the considered hardware, especially if only encryption is needed and the number of attributes isn't too large.
-Still, \acrshort{abe} comes at a high cost in runtimes and memory consumption.
+In short, \acrlong{abe} is feasible on the considered hardware, especially if only encryption is needed and the number of attributes is not too large.
+Still, it comes at a high cost in runtimes and memory consumption.
 Especially decryption with the pairing-based scheme is not feasible because runtimes are very long and only \glspl{access-tree} with few layers can be used.

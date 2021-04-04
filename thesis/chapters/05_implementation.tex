@@ -1,20 +1,19 @@
 \chapter{Implementation}
 
 This chapter describes how the schemes from chapter~\ref{chapter:constructions} were implemented.
-In addition to the structure of the implementation, it discusses the main challenges encountered and how they were overcome.
+In addition to the structure of the implementation, it discusses the encountered challenges and how they were overcome.
 
 \section{Hardware}
 
 The main goal of this thesis was to implement an \acrshort{abe} scheme on a constrained embedded ARM processor.
-More specifically, the chip used was a Nordic Semiconductor nRF52840 with a 64\,MHz Cortex M4 CPU, 256\,KB of RAM and 1\,MB of flash storage.
+More specifically, the chip used was a Nordic Semiconductor nRF52840 with a 64\,MHz Cortex-M4 CPU, 256\,KB of RAM and 1\,MB of flash storage.
 For the detailed specifications, see \cite{nordic_semiconductor_nrf52840_nodate}.
 This SoC will be referred to simply as ``the SoC''.
-
-Due to the constrained resources on the SoC, it does not run an operating system (i.e. ``bare-metal'' application).
+Due to the constrained resources on the SoC, it is not running an operating system (i.e. ``bare-metal'' application).
 
 For reference, the implementation was also tested on a standard laptop, referred to as ``the laptop''.
 More specifically, this system has a 2.7\,GHz Intel i7-7500U CPU and 16\,GB of RAM.
-It runs a Linux-based operating system.
+It is running a Linux-based operating system.
 
 \section{Programming language and libraries}
 
@@ -36,7 +35,7 @@ Due to the discovery of better attacks on the underlying cryptographic assumptio
 
 The library provides four structs: \texttt{G1}, \texttt{G2} and \texttt{Gt}, elements of the groups $\mathbb{G}_1$, $\mathbb{G}_2$ and $\mathbb{G}_T$, respectively.
 These groups all have the same order $r$.
-\texttt{Fr} represents an element of the field $\mathbb{F}_r$.
+\texttt{Fr} represents an element of the \gls{field} $\mathbb{F}_r$.
 
 For the elliptic curve groups (structs \texttt{G1} and \texttt{G2}), additive notation is used and the \texttt{+} and \texttt{*} operators are overloaded.
 This means that point-scalar multiplication can be simply written in Rust code as \verb$group_element * scalar$.
@@ -49,7 +48,7 @@ It provides simplified access to the hardware \acrfull{rng} and hardware timers.
 Access to the timers was not necessary for implementing the \acrshort{abe} library, but was used to measure the runtimes of the \acrshort{abe} algorithms.
 
 \subsection*{\texttt{heapless} crate}
-The \texttt{heapless}~\cite{aparicio_heapless_nodate} crate provides stack-allocated versions of some of the data structures from \texttt{std::collections}. 
+The \texttt{heapless}~\cite{aparicio_heapless_nodate} \gls{crate} provides stack-allocated versions of some of the data structures from \texttt{std::collections}. 
 Most important were \texttt{heapless::Vec} (replaces \texttt{std::vec::Vec}) and \texttt{heapless::FnvIndexMap} (replaces \texttt{std::collections::HashMap}).
 These data structures are statically allocated and expect their desired capacity as an additional generic type parameter.
 
@@ -59,7 +58,7 @@ The implementation of \texttt{rabe-bn} unfortunately relies on the standard libr
 Rust provides the dependency-free and platform-agnostic \texttt{core} library as an alternative to the standard library.
 This library does not depend on an operating system or dynamic memory allocation, and thus does not include heap-allocated data structures (like \texttt{std::vec::Vec}).
 
-Therefore, I rewrote the \texttt{rabe-bn} library to introduce a cargo-feature \texttt{std} which controls the inclusion of the standard library and is enabled by default.
+I rewrote the \texttt{rabe-bn} library to introduce a cargo-feature \texttt{std} which controls the inclusion of the standard library and is enabled by default.
 If this feature is disabled, the \texttt{core} library and stack-allocated collections of fixed size from the \texttt{heapless} crate are used instead.
 
 Some further modifications were necessary to implement the \texttt{core::fmt::Display} trait for the \texttt{Gt} struct in a bare-metal compatible manner.
@@ -75,19 +74,20 @@ Regular Rust programs use the \texttt{rand} \gls{crate}'s \verb+ThreadRng+ struc
 
 Therefore, this generator is unavailable on the SoC.
 Instead we use the hardware \acrshort{rng}.
-The \texttt{nrf52840-hal} crate directly implements the trait \texttt{rand::RngCore} for the hardware \acrshort{rng}, which makes it relatively easy to use.
+The \texttt{nrf52840-hal} \gls{crate} directly implements the trait \texttt{rand::RngCore} for the hardware \acrshort{rng}, which makes it relatively easy to use.
 This generator, however, is quite slow and speed can differ greatly: With bias correction enabled (required for uniform distribution of the generated data), typically around 120$\mu$s per byte~\cite{nordic_semiconductor_nrf52840_nodate}.
 
-To alleviate this, the hardware \acrshort{rng} is only used to seed a ChaCha20 pseudorandom number generator (crate \texttt{rand\_chacha}~\cite{noauthor_rand_chacha_nodate}).
+To alleviate this, the hardware \acrshort{rng} is only used to seed a ChaCha20 pseudorandom number generator (\gls{crate} \texttt{rand\_chacha}~\cite{noauthor_rand_chacha_nodate}).
 This is essentially the same construction as the current implementation of \texttt{ThreadRng}~\cite{noauthor_rust_nodate}.
 
 \section{Library API}
-The schemes are implemented in crates that export the relevant types (see section~\ref{sec:abe-algs-impl}) and the four \acrshort{abe} functions \texttt{setup()}, \texttt{encrypt()}, \texttt{keygen()} and \texttt{decrypt()}.
+The schemes are implemented in \glspl{crate} that export the relevant types (see section~\ref{sec:abe-algs-impl}) and the four \acrshort{abe} functions \texttt{setup()}, \texttt{encrypt()}, \texttt{keygen()} and \texttt{decrypt()}.
 
 Listing~\ref{lst:abe-signatures} gives a short overview of the four function signatures.
 The parameter \texttt{rng} allows the caller to pass a custom \acrlong{rng} and thus makes the library independent from the standard library \acrshort{rng}.
 
-\texttt{setup()} requires the caller to create and pass a reference to two \texttt{FnvIndexMap}s to avoid passing these back on the stack.
+\texttt{setup()} requires the caller to create and pass references to two \texttt{FnvIndexMap}s to avoid passing these back on the stack.
+The private and public attribute keys will be saved in these maps.
 
 \texttt{encrypt()} and \texttt{decrypt()} return a \texttt{Result} type because they are not guaranteed to work: 
 Decryption might fail because the key is not satisfied by the attributes in the ciphertext.
@@ -123,10 +123,10 @@ pub fn decrypt<'attr, 'key, 'data>(
 
 \section{Aspects common to both ABE schemes}
 
-Some aspects of the implementation are common to both ABE schemes and therefore outsourced into a separate \verb+abe_utils+ crate.
+Some aspects of the implementation are common to both ABE schemes and therefore outsourced into a separate \verb+abe_utils+ \gls{crate}.
 
 \subsection{Representation of Access Trees}
-The Rust type system is well suited to represent the type of tree structures we need for \glspl{access-tree}.
+The Rust type system is well suited to represent tree structuress like our \glspl{access-tree}.
 A simple implementation might look like the one in Listing~\ref{lst:access-tree-naive}. 
 
 \begin{lstlisting}[float=h,caption={Simple Implementation of \glspl{access-tree} (using the standard library)},label={lst:access-tree-naive}]
@@ -146,7 +146,7 @@ A \texttt{heapless::Vec} is not located on the heap, but directly inside the \te
 Even if there is a limit on the number of children a single inner node might have, there is no limit to the depth of the \gls{access-tree}.
 Therefore, a \texttt{Node} has to be arbitrarily large because it might need to hold an arbitrary number of child nodes.
 
-Because of this, \glspl{access-tree} were implemented as a flat slice of nodes as in Listing~\ref{lst:access-tree-heapless}. 
+Because of this, \glspl{access-tree} were implemented as a flat \gls{slice} of nodes as in Listing~\ref{lst:access-tree-heapless}. 
 The vector of children doesn't hold references to the children themselves, but only their index within the vector of \gls{access-tree} nodes.
 This again introduces an indirection (like the heap pointer in the simple implementation) and allows the enums to have constant size.
 
@@ -181,15 +181,16 @@ Instead of encrypting the data with \acrshort{abe} directly, the plaintext is en
 The YCT scheme already uses AES according to its original definition in~\cite{yao_lightweight_2015}.
 The GPSW scheme encrypts a message represented by an element of $\mathbb{G}_T$ in its original definition in~\cite{goyal_attribute-based_2006}.
 However, encoding arbitrary messages as elements of $\mathbb{G}_T$ is cumbersome and slow.
-Therefore, I also implemented hybrid encryption with the GPSW scheme.
+Therefore, my implementation of the GPSW scheme also uses hybrid encryption:
+It chooses a random element of $\mathbb{G}_T$ which is used as symmetric key and then encrypted with GPSW.% also implemented hybrid encryption with the GPSW scheme.
 
 % In our implementation, the \acrshort{abe} scheme generates a secret curve point (i.e. either \verb+rabe_bn::G1+ or \verb+rabe_bn::Gt+).
 % From this, an AES key is derived and then used to encrypt the plaintext with AES-CCM.
 
 \subsubsection{Key derivation}\label{sec:kdf}
-With both schemes, a curve point is used as symmetric key.
-The binary representation of these curve points is much longer than the 256-bit key AES expects.
-Therefore, the curve point is run through a \gls{kdf}, which can be seen in Listing~\ref{lst:kdf}.
+With both schemes, the symmetric keys are initally encoded as a curve points.
+The binary representation of these is much longer than the 256-bit key AES expects.
+Therefore, they are run through a \gls{kdf}, which is shown in Listing~\ref{lst:kdf}.
 
 \begin{lstlisting}[float=h,caption={Hash-based key derivation Function for curve points},label={lst:kdf}]
 struct Wrapper<W: sha3::Digest>(pub W); // newtype for sha3::Digest
@@ -215,14 +216,16 @@ Therefore, the naive approach of using \texttt{Display} to turn our curve point 
 To circumvent this problem, I implemented the \verb+core::fmt::Write+ trait for the \acrshort{sha3} hasher using a newtype pattern.
 This trait represents a sink for formatted text, like that produced by structs implementing the \verb+core::fmt::Display+ trait.
 Then it is possible to simply use the \verb+write!()+ macro to write the formatted curve points (or any other struct) into the \acrshort{sha3} hasher.
+ % TODO Rattenschwanz Seite 34/35
 
 \subsubsection{Symmetric Encryption}
 
 The 256-bit key obtained from \texttt{kdf()} is then used as the key to encrypt the actual plaintext.
-This is done by AES-256 in CCM mode (Counter Mode Encryption with CBC-MAC).
+This is done with AES-256 in CCM mode (Counter Mode Encryption with CBC-MAC).
 CCM is an \acrshort{aead} mode, i.e. it secures both confidentiality and integrity of the data.
-The pure-Rust implementations of AES, the CCM mode and \acrshort{sha3} (for \texttt{kdf}) in the crates \texttt{aes}, \texttt{ccm} and \texttt{sha3} by the RustCrypto organization are used~\cite{noauthor_rustcrypto_nodate}.
+The pure-Rust implementations of AES, the CCM mode and \acrshort{sha3} (for \texttt{kdf}) in the \glspl{crate} \texttt{aes}, \texttt{ccm} and \texttt{sha3} by the RustCrypto organization are used~\cite{noauthor_rustcrypto_nodate}.
 
+% TODO Rattenschwanz Seite 36
 \begin{lstlisting}[float=h,caption={Symmetric Ciphertext struct},label={lst:symm-ciphertext}]
 pub struct Ciphertext<'data> {
     data: &'data mut [u8],
@@ -241,8 +244,8 @@ This combined ciphertext can then be decrypted with a valid \acrshort{abe} key.
 
 \subsection{Random polynomials over $\mathbb{F}_r$}
 
-Both schemes employ Shamir's secret sharing with polynomials for key generation, see section~\ref{sec:lss-in-access-trees}.
-To facilitate this, a \texttt{Polynomial} struct was written, see Listing~\ref{lst:polynomials}.
+Both schemes employ Shamir's secret sharing with polynomials for key generation, which was introduced in section~\ref{sec:lss-in-access-trees}.
+This is facilitated by the \texttt{Polynomial} structure shown in Listing~\ref{lst:polynomials}.
 It represents a polynomial over $\mathbb{F}_r$ as a vector of coefficients from $\mathbb{F}_r$.
 Polynomial evaluation, random generation and Lagrange interpolation are implemented.
 For reasons of simplicity, the latter is only implemented for $x=0$, i.e. the interpolation is immediately evaluated at $x=0$.
@@ -275,33 +278,33 @@ The implementation of the \acrshort{abe} algorithms Setup, Encrypt, KeyGen and D
 Further notable aspects are described here.
 
 The general structure of the implementation is similar for both schemes. 
-This description will stick with the GPSW scheme unless there are notable differences.
+This description will stick with the GPSW scheme unless there are significant differences.
 
 \subsection{Setup}
-Listing~\ref{lst:struct-pubkey} shows the structures holding the public and private parameters generated by Setup of GPSW.
-Setup is implemented almost exactly as described in chapter~\ref{chapter:constructions}, except that generators of $\mathbb{G}_1$ and $\mathbb{G}_2$ are not fixed but chosen randomly.
+Listing~\ref{lst:struct-pubkey} shows the structures holding the public and private parameters generated by \texttt{setup()}.
+The setup algorithm is implemented almost exactly as described in chapter~\ref{chapter:constructions}, except that generators of $\mathbb{G}_1$ and $\mathbb{G}_2$ are not fixed but chosen randomly.
 
 \begin{lstlisting}[float=h,caption={Private and public system parameters structs for GPSW},label={lst:struct-pubkey}]
 /// Private parameters, known only to KGC
 pub struct GpswAbePrivate<'attr, 'own> {
-  atts: &'own FnvIndexMap<&'attr str, F, S>, // attribute private keys
-  master_secret: F,
+    atts: &'own FnvIndexMap<&'attr str, F, S>, // attribute private keys
+    master_secret: F,
 }
 /// Public parameters, known to all participants
 pub struct GpswAbePublic<'attr, 'own> {
-  g1: G1, // generator of G1
-  g2: G2, // generator of G2
-  atts: &'own FnvIndexMap<&'attr str, G1, S>, // attribute public keys
-  pk: Gt,
+    g1: G1, // generator of G1
+    g2: G2, // generator of G2
+    atts: &'own FnvIndexMap<&'attr str, G1, S>, // attribute public keys
+    pk: Gt,
 }
 \end{lstlisting}
 
 \subsection{Encrypt}
-As mentioned before, encryption is done in a hybrid manner.
+As mentioned before, encryption is performed in a hybrid manner.
 The implementations of both schemes provide a struct containing the \acrshort{abe} ciphertext according to chapter~\ref{chapter:constructions}.
 Combined with the symmetric ciphertext, this forms a hybrid ciphertext.
 See Listing~\ref{lst:struct-cipher} for the GSPW version of the \acrshort{abe} ciphertext (\verb+GpswAbeGroupCiphertext+) and the combined hybrid ciphertext (\verb+GpswAbeCiphertext+).
-Encryption of the AES key with \acrshort{abe} is implemented as described in chapter~\ref{chapter:constructions}.
+% Encryption of the AES key with \acrshort{abe} is implemented as described in chapter~\ref{chapter:constructions}.
 
 \begin{lstlisting}[float=h,caption={ABE ciphertext structure for GPSW},label={lst:struct-cipher}, breaklines=true]
 struct GpswAbeGroupCiphertext<'attr> {
@@ -330,15 +333,15 @@ To realize this, a recursive function \verb+keygen_node()+ was implemented.
 Listing~\ref{lst:keygen-node} shows its signature for the GPSW scheme. 
 
 \begin{lstlisting}[float=h,caption={Function signature of recursive key generation},label={lst:keygen-node}]
-fn keygen_node (
-    &self, // private parameters (MK)
+fn keygen_node<'attr, 'key>(
+    privkey: &GpswAbePrivate,
     pubkey: &GpswAbePublic,
-    tree_arr: AccessStructure<'key, 'key>,
+    tree_arr: AccessStructure<'attr, 'key>,
     tree_ptr: u8,
     parent_poly: &Polynomial,
     index: F,
     rng: &mut dyn RngCore,
-  ) -> Vec<(u8, G1), consts::U30>;
+) -> Vec<(u8, G1), consts::U30> 
 \end{lstlisting}
 
 \verb+tree_ptr+ is the position of the currently visited \gls{access-tree} node within \verb+tree_arr+.
