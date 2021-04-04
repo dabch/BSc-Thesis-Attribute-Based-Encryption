@@ -166,44 +166,10 @@
     \input{figures/sample_access_tree.tex}
 \end{frame}
 
-\subsection{Secret Sharing}
-\begin{frame}[c]
-    \frametitle{Shamir's Threshold Secret Sharing}
-    \begin{minipage}{.5\textwidth}
-        \begin{itemize}
-            \item<1-> Goal: Share a secret $s$
-            \begin{itemize}
-                \item among $n$ participants
-                \item reconstruction possible if $k$ or more shares combined
-            \end{itemize}
-            \item<2-> Secret shares = points on polynomial
-            \item<3-> Reconstruction: Lagrange interpolation
-        \end{itemize}
-    \end{minipage}
-    \begin{minipage}{.48\textwidth}
-        \input{figures/02_sss.tex}
-    \end{minipage}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Secret Sharing down the Access Tree}
-    \input{figures/02_access_tree_shamir.tex}
-\end{frame}
-
-
 \subsection{Elliptic Curves}
 
 \begin{frame}[c]
-    \frametitle{Elliptic Curves \only<2->{(standard stuff)}}
-    \begin{center}
-        \Large
-        $E(\mathbb{Z}_p) := \{(x, y)~|~x,y \in \mathbb{Z}_p \text{ and } y^2 = x^3 + a x + b \bmod{p}\} \cup \{\mathcal{O}\}$
-    \end{center}
-    \includegraphics[width=\textwidth]{../thesis/figures/ecc_point_addition.pdf}
-\end{frame}
-
-\begin{frame}[c]
-    \frametitle{Bilinear pairings (not-so-standard stuff)}
+    \frametitle{Bilinear pairings}
     \begin{minipage}{.04\textwidth}
         ~
     \end{minipage}
@@ -453,39 +419,59 @@
     % \end{minipage}
 \end{frame}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% FOLIENSTIL: Weisse Schrift auf blauem Grund
-% \PraesentationMasterWeissBlau
+\PraesentationMasterWeissBlau
+\begin{frame}[c]
+    \begin{center}
+        \Huge Thank you!\\
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Startseiten                                     %%
-
-% Setzt die Startseite auf eine mit Flaggen als Hintergrund:
-\PraesentationStartseiteFlaggen
-
-% Setzt die Startseite auf eine mit mit einer Zeichnung des TUM-Uhrenturms:
-%\PraesentationStartseiteUhrenturm
-
-% Setzt die Startseite auf eine ohne Hintergrund:
-%\PraesentationStartseiteLeer
-
-\PraesentationTitelseite % Fügt die Startseite ein
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-\begin{frame}
-    \PraesentationUeberschriftZweizeilig{Präsentationsmuster}{%
-        kann auch als Kapiteltrenner verwendet werden}
+        \vfill
+        \Large Do you have any questions?
+    \end{center}
 \end{frame}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% FOLIENSTIL: Weisse Schrift auf schwarzem Grund
-\PraesentationMasterWeissSchwarz
+\PraesentationMasterStandard
 
-\begin{frame}
-    \frametitle{Präsentationsmuster}
+\subsection{Secret Sharing}
+\begin{frame}[c]
+    \frametitle{Shamir's Threshold Secret Sharing}
+    \begin{minipage}{.5\textwidth}
+        \begin{itemize}
+            \item<1-> Goal: Share a secret $s$
+            \begin{itemize}
+                \item among $n$ participants
+                \item reconstruction possible if $k$ or more shares combined
+            \end{itemize}
+            \item<2-> Secret shares = points on polynomial
+            \item<3-> Reconstruction: Lagrange interpolation
+        \end{itemize}
+    \end{minipage}
+    \begin{minipage}{.48\textwidth}
+        \input{figures/02_sss.tex}
+    \end{minipage}
 \end{frame}
 
+\begin{frame}
+    \frametitle{Secret Sharing down the Access Tree}
+    \input{figures/02_access_tree_shamir.tex}
+\end{frame}
+
+\begin{frame}[c]
+    \frametitle{Elliptic Curves}
+    \begin{center}
+        \Large
+        $E(\mathbb{Z}_p) := \{(x, y)~|~x,y \in \mathbb{Z}_p \text{ and } y^2 = x^3 + a x + b \bmod{p}\} \cup \{\mathcal{O}\}$
+    \end{center}
+    \includegraphics[width=\textwidth]{../thesis/figures/ecc_point_addition.pdf}
+    Image by SuperManu, licensed under Creative Commons: \url{https://commons.wikimedia.org/wiki/File:ECClines-2.svg}.
+\end{frame}
+
+\section{Related Research}
+\begin{frame}[c]
+    \frametitle{Overview of Related Research}
+    \begin{center}
+        \input{figures/related_work_timeline_full}
+    \end{center}
+\end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \end{document} % !!! NICHT ENTFERNEN !!!
