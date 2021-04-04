@@ -4,7 +4,8 @@ This chapter introduces \acrlong{abe} and the relevant mathematical background f
 \input{figures/02_key_use_comparison}
 
 \section{Confidentiality with Classic Symmetric and Asymmetric Cryptography}
-Today's conventional cryptography knows two main classes of encryption schemes: \glslink{privkes}{symmetric} and \glslink{pkes}{asymmetric encryption}. See Figure~\ref{fig:key-use} for an illustration of the differences.
+Today's conventional cryptography knows two main classes of encryption schemes: \glslink{privkes}{symmetric} and \glslink{pkes}{asymmetric encryption}.
+Figure~\ref{fig:key-use} illustrates the differences between attribute-based, symmetric and asymmetric encryption.
 
 Consider $n$ participants wanting to communicate securely (i.e. no user can read encrypted messages between two other users).
 Using a \gls{privkes}, each participant would need to agree on a unique key with every other participant, resulting in a total number of $\frac{n(n-1)}{2}$ keys.
@@ -22,9 +23,8 @@ Attribute-Based encryption solves this problem.
 
 \section{Attribute-Based Encryption}\label{sec:background-abe}
 \acrfull{abe} uses a combination of attributes to define a \emph{group} of private keys that should be able to read encrypted data, instead of encrypting it for one specific private key only (as in \glspl{pkes}).
-In Figure~\ref{fig:key-use}, this is represented by a tree.
 
-The combination of attributes may be as restrictive or permissive as needed.
+This group of keys may be as restrictive or permissive as needed.
 It is possible to create ciphertexts that can be read by almost all members of an \acrshort{abes}, and ciphertexts that can be read by nobody except a few selected participants.
 
 Figure~\ref{fig:abe-system} shows how the participants interact in a small \acrshort{abe} system.
@@ -127,11 +127,11 @@ Intuitively, if an access structure is monotone it means that adding an attribut
 
 \input{figures/02_sample_access_tree}
 
-Explicitly specifying an \gls{access-structure} is not feasible, as its size may be exponential in the size of the attribute universe.
+Explicitly specifying a \glspl{access-structure} is not feasible as their size may be exponential in the size of the attribute universe.
 Therefore, we will use the construction of \emph{access trees} defined by Goyal~et~al.~\cite{goyal_attribute-based_2006}.
 \Glspl{access-tree} are similar to the tree representation of boolean formulas, but slightly more powerful:
 Each leaf of this tree is labelled with an attribute.
-Each inner node has a number of children and is labelled with an integer. 
+Each inner node is labelled with an integer and has two or more children.% and is labelled with an integer. 
 This integer represents the number of children that need to be satisfied in order to satisfy the inner node~\cite{goyal_attribute-based_2006}.
 
 Figure~\ref{fig:sample-access-tree} illustrates an example for an \gls{access-tree}. It is satisfied by any set of attributes that contains two of $A, B$ and either $C$ or $D$.
@@ -143,7 +143,7 @@ For an attribute universe of $U = \{A, B, C, D\}$ this would realize the \gls{ac
 
     An interal node $x$ of an \gls{access-tree} is defined by its children and a threshold value $d_x$.
     The threshold value satisfies $0 < d_x \leq num_x$ with $num_x$ being the number of children.
-    A leaf node $x$ is defined by an attribute and a threshold value $k_x = 1$.
+    A leaf node $x$ is defined by an attribute and a threshold value $d_x = 1$.
 
     The parent of a node $x$ in the \gls{access-tree} is denoted by $\text{parent}(x)$.
     If $x$ is a leaf node, $\text{att}(x)$ denotes the attribute associated with $x$; otherwise it is undefined.
@@ -153,7 +153,7 @@ For an attribute universe of $U = \{A, B, C, D\}$ this would realize the \gls{ac
 \begin{definition}
     Satisfying Access Trees~\cite{goyal_attribute-based_2006}.
 
-    Let $\mathcal{T}$ be an \gls{access-tree} with root r and $\mathcal{T}_x$ the subtree with $x$ as its root.
+    Let $\mathcal{T}$ be an \gls{access-tree} with root $r$ and $\mathcal{T}_x$ the subtree with $x$ as its root.
     If a set of attributes $\gamma$ satisfies the \gls{access-tree} $\mathcal{T}_x$, we write $\mathcal{T}_x(\gamma) = 1$; otherwise $\mathcal{T}_x(\gamma) = 0$.\\
     If $x$ is a leaf node, then $\mathcal{T}_x(\gamma) = 1$ if and only if $\text{attr}(x) \in \gamma$.
     
@@ -165,7 +165,7 @@ Note that $\mathcal{A}$ has to be monotone. It is not possible to specify the \e
 Using the \gls{access-tree} construction, we can express \emph{A AND B} as a node with two children $A$ and $B$ and threshold $2$, and express \emph{A OR B} as a node with two children $A$ and $B$ and threshold $1$~\cite{yao_lightweight_2015}.
 
 \subsection{Revocation}
-So far, it is not possible to take privileges away from a user:
+In a simple \acrshort{abe} system is not possible to take privileges away from a user:
 Once the private key has been issued, it can not be taken back.
 A user's capabilities can only be extended (e.g. by giving out a key with additional attributes).
 This is is a problem, e.g. if their private key is compromised~\cite{boldyreva_identity-based_2008}.
@@ -230,7 +230,7 @@ Some schemes include a proxy-reencryption mechanism that allows an untrusted thi
 
 \section{Shamir's Secret Sharing}
 To implement \acrshort{abe}, we need a way to embed secrets in \glspl{access-tree}.
-For this, a secret sharing scheme introduced by \citeauthor{shamir_how_1979}~\cite{shamir_how_1979} is used.
+For this, the secret sharing scheme introduced by \citeauthor{shamir_how_1979}~\cite{shamir_how_1979} is used.
 
 Secret sharing schemes allows a secret $s$, which is generally just a number, to be shared among $n$ participants.
 The shares are computed such that $s$ can be reconstructed if and only if at least $k$ participants meet and combine their shares.
@@ -240,7 +240,7 @@ Such a scheme is then called a $(k,n)$-threshold scheme~\cite{shamir_how_1979}.
 Shamir's scheme makes use of a property of polynomials: A polynomial of degree $d$ is unambiguously determined by $d+1$ points $(x_i, y_i)$.
 In other words, any polynomial of degree $d$ can be unambiguously interpolated (reconstructed) from $d+1$ distinct points.
 
-To interpolate a polynomial of degree $d$ from $d+1$ given points $(x_1, y_1), \dots, (x_{d+1}, y_{d+1})$, we can make use of the lagrange basis polynomials:~\cite{yao_lightweight_2015}
+To interpolate a polynomial of degree $d$ from $d+1$ given points $(x_1, y_1), \dots, (x_{d+1}, y_{d+1})$, we can make use of the lagrange basis polynomials~\cite{yao_lightweight_2015}:
 
 \begin{definition}
     Lagrange interpolation: Given a set of $d+1$ points $(x_1, y_1), \dots, (x_{d+1}, y_{d+1})$.
@@ -336,11 +336,11 @@ Exact definitions and notations differ, these are taken from the textbook \emph{
 
 
 This notation (``$+$'' for the group operation and $0$ for neutral element) is called \emph{additive notation}.
-Sometimes, \emph{multiplicative notation} is used: The group operation is denoted by ``$\cdot''$ and the neutral element by ``$1$''.
+Sometimes, \emph{multiplicative notation} is used: The group operation is denoted by ``$\cdot$'' and the neutral element by ``$1$''.
+In multiplicative notation, the group exponentiation of $g \in \mathbb{G}$ with $m \in \mathbb{N}^+$ is written as $g^m$.
 
 It is important to remember that even though the symbols $+$ and $\cdot$ are used, they might be defined completely differently from regular addition and multiplication!
 
-In multiplicative notation, the group exponentiation of $g \in \mathbb{G}$ with $m \in \mathbb{N}^+$ is written as $g^m$, in additive groups it is written as $m \cdot g$.
 
 \begin{definition}
     An (additive) group $\mathbb{G}$ is cyclic if there is an element $g \in \mathbb{G}$ that generates $\mathbb{G}$, i.e. $\mathbb{G} = \langle g \rangle = \{k \cdot g | k \in \mathbb{Z}\}$.
@@ -374,7 +374,7 @@ Figure~\ref{fig:ecc-point-addition} shows the four different cases.
 Using this intersecting line, we can define an operation on curve points:
 \begin{definition}
     \label{def:point-add}
-    Given an \gls{ec} $E(\mathbb{Z}_p)$, we define a binary operation called \emph{(point) addition} and denoted by $+$:~\cite{katz_introduction_2015}\\
+    Given an \gls{ec} $E(\mathbb{Z}_p)$, we define a binary operation called \emph{(point) addition} and denoted by $+$~\cite{katz_introduction_2015}:\\
     Let $P_1, P_2 \in E(\mathbb{Z}_p)$.
 
     \begin{itemize}
@@ -393,16 +393,6 @@ Using this intersecting line, we can define an operation on curve points:
     \label{fig:ecc-point-addition}
 \end{figure}
 
-We will be adding points to themselves a lot. Therefore, we define for ease of notation:
-\begin{definition}
-    Point-Scalar multiplication: Given a point $P \in E(\mathbb{Z}_p)$ and a scalar $d \in \mathbb{N}$: 
-    \begin{equation}
-        d \cdot P = \underbrace{P + P + \cdots + P}_{d \text{ times}}
-    \end{equation}
-\end{definition}
- 
-That is exactly the definition of group exponentiation, applied to our additive \gls{ec} group. Note that the product of a scalar with a point is again a point on our curve.\\
-
 \subsection{Groups on Elliptic Curves}
 \begin{theorem}
     The points of an \gls{ec} $E(\mathbb{Z}_p)$ plus the addition law as stated in Definition~\ref{def:point-add} form an abelian (commutative) group~\cite{katz_introduction_2015, washington_elliptic_2008}:
@@ -417,9 +407,19 @@ That is exactly the definition of group exponentiation, applied to our additive 
     \end{itemize}
 \end{proof}
 
-Of particular interest to cryptography are \emph{cyclic} groups on \glspl{ec}:
 
+We will be adding points to themselves a lot. Therefore, we define for ease of notation:
+\begin{definition}
+    Point-Scalar multiplication: Given a point $P \in E(\mathbb{Z}_p)$ and a scalar $d \in \mathbb{N}$: 
+    \begin{equation}
+        d \cdot P = \underbrace{P + P + \cdots + P}_{d \text{ times}}
+    \end{equation}
+\end{definition}
+ 
+That is exactly the definition of group exponentiation, applied to our additive \gls{ec} group.
+Note that the product of a scalar with a point is again a point on our curve.
 
+Of particular interest to cryptography are cyclic groups on \glspl{ec}.
 Translated to our \glspl{ec}, this means that there is a generator point $P \in E(\mathbb{Z}_p)$, such that every point $Q \in E(\mathbb{Z}_p)$ can be obtained by repeatedly adding $P$ to itself using the point addition from Definition~\ref{def:point-add}.
 
 \begin{theorem}\cite{katz_introduction_2015}
