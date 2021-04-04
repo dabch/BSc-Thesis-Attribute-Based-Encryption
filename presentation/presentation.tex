@@ -78,22 +78,24 @@
     \end{center}
 \end{frame}
 
+\section{Background}
+\subsection{Attribute-Based Encryption}
+\begin{frame}[c]
+    \frametitle{Attribute-Based Encryption (ABE) vs. standard encryption}
+    \begin{center}
+        \input{figures/02_key_use_comparison.tex}
+    \end{center}
+\end{frame}
+
 \begin{frame}[c]
     \frametitle{What for?}
     \centering
     \input{figures/abe_use_case}
 
-    \alert{\large $\rightarrow$ Encryption on the MCU is most important!}
+    \onslide<2->{\alert{\large $\rightarrow$ no decryption on the MCU!}}
 \end{frame}
 
-\section{Background}
-\subsection{Attribute-Based Encryption}
-\begin{frame}[c]
-    \frametitle{ABE vs. standard encryption}
-    \begin{center}
-        \input{figures/02_key_use_comparison.tex}
-    \end{center}
-\end{frame}
+
 
 \begin{frame}[c]
     \frametitle{ABE interaction overview}
