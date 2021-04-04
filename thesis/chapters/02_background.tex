@@ -116,11 +116,12 @@ This definition is adapted from \citeauthor{beimel_secure_1996}~\cite{beimel_sec
 
     Let $U = \{A_1, \dots, A_n\}$ be the universe of attributes.
     A set $\mathcal{A} \subseteq 2^{U}$ is monotone if for all $B \in \mathcal{A}$ and $C \supseteq B$,  $C \in \mathcal{A}$.
-    An access structure $\mathcal{A}$ is a non-empty subset of $2^U$, i.e. $\mathcal{A} \in 2^U \backslash \{\emptyset\}$. A monotone access structure is an access structure that is monotone.
+    An access structure $\mathcal{A}$ is a non-empty subset of $2^U$, i.e. $\mathcal{A} \in 2^U \backslash \{\emptyset\}$.
+    A monotone access structure is an access structure that is monotone.
     The sets in $\mathcal{A}$ are called the \emph{authorized sets}, those not in $\mathcal{A}$ are called the \emph{unauthorized sets}.
 \end{definition}
 
-Intuitively, the monotonicity of an access structure means that adding an attribute to an authorized set cannot result in an unauthorized set. 
+Intuitively, if an access structure is monotone it means that adding an attribute to an authorized set cannot result in an unauthorized set. 
 
 \subsection{Access Trees}\label{sec:access-trees}
 
@@ -309,39 +310,47 @@ $p_2(x)$ is the polynomial for the $(1,2)$-threshold scheme belonging to the nod
 \section{Elliptic Curves}
 \label{sec:ec}
 
-The mathematics of modern cryptosystems (including, but not limited to ABE) work any group that satisfies the axioms (see below), and \glspl{ec} are just one of them.
-Because \Glspl{ec} allow for shorter key lengths than, e.g. groups modulo a prime, they have become very popular for use in cryptography.
+The mathematics of modern cryptosystems (including, but not limited to ABE) work on any group that satisfies the axioms (see below), and \glspl{ec} are just one of them.
+Because \Glspl{ec} allow for shorter key lengths than, e.g. groups modulo a prime, they have become very popular in cryptography.
 Exact definitions and notations differ, these are taken from the textbook \emph{Introduction to Modern Cryptography} by Katz and Lindell~\cite{katz_introduction_2015}.
 
 \subsection{Group Axioms}\label{sec:group}
-\begin{definition}~\cite{katz_introduction_2015}. A \emph{Group} $\langle \mathbb{G}, \circ, e \rangle$ consists of a set $\mathbb{G}$ together with a binary operation $\circ$ for which these four conditions hold:
+\begin{definition}~\cite{katz_introduction_2015}. A \emph{Group} $\langle \mathbb{G}, +, 0 \rangle$ consists of a set $\mathbb{G}$ together with a binary operation $+$ and an element $0 \in \mathbb{G}$ for which these four conditions hold:
     \begin{itemize}
-        \item Closure: For all $g, h \in \mathbb{G}$, $g \circ h \in \mathbb{G}$.
-        \item Existence of identity: There is an element $e \in \mathbb{G}$, called the \emph{identity}, such that for all $g \in \mathbb{G}$, $g \circ e = g = e \circ g$.
-        \item Existence of inverse: For every $g \in \mathbb{G}$ there exists an \emph{inverse} element $h \in \mathbb{G}$ such that $g \circ h = e = h \circ g$.
-        \item Associativity: For all $g_1, g_2, g_3 \in \mathbb{G}$, $(g_1 \circ g_2) \circ g_3 = g_1 (\circ g_2 \circ g_3)$.
+        \item Closure: For all $g, h \in \mathbb{G}$, $g + h \in \mathbb{G}$.
+        \item Existence of identity: There is an element $0 \in \mathbb{G}$, called the \emph{identity}, such that for all $g \in \mathbb{G}$, $g + 0 = g = 0 + g$.
+        \item Existence of inverse: For every $g \in \mathbb{G}$ there exists an \emph{inverse} element $h \in \mathbb{G}$ such that $g + h = 0 = h + g$.
+        \item Associativity: For all $g_1, g_2, g_3 \in \mathbb{G}$, $(g_1 + g_2) + g_3 = g_1 (+ g_2 + g_3)$.
     \end{itemize}
     If $\mathbb{G}$ has a finite number of elements, the group $\mathbb{G}$ is called finite and $|\mathbb{G}|$ denotes the order of the group.
 
-    A group $\mathbb{G}$ with operation $\circ$ is called \emph{abelian} or commutative if, in addition, the following holds:
+    A group $\mathbb{G}$ with operation $+$ is called \emph{abelian} or commutative if, in addition, the following holds:
     \begin{itemize}
-        \item Commutativity: For all $g, h \in \mathbb{G}, g \circ h = h \circ g$.
+        \item Commutativity: For all $g, h \in \mathbb{G}, g + h = h + g$.
     \end{itemize}
 
     When the binary operation is clear from context, we simply use $\mathbb{G}$ to denote the group.
 
-    We also define \emph{Group Exponentiation}: $g \in \mathbb{G}, m \in \mathbb{N}^+$, then $mg = \underbrace{g \circ \cdots \circ g}_{m \text{ times}}$.
+    We also define \emph{Group Exponentiation}: $g \in \mathbb{G}, m \in \mathbb{N}^+$, then $mg = \underbrace{g + \cdots + g}_{m \text{ times}}$.
 \end{definition}
 
 
-Usually, the symbol used to denote the group operation is not the $\circ$ from above, but either $+$ or $\cdot$. These are called \emph{additive} and \emph{multiplicative} notation, respectively.
-It is important to remember, though, that the group operation might be defined completely differently!
+This notation (``$+$'' for the group operation and $0$ for neutral element) is called \emph{additive notation}.
+Sometimes, \emph{multiplicative notation} is used: The group operation is denoted by ``$\cdot''$ and the neutral element by ``$1$''.
+
+It is important to remember that even though the symbols $+$ and $\cdot$ are used, they might be defined completely differently from regular addition and multiplication!
 
 In multiplicative notation, the group exponentiation of $g \in \mathbb{G}$ with $m \in \mathbb{N}^+$ is written as $g^m$, in additive groups it is written as $m \cdot g$.
 
+\begin{definition}
+    An (additive) group $\mathbb{G}$ is cyclic if there is an element $g \in \mathbb{G}$ that generates $\mathbb{G}$, i.e. $\mathbb{G} = \langle g \rangle = \{k \cdot g | k \in \mathbb{Z}\}$.
+\end{definition}
+
 An example for an additive group is $\langle \mathbb{Z}_N, +_N, 0 \rangle$ with $\mathbb{Z}_N = \{0, 1, \dots, N-1\}$ and $+_N$ the normal addition modulo $N$.
 This group is cyclic with generator $1$.
-If $p$ is prime, then $\langle \mathbb{Z}^*_p, \cdot_p, 1 \rangle$ is a group with $\mathbb{Z}^*_p = \{k \in \mathbb{Z}_p | \text{gcd}(k,p) = 1\}$ and $\cdot_p$ the normal multiplication modulo $p$.
+If $p$ is prime, then $\langle \mathbb{Z}^*_p, \cdot_p, 1 \rangle$ is a multiplicative group with $\mathbb{Z}^*_p = \{k \in \mathbb{Z}_p | \text{gcd}(k,p) = 1\}$ and $\cdot_p$ the normal multiplication modulo $p$.
+
+
 
 \subsection{Elliptic Curves}
 
@@ -380,7 +389,7 @@ Using this intersecting line, we can define an operation on curve points:
 
 \begin{figure}
     \includegraphics[width=\textwidth]{figures/ecc_point_addition.pdf}
-    \caption[Elliptic curve point addition]{Elliptic curve point addition\\(Image by \href{https://commons.wikimedia.org/wiki/File:ECClines-2.svg}{SuperManu}, licensed under \href{https://creativecommons.org/licenses/by-sa/3.0/deed.en}{Creative Commons}.)}
+    \caption[Elliptic curve point addition]{Elliptic curve point addition (note that here, $\mathcal{O}$ is denoted by $0$)\\(Image by \href{https://commons.wikimedia.org/wiki/File:ECClines-2.svg}{SuperManu}, licensed under \href{https://creativecommons.org/licenses/by-sa/3.0/deed.en}{Creative Commons}.)}
     \label{fig:ecc-point-addition}
 \end{figure}
 
@@ -399,19 +408,17 @@ That is exactly the definition of group exponentiation, applied to our additive 
     The points of an \gls{ec} $E(\mathbb{Z}_p)$ plus the addition law as stated in Definition~\ref{def:point-add} form an abelian (commutative) group~\cite{katz_introduction_2015, washington_elliptic_2008}:
 \end{theorem}
 \begin{proof}
-    A formal proof is outside the scope of this thesis, but here's some informal reasoning about the group axioms:
+    A formal proof is outside the scope of this thesis, but consider this informal reasoning about the group axioms:
     \begin{itemize}
         \item Existence of Identity: $P + \mathcal{O} = P$ (as per definition)
-        \item Commutativity: For all $P_1, P_2 \in E(\mathbb{Z}_p)$, $P_1 + P_2 = P_2 + P_1$ (because the line through $P_1$ and $P_2$ will be the same)
         \item Unique inverse: For all $P = (x,y) \in E(\mathbb{Z}_p)$, the unique inverse is $-P = (x, -y)$ (because the line through $P$ and $-P$ will be vertical).
         \item Associativity: For all $P_1, P_2, P_3 \in E(\mathbb{Z}_p)$, $(P_1 + P_2) + P_3 = P_1 + (P_2 + P_3)$ (much less obvious, see e.g.~\cite[chapter 2.4]{washington_elliptic_2008} for a proof).
+        \item Commutativity: For all $P_1, P_2 \in E(\mathbb{Z}_p)$, $P_1 + P_2 = P_2 + P_1$ (because the line through $P_1$ and $P_2$ will be the same)
     \end{itemize}
 \end{proof}
 
 Of particular interest to cryptography are \emph{cyclic} groups on \glspl{ec}:
-\begin{definition}
-    An (additive) group $\mathbb{G}$ is cyclic if there is an element $g \in \mathbb{G}$ that generates $\mathbb{G}$, i.e. $\mathbb{G} = \langle g \rangle = \{k \cdot g | k \in \mathbb{Z}\}$.
-\end{definition}
+
 
 Translated to our \glspl{ec}, this means that there is a generator point $P \in E(\mathbb{Z}_p)$, such that every point $Q \in E(\mathbb{Z}_p)$ can be obtained by repeatedly adding $P$ to itself using the point addition from Definition~\ref{def:point-add}.
 
@@ -428,7 +435,7 @@ Translated to our \glspl{ec}, this means that there is a generator point $P \in 
 There is an important consequence to this fact: If a group has prime order, all points except the identity are generators.
 This stems from the fact that a prime number has exactly two divisors: One (the order of the identity) and itself (the order of all other points).
 
-Again, translated to \glspl{ec} this means that if the number of points $\#E(\mathbb{Z}_p)$ on a curve is prime, all points except $\mathcal{O}$ are generators.
+Again, translated to \glspl{ec} this means that if the number of points $|E(\mathbb{Z}_p)|$ on a curve is prime, all points except $\mathcal{O}$ are generators.
 These cyclic \gls{ec} groups are exactly the groups we are interested in for doing actual cryptography.
 The ease of finding generators is one reason, but not the only one. 
 For a detailed explanation, see \cite[p.~321]{katz_introduction_2015}.
@@ -458,8 +465,7 @@ For a detailed explanation, see \cite[p.~321]{katz_introduction_2015}.
 \subsection{Bilinear Pairings}\label{sec:bilinear-pairings}
 
 \begin{definition}Bilinear pairing~\cite{kiraz_still_2016}.\\
-    Let $\mathbb{G}_1$ and $\mathbb{G}_2$ denote cyclic groups with prime order $n$.
-Let $\mathbb{G}_T$ be another cyclic group of the same order $n$. 
+    Let $\mathbb{G}_1$, $\mathbb{G}_2$ and $\mathbb{G}_T$ denote cyclic groups with prime order $n$.
 $\mathbb{G}_1$ and $\mathbb{G}_2$ are written additively, $\mathbb{G}_T$ is written using multiplicative notation.\\
     A \emph{bilinear pairing} then is a function $e: \mathbb{G}_1 \times \mathbb{G}_2 \rightarrow \mathbb{G}_T$ with the following properties:
     \begin{itemize}
@@ -483,10 +489,10 @@ Usually the source groups $\mathbb{G}_1$ and $\mathbb{G}_2$ are subgroups of cer
 
 \subsection{Use of elliptic curves and pairings in ABE}
 Elliptic curves are already widely used in \glslink{pkes}{asymmetric cryptography}.
-Bilinear pairings, on the other hand, are relatively new and have given rise to a whole new class of cryptographic algorithms, the \emph{pairing-based cryptography}.
+Bilinear pairings, on the other hand, are relatively new and have given rise to a whole new class of cryptographic algorithms, the so-called \emph{pairing-based cryptography}.
 For example, pairings are used to construct \gls{ibe}, a three-party \gls{dh}~\cite{joux_one_2000} or short \glspl{dss}~\cite{boneh_short_2001}.
 
 Most \acrshortpl{abes} make use of bilinear pairings, and even pairing-free schemes (see next section) need an implementation of the \gls{ec} operations.
 These operations are the building blocks of the \acrshortpl{abes} presented in chapter~\ref{chapter:constructions} and by far the most expensive operations performed by the schemes.
 Therefore, the performance of an \acrshort{abe} implementation greatly depends on the performance of the \gls{ec} and pairing implementation.
-For this reason, pairing implementations are considered in chapter~\ref{chap:related-work} and our own pairing implementation is evaluated separately in chapter~\ref{chap:evaluation}.
+For this reason, pairing implementations from literature are considered in chapter~\ref{chap:related-work} and our pairing library is evaluated separately in chapter~\ref{chap:evaluation}.
