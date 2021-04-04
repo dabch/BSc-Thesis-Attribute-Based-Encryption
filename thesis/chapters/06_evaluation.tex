@@ -180,7 +180,9 @@ The \acrshort{kgc} would probably be a specially protected PC or at least a more
 \section{Further Improvements / Future Work}
 
 The implementations evaluated in this thesis offer room for improvement.
-For one, interoperability between the ``light'' \acrshort{abe} library presented here and a potential ``full'' counterpart (e.g. for the \acrshort{kgc}) was not a priority.
+For example if only encryption is needed on the SoC, the library could be split into two:
+A limited, bare-metal library that implements only encryption and runs on the SoC, and a full library that runs on the \acrshort{kgc} and other devices.
+This would enable \acrshort{abe} encryption on the sensor while allowing the full library to rely on a full-fledged operating system.
 
 Regarding the results on the SoC, improvements could be made by improving the underlying pairing and elliptic curve implementation of the \texttt{rabe-bn} library.
 Even though the operations remain computationally expensive, other implementations do better:
