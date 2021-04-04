@@ -2,10 +2,10 @@
 
 In this thesis, I presented \acrlong{abe} and evaluated its practical feasibility on constrained \acrshort{iot} nodes.
 More specifically, I implemented an \acrfull{abe} library with two schemes and evaluated it on an ARM Cortex-M4 SoC.
-To this end, I had to modify the underlying elliptic curve and pairing library \texttt{rabe-bn} to run on embedded systems.
+To this end, I had to modify the underlying elliptic curve and pairing library \texttt{rabe-bn} to run in a bare-metal environment.
 For the evaluation of the library, all four \acrshort{abe} algorithms (Encrypt, Decrypt, Setup and KeyGen) were tested on the embedded SoC.
 
-Computing the underlying primitives for \acrshort{abe} on the SoC is feasible, but comes at a rather high price.
+Computing the underlying primitives for \acrshort{abe} on the SoC is feasible, but comes at a rather high cost.
 Comparison with other pairing implementations shows that there is some room for improvement here, but the the operations remain expensive.
 In addition to computation time, memory size is a major bottleneck for pairing-based implementations.
 % The GPSW scheme is limited to small and medium policies for key generation and decryption. 
@@ -27,5 +27,5 @@ The security of pairing-free \acrshortpl{abes}, however, remains questionable, s
 Further research in this area is needed.\\
 
 In short, \acrfull{abe} seems feasible on the considered hardware, especially if only encryption is needed and the number of attributes isn't too large.
-Still, \acrshort{abe} comes at a high price in runtimes and memory consumption.
-Especially decryption with the pairing-based scheme is infeasible because runtimes are very long and only \glspl{access-tree} with few layers can be used.
+Still, \acrshort{abe} comes at a high cost in runtimes and memory consumption.
+Especially decryption with the pairing-based scheme is not feasible because runtimes are very long and only \glspl{access-tree} with few layers can be used.
