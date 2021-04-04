@@ -22,8 +22,7 @@ They are the first to use Shamir's Secret Sharing hierarchically in the \gls{acc
 The GPSW scheme encrypts a message represented by a point of the bilinear pairing's target group $\mathbb{G}_T$.
 It is a \gls{small-universe} construction.
 
-The scheme is defined here exactly as it is implemented;
-this differs from the original construction in the use of an asymmetric pairing ($e: \mathbb{G}_1 \times \mathbb{G}_2 \rightarrow \mathbb{G}_T$) instead of a symmetric pairing ($e: \mathbb{G}_1 \times \mathbb{G}_1 \rightarrow \mathbb{G}_T$).
+The definition of the scheme in this chapter differs from the original construction in the use of an asymmetric pairing ($e: \mathbb{G}_1 \times \mathbb{G}_2 \rightarrow \mathbb{G}_T$) instead of a symmetric pairing ($e: \mathbb{G}_1 \times \mathbb{G}_1 \rightarrow \mathbb{G}_T$).
 
 In the GPSW construction, the pairing is evaluated when the decryption algorithm encounters a leaf node (see below).
 There, the curve point on one side comes from the ciphertext, and the point on the other side from the key.
@@ -39,7 +38,9 @@ Elements of $\mathbb{G}_1$ are shorter than elements of $\mathbb{G}_2$ and thus 
 ~\\
 
 Let $\mathbb{G}_1$ and $\mathbb{G}_2$ be bilinear groups of prime order $q$. Let $P$ be a generator of $\mathbb{G}_1$ and $Q$ be a generator of $\mathbb{G}_2$. Let $e: \mathbb{G}_1 \times \mathbb{G}_2 \rightarrow \mathbb{G}_T$ be a bilinear map.
-Note that $\mathbb{G}_1$ and $\mathbb{G}_2$ are written additively, but $\mathbb{G}_T$ is written using multiplicative notation.\\
+
+Note that $\mathbb{G}_1$ and $\mathbb{G}_2$ are written additively, but $\mathbb{G}_T$ is written using multiplicative notation.
+This corresponds to the interface of the bilinear pairing library used in this thesis.\\
 
 \noindent \emph{Setup}~\cite{goyal_attribute-based_2006}.
 The attribute universe is defined as $\text{U} = \{1, 2, \dots, n\}$ and is fixed.
