@@ -70,8 +70,8 @@
         \begin{tikzpicture}[brace/.style={decorate, decoration={brace, amplitude=10pt}}, lbl/.style={midway, anchor=south, align=center}]
             \node[align=center, font=\LARGE] (name) at (0, 0) {\textcolor{TUMBlauDunkel}{Implementation} of \textcolor{TUMOrange}{Attribute-Based} \textcolor{TUMGruen}{Encryption} in Rust\\\textcolor{TUMBlauDunkel}{on ARM Cortex M Processors}};
             \onslide<5->{\draw[brace, color=TUMBlauDunkel] (-8.5,1) -- (-3.45,1) node [lbl, yshift=0.5cm] {Implementation of embedded\\ABE library + Evaluation:\\Does this even make\\sense on a small MCU?};}
-            \onslide<2->{\draw[brace, color=TUMOrange] (-2.6,1) -- (2.5, 1) node [lbl, yshift=0.5cm] {e.g. for a student:\\``working on thesis''\\``semester count: 6''};}
-            \onslide<3->{\draw[brace, color=TUMGruen] (2.75,1) -- (6, 1) node [lbl, yshift=0.5cm] {alternatives: standard\\symmetric and\\asymmetric crypto?!};}
+            \onslide<3->{\draw[brace, color=TUMOrange] (-2.6,1) -- (2.5, 1) node [lbl, yshift=0.5cm] {e.g. for a student:\\``working on thesis''\\``semester count: 6''};}
+            \onslide<2->{\draw[brace, color=TUMGruen] (2.75,1) -- (6, 1) node [lbl, yshift=0.5cm] {alternatives: standard\\symmetric and\\asymmetric crypto?!};}
             \onslide<6->{\draw[brace] (6.85, 1) -- (8.5, 1) node [lbl, xshift=0.25cm, yshift=0.5cm] {memory-safety\\guarantees\\built-in! \vphantom{g}};}
             \onslide<4->{\draw[brace, decoration={mirror}, color=TUMBlauDunkel] (-4.75, -1) -- (4.75, -1) node [lbl, yshift=-0.5cm, anchor=north] {Constrained MCUs!\\our SoC: 64\,MHz Cortex-M4 with 256KB RAM} ++(0,1);}
         \end{tikzpicture}
