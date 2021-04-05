@@ -5,12 +5,12 @@
 {
         name={key generation center},
         text={Key Generation Center},
-        description={Trusted central authority that sets up an \acrshort{abes} and generates keys for users of an \acrshort{abes}. See section~\ref{sec:kgc}}
+        description={trusted central authority that sets up an \acrshort{abes} and generates keys for users of an \acrshort{abes}. See section~\ref{sec:kgc}}
 }
 
 \newglossaryentry{ec}{
   name={elliptic curve},
-  description={Algebraic structure that forms a \gls{group}. See section~\ref{sec:ec}}
+  description={algebraic structure that forms a \gls{group}. See section~\ref{sec:ec}}
 }
 
 \newglossaryentry{group}{
@@ -20,21 +20,21 @@
 
 \newglossaryentry{gls-kp-abe}{
   name={key-policy \acrshort{abe}},
-  description={Variant of \gls{abe} where the ciphertext is associated with an \gls{access-policy} and the key is associated with a set of \glspl{attribute}}
+  description={variant of \gls{abe} where the key is associated with an \gls{access-policy} and the ciphertext is associated with a set of \glspl{attribute}}
 }
 \newacronym[see={[Glossary:]{gls-kp-abe}}]{kp-abe}{KP-ABE}{Key-Policy \acrshort{abe}\glsadd{gls-cp-abe}}
 \newglossaryentry{gls-cp-abe}{
   name={ciphertext-policy \acrshort{abe}},
-  description={Variant of \acrshort{abe} where the key is associated with an \gls{access-policy} and the ciphertext is associated with a set of \glspl{attribute}}
+  description={variant of \acrshort{abe} where the ciphertext is associated with an \gls{access-policy} and the key is associated with a set of \glspl{attribute}}
 }
 \newacronym[see={[Glossary:]{gls-cp-abe}}]{cp-abe}{CP-ABE}{Ciphertext-Policy \acrshort{abe}\glsadd{gls-cp-abe}}
 
 
-\newglossaryentry{attribute}{name={attribute},description={Property of an actor or object, e.g. ``is student'' or ``has blonde hair''}}
+\newglossaryentry{attribute}{name={attribute},description={property of an actor or object, e.g. ``is student'' or ``has blonde hair''}}
 
 \newglossaryentry{access-policy}{
   name={access policy},
-  description={A policy that defines what combination of \glspl{attribute} shall be required to access data. Formalized by an access structure and usually realized by an access tree. See section~\ref{sec:access-structures}},
+  description={a policy that defines what combination of \glspl{attribute} shall be required to access data. Formalized by an access structure and usually realized by an access tree. See section~\ref{sec:access-structures}},
   plural={access policies},
 }
 
@@ -67,7 +67,7 @@
 
 \newglossaryentry{pkes}{
   name={asymmetric encryption scheme},
-  description={type of encryption scheme where different keys are used for encryption and decryption. The encryption key may be made public, while the decryption key is kept private.}
+  description={type of encryption scheme where different keys are used for encryption and decryption. The encryption key may be made public, while the decryption key is kept private}
 }
 
 \newglossaryentry{privkes}{
@@ -98,7 +98,7 @@
 \newglossaryentry{dh}{
   name={diffie-hellman key exchange},
   text={Diffie-Hellman Key Exchange},
-  description={key agreement protocol that allows two parties A and B to agree on a shared secret value over an insecure channel. A and B can derive the same secret value, while any adversaries cannot (as long as they only passively eavesdrop, but not modify, the information exchanged between A and B)}
+  description={key agreement protocol that allows two parties A and B to agree on a shared secret value over an insecure channel. A and B can derive the same secret value, while any adversaries cannot (as long as they only passively eavesdrop, but not modify the information exchanged between A and B)}
 }
 
 \newglossaryentry{security-level}{
@@ -138,6 +138,6 @@
   description={binary tree in which all inner nodes have exactly two children and all leaves have the same depth}
 }
 
-\newglossaryentry{field}{name={field},description={A set together with addition and multiplication operations that behave like they do over the real numbers (formalized by field axioms). Comparable to a \gls{group}, but with two operations instead of one}}
+\newglossaryentry{field}{name={field},description={a set together with addition and multiplication operations that behave like they do over the real numbers (formalized by field axioms). Comparable to a \gls{group}, but with two operations instead of one}}
 
 \newglossaryentry{slice}{name={slice},description={Rust data type that represents a variable-length portion of an array. Slices are characterized by a pointer to their beginning and their length}}
