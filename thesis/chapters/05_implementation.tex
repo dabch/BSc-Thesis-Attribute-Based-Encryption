@@ -361,7 +361,7 @@ Like key generation, decryption is defined recursively for both schemes.
 This is implemented using a recursive function \verb+decrypt_node()+.
 See Listing~\ref{lst:decrypt-node} for its signature with the GPSW scheme.
 
-\begin{lstlisting}[float=h,caption={Function signature of recursive decryption},label={lst:decrypt-node}]
+\begin{lstlisting}[float=h!, caption={Function signature of recursive decryption},label={lst:decrypt-node}]
 fn decrypt_node(
     tree_arr: AccessStructure<'attr, 'key>,
     tree_ptr: u8,
@@ -377,18 +377,22 @@ In \verb+secret_shares+, the secret shares corresponding to the leafs of the \gl
 \verb+decrypt_node()+ returns an \verb+Option<Gt>+.
 This is an optional type because decryption will fail if the \gls{access-tree} is not satisfied by the attributes associated with the ciphertext.
 
+To speed up encryption and eliminate unnecessary pairing computations, the \gls{access-tree} is pruned before starting the evaluation of any leaf nodes.
+This pruning identifies a minimal subset of the tree that can be satisfied with the attributes in the ciphertext.
+Only this subset is then evaluated by \verb+decrypt_node()+.
+
 The public \verb+decrypt()+ function receives combined ABE and symmetric ciphertext. 
 It calls \verb.decrypt_node(). on the the root of the \gls{access-tree} to obtain the secret curve point.
 This is then run through \verb+kdf()+ to obtain the AES key.
 The plaintext is decrypted in-place with AES-CCM and a reference to the (now successfully decrypted) data is returned.
 
-\subsection{Randomization of index (only YCT)}
-To fix a flaw in the original YCT scheme, the index of nodes within their parent is additionally randomized.
-See section~\ref{sec:yct} for a detailed description of this fix.
+% \subsection{Randomization of index (only YCT)}
+% To fix a flaw in the original YCT scheme, the index of nodes within their parent is additionally randomized.
+% See section~\ref{sec:yct} for a detailed description of this fix.
 
-The fix is implemented using an additional function \verb+index_prf()+ which uses an HMAC-SHA3-512 pseudorandom function to randomize the index.
-On every layer of the \gls{access-tree}, a different random seed is used. 
-These seeds are included in the private decryption key and passed to the YCT versions of \verb+keygen_node+ and \verb+decrypt_node+.
+% The fix is implemented using an additional function \verb+index_prf()+ which uses an HMAC-SHA3-512 pseudorandom function to randomize the index.
+% On every layer of the \gls{access-tree}, a different random seed is used. 
+% These seeds are included in the private decryption key and passed to the YCT versions of \verb+keygen_node+ and \verb+decrypt_node+.
 % fn encrypt_with_aes_key<'a>(
 %     aes_key: &GenericArray<u8, consts::U32>,
 %     plaintext: &'a mut [u8],
