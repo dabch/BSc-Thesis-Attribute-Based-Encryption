@@ -1,25 +1,3 @@
-\begin{minipage}{.45\textwidth}
-    \centering
-    {\Large\texttt{professor OR (PhD AND student)}}
-
-    \vspace{.5cm}
-    \onslide<2->{
-    {\Huge $\Downarrow$}
-    \vspace{.5cm}
-
-    \begin{tikzpicture}[inner/.style={circle}, l/.style={font=\small}]
-        \tikzstyle{every node}=[draw];
-        \draw (0,0) node[inner] {\only<-2>{$\lor$}\only<3->{1}} child {node[l] {professor}} child {node[inner] {\only<-2>{$\land$}\only<3->{2}} child {node[l] {PhD}} child {node[l] {student}}};
-        % \draw (0,0) node {2} child {{node {A}} child {node {1} child {B} child {C}}};
-    \end{tikzpicture}}
-\end{minipage}
-\onslide<3->{
-\begin{minipage}{.13\textwidth}
-    \centering
-    even more powerful!\\
-    \vspace{0.5cm}
-    {\Huge $\Rightarrow$}
-\end{minipage}
 \begin{minipage}{.4\textwidth}
     \centering
     \begin{tikzpicture}[xscale=1.2, yscale=1.2, inner/.style={circle}, l/.style={font=\small, align=center}]
@@ -27,4 +5,4 @@
         \draw (0,0) node[inner] {2} child {node[l] {itsec}} child {node[l] {netsec}} child {node[inner] {1} child {node[l] {crypto\\lecture}} child {node[l] {crypto\\seminar}}};
 
     \end{tikzpicture}
-\end{minipage}}
+\end{minipage}

@@ -56,7 +56,7 @@
 
 \PraesentationTitelseite % Fügt die Startseite ein
 
-\begin{frame}
+\begin{frame}[c]
     \frametitle{Table of Contents}
     \tableofcontents[hideallsubsections]
 \end{frame}
@@ -73,7 +73,7 @@
             \onslide<3->{\draw[brace, color=TUMOrange] (-2.6,1) -- (2.5, 1) node [lbl, yshift=0.5cm] {e.g. for a student:\\``working on thesis''\\``semester count: 6''};}
             \onslide<2->{\draw[brace, color=TUMGruen] (2.75,1) -- (6, 1) node [lbl, yshift=0.5cm] {alternatives: standard\\symmetric and\\asymmetric crypto?!};}
             \onslide<6->{\draw[brace] (6.85, 1) -- (8.5, 1) node [lbl, xshift=0.25cm, yshift=0.5cm] {memory-safety\\guarantees\\built-in! \vphantom{g}};}
-            \onslide<4->{\draw[brace, decoration={mirror}, color=TUMBlauDunkel] (-4.75, -1) -- (4.75, -1) node [lbl, yshift=-0.5cm, anchor=north] {Constrained MCUs!\\our SoC: 64\,MHz Cortex-M4 with 256KB RAM} ++(0,1);}
+            \onslide<4->{\draw[brace, decoration={mirror}, color=TUMBlauDunkel] (-4.75, -1) -- (4.75, -1) node [lbl, yshift=-0.5cm, anchor=north] {Constrained MCUs!};}
         \end{tikzpicture}
     \end{center}
 \end{frame}
@@ -92,15 +92,55 @@
     \centering
     \input{figures/abe_use_case}
 
-    \onslide<2->{\alert{\large $\rightarrow$ no decryption on the MCU!}}
+    \onslide<3->{\alert{\large $\rightarrow$ No decryption on the MCU!}}
 \end{frame}
 
 \begin{frame}[c]
     \frametitle{How to specify Access Policies?}
+    \begin{minipage}{.45\textwidth}
+        \centering
+        {\Large\texttt{professor OR (PhD AND student)}}
+    
+        \vspace{.5cm}
+        \onslide<2->{
+        {\Huge $\Downarrow$}
+        \vspace{.5cm}
+    
+        \begin{tikzpicture}[inner/.style={circle}, l/.style={font=\small}]
+            \tikzstyle{every node}=[draw];
+            \draw (0,0) node[inner] {\only<-2>{$\lor$}\only<3->{1}} child {node[l] {professor}} child {node[inner] {\only<-2>{$\land$}\only<3->{2}} child {node[l] {PhD}} child {node[l] {student}}};
+            % \draw (0,0) node {2} child {{node {A}} child {node {1} child {B} child {C}}};
+        \end{tikzpicture}}
+    \end{minipage}
+    \onslide<3->{
+    \begin{minipage}{.13\textwidth}
+        \centering
+        even more powerful!\\
+        \vspace{0.5cm}
+        {\Huge $\Rightarrow$}
+    \end{minipage}}
     \input{figures/sample_access_tree.tex}
 \end{frame}
 
-\subsection{Elliptic Curves}
+% \begin{frame}[c]
+%     \frametitle{How to specify Access Policies?}
+%     \begin{minipage}{.45\textwidth}
+%         \centering
+%         test
+
+%         test2
+%     \end{minipage}
+%     \onslide<3->{
+%     \begin{minipage}{.13\textwidth}
+%         \centering
+%         even more powerful!\\
+%         \vspace{0.5cm}
+%         {\Huge $\Rightarrow$}
+%     \end{minipage}}
+%     \input{figures/sample_access_tree.tex}
+% \end{frame}
+
+% \subsection{Elliptic Curves}
 
 \begin{frame}<1,3-4>[c]
     \frametitle{Bilinear pairings}
@@ -110,7 +150,6 @@
     \onslide<3->{\begin{minipage}{.25\textwidth}
         Pairing-Based Cryptography:
         \begin{itemize}
-            \item Short Digital Signatures
             \item Identity-Based Encryption
             \item Three-Way Diffie-Hellman
             \item \alert{Attribute-Based Encryption}
@@ -123,7 +162,7 @@
     \end{minipage}
     \vspace{0.5cm}
     \centering
-    \onslide<4->{\alert{\large$\rightarrow$ very expensive to calculate (\textasciitilde1500\,ms on our MCU)}}
+    \onslide<4->{\alert{\large$\rightarrow$ very expensive to calculate (\textasciitilde1600\,ms on our MCU)}}
 
 \end{frame}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -224,10 +263,6 @@
             \item Implementation \verb+core::fmt::Display+ without use of strings
             \item Single pairing consumes about \textonequarter ~of entire RAM!
         \end{itemize} 
-        \pause
-        \begin{center}
-            \alert{\large $\rightarrow$ ported library behaves the same as original \texttt{rabe-bn}!}
-        \end{center}
     \end{block}
     \pause
     \begin{block}{Common aspects implemented only once}
@@ -326,17 +361,18 @@
     \begin{itemize}
         \pause \item Better performance of pairing library \pause \alert{$\rightarrow$ some libraries in literature do better}
         \pause \item Re-use the AES key \pause \alert{$\rightarrow$ did this for integration, but it's cheating \smiley}
-        \pause \item Implement schemes with revocation, delegation, multi-authority ABE ... \pause \alert{$\rightarrow$ Future Work!}
+        \pause \item Implement schemes with revocation, delegation, multi-authority ABE ... \pause \alert{$\rightarrow$ Future work!}
     \end{itemize}
     
 
 \end{frame}
 
+\section{Conclusion}
 \begin{frame}[c]
     \frametitle{Summary \& Key Takeaways}
     
     % \begin{minipage}{.49\textwidth}        
-        In the thesis, I $\dots$
+        For the thesis, I $\dots$
 
         \pause
         $\dots$ present the mechanisms behind ABE \textcolor{TUMGruen}{\checkmark} \pause \alert{$\rightarrow$ ABE is suited to improve access control in many scenarios!}
@@ -347,8 +383,8 @@
         \pause $\dots$ built a bare-metal implementation of two ABE schemes \textcolor{TUMGruen}{\checkmark} \pause \alert{$\rightarrow$ programming without OS is doable, but challenging \smiley}
 
         \pause $\dots$ evaluated their performance on a Cortex-M4 SoC \textcolor{TUMGruen}{\checkmark} \pause \alert{$\rightarrow$ ABE is feasible but remains very expensive}\\        
-        \pause \phantom{$\dots$ evaluated their performance on a Cortex-M4 SoC \textcolor{TUMGruen}{\checkmark}} \alert{$\rightarrow$ Encryption is okay with pairing-free and pairing-based schemes}\\
-        \pause \phantom{$\dots$ evaluated their performance on a Cortex-M4 SoC \textcolor{TUMGruen}{\checkmark}} \alert{$\rightarrow$ Decryption with pairing-based scheme not so much \frownie}
+        \pause \phantom{$\dots$ evaluated their performance on a Cortex-M4 SoC \textcolor{TUMGruen}{\checkmark}} \alert{$\rightarrow$ Encryption works with pairing-free and pairing-based schemes}\\
+        \pause \phantom{$\dots$ evaluated their performance on a Cortex-M4 SoC \textcolor{TUMGruen}{\checkmark}} \alert{$\rightarrow$ Decryption with pairing-based scheme not practically feasible \frownie}
 
 
     % \end{minipage}
@@ -475,7 +511,7 @@
     Image by SuperManu, licensed under Creative Commons: \url{https://commons.wikimedia.org/wiki/File:ECClines-2.svg}.
 \end{frame}
 
-\section{Related Research}
+% \section{Related Research}
 \begin{frame}[c]
     \frametitle{Overview of Related Research}
     \begin{center}

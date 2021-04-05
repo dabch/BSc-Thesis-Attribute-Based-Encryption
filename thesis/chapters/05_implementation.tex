@@ -129,7 +129,7 @@ Some aspects of the implementation are common to both ABE schemes and therefore 
 The Rust type system is well suited to represent tree structuress like our \glspl{access-tree}.
 A simple implementation might look like the one in Listing~\ref{lst:access-tree-naive}. 
 
-\begin{lstlisting}[float=h,caption={Simple Implementation of \glspl{access-tree} (using the standard library)},label={lst:access-tree-naive}]
+\begin{lstlisting}[float=h!,caption={Simple Implementation of \glspl{access-tree} (using the standard library)},label={lst:access-tree-naive}]
 enum AccessTree<'a> {
     // threshold, vector of children
     Node(u64, std::vec::Vec<AccessTree<'a>>),
