@@ -95,74 +95,6 @@
     \onslide<2->{\alert{\large $\rightarrow$ no decryption on the MCU!}}
 \end{frame}
 
-
-
-\begin{frame}[c]
-    \frametitle{ABE interaction overview}
-    \input{figures/abe_system_overview-1}
-\end{frame}
-
-\begin{frame}[c]
-    \frametitle{ABE interaction overview}
-    \input{figures/abe_system_overview-2}
-\end{frame}
-
-\begin{frame}[c]
-    \frametitle{ABE scheme: Algorithms}
-    \begin{minipage}[t]{0.49\textwidth}
-        \begin{center}
-            \begin{tikzpicture}[baseline=(current bounding box.north)]
-                \node[draw, font=\LARGE] at (0,0) {KGC};
-            \end{tikzpicture}
-        \end{center}
-        \vspace{0.5cm}
-        \begin{block}<2->{\centering $(PK, MK) = \text{Setup}(U)$}
-            \centering
-            Sets up the system and defines the attributes.
-            % \begin{itemize}
-            %     \item Input: Attribute Universe $U$
-            %     \item Output: Public Key $PK$, Master Key $MK$
-            % \end{itemize}
-        \end{block}
-        \vspace{0.5cm}
-        \begin{block}<3->{\centering $k = \text{KeyGen}(MK, S)$}
-            \centering
-            Issues a decryption key under a given access policy.
-            % \begin{itemize}
-            %     \item Input: Master Key $MK$, Access Policy $S$
-            %     \item Ouptut: Decryption key $k$
-            % \end{itemize}
-        \end{block}
-    \end{minipage}
-    \begin{minipage}[t]{0.49\textwidth}
-        \begin{center}
-            \begin{tikzpicture}[baseline=(current bounding box.north)]
-                \node[draw, font=\LARGE] at (-1.25,0) (a) {Alice};
-                \node[draw, font=\LARGE] at (1.25,0) (b) {Bob};
-                \path (a) -- (b) node[pos=0.5, font=\LARGE] {\&};
-            \end{tikzpicture}
-        \end{center}
-        \vspace{0.5cm}
-        \begin{block}<4->{\centering $c = \text{Encrypt}(PK, m, \omega)$}
-            \centering
-            Encrypts plaintext under given list of attributes.
-            % \begin{itemize}
-            %     \item Input: Attribute Universe $U$
-            %     \item Output: Public Key $PK$, Master Key $MK$
-            % \end{itemize}
-        \end{block}
-        \vspace{0.5cm}
-        \begin{block}<5->{\centering $m = \text{Decrypt}(k, c)$}
-            \centering
-            Decrypts ABE ciphertext.
-            % \begin{itemize}
-            %     \item Input: Master Key $MK$, Access Policy $S$
-            %     \item Ouptut: Decryption key $k$
-            % \end{itemize}
-        \end{block}
-    \end{minipage}
-\end{frame}
-
 \begin{frame}[c]
     \frametitle{How to specify Access Policies?}
     \input{figures/sample_access_tree.tex}
@@ -170,7 +102,7 @@
 
 \subsection{Elliptic Curves}
 
-\begin{frame}[c]
+\begin{frame}<1,3-4>[c]
     \frametitle{Bilinear pairings}
     \begin{minipage}{.04\textwidth}
         ~
@@ -186,7 +118,7 @@
     \end{minipage}}
     \begin{minipage}{0.7\textwidth}\centering
         \input{figures/pairings.tex}  \\
-        \onslide<2->{* requires special pairing-friendly curves}
+        % \onslide<2>{* requires special pairing-friendly curves}
         \vspace{0.5cm}
     \end{minipage}
     \vspace{0.5cm}
@@ -202,15 +134,15 @@
 
 % \PraesentationTitelseite
 
-\section{Related Research}
-\begin{frame}[c]
-    \frametitle{Overview of Related Research}
-    \begin{center}
-        \input{figures/related_work_timeline}
-    \end{center}
-\end{frame}
+% \section{Related Research}
+% \begin{frame}[c]
+%     \frametitle{Overview of Related Research}
+%     \begin{center}
+%         \input{figures/related_work_timeline}
+%     \end{center}
+% \end{frame}
 
-\section{Implemented ABE Schemes}
+\section{Implementation}
 \begin{frame}
     \frametitle{Implemented ABE schemes}
     \vspace{2.5cm}
@@ -239,9 +171,6 @@
     \center{\alert{\large $\rightarrow$ Both were implemented for analysis on the SoC}}
 \end{frame}
 
-
-\section{Implementation}
-
 \begin{frame}[c]
     \frametitle{Hard- and Software}
     \begin{columns}[c]
@@ -264,7 +193,7 @@
 \end{frame}
 
 \begin{frame}[c, fragile]
-    \frametitle{Implementation: Challenges}
+    \frametitle{Implementation}
     \begin{block}{How to represent access trees without dynamic memory allocation?}
         % Naive implementation:
         \begin{center}
@@ -322,9 +251,9 @@
         ~
         \begin{itemize} 
             \setlength\itemsep{.75em}
-            \item \texttt{Setup}: Number of attributes in the system
+            % \item \texttt{Setup}: Number of attributes in the system
             \item \texttt{Encrypt}: Number of attributes associated with ciphertext
-            \item \texttt{KeyGen}: Number of leafs in Access Tree
+            % \item \texttt{KeyGen}: Number of leafs in Access Tree
             \item \texttt{Decrypt}: \begin{itemize}
                 \item Timing: Number of leaves in flat access tree
                 \item RAM: Depth of perfect binary access tree
@@ -358,12 +287,6 @@
     \input{figures/diagrams_ram}
 \end{frame}
 
-\begin{frame}
-    \frametitle{Results: Flash use}
-    \centering
-    \input{figures/diagram_flash.tex}
-\end{frame}
-
 \begin{frame}[t]
     \frametitle{Discussion of the results}
     \centering
@@ -392,7 +315,7 @@
             \setbeamertemplate{itemize item}[arrow]
             \item<2-> ABE operations require considerable portion of resources
             \item<3-> YCT scheme without pairings has much better performance
-            \item<4-> Encryption is feasible with both, decryption only with YCT
+            % \item<4-> Encryption is feasible with both, decryption only with YCT
         \end{itemize}
     \end{minipage}
 \end{frame}
@@ -448,10 +371,78 @@
     \end{center}
 \end{frame}
 
+
 \PraesentationMasterStandard
 
-\subsection{Secret Sharing}
 \begin{frame}[c]
+    \frametitle{ABE interaction overview}
+    \input{figures/abe_system_overview-1}
+\end{frame}
+
+\begin{frame}[c]
+    \frametitle{ABE interaction overview}
+    \input{figures/abe_system_overview-2}
+\end{frame}
+
+
+\begin{frame}<100>[c]
+    \frametitle{ABE scheme: Algorithms}
+    \begin{minipage}[t]{0.49\textwidth}
+        \begin{center}
+            \begin{tikzpicture}[baseline=(current bounding box.north)]
+                \node[draw, font=\LARGE] at (0,0) {KGC};
+            \end{tikzpicture}
+        \end{center}
+        \vspace{0.5cm}
+        \begin{block}<2->{\centering $(PK, MK) = \text{Setup}(U)$}
+            \centering
+            Sets up the system and defines the attributes.
+            % \begin{itemize}
+            %     \item Input: Attribute Universe $U$
+            %     \item Output: Public Key $PK$, Master Key $MK$
+            % \end{itemize}
+        \end{block}
+        \vspace{0.5cm}
+        \begin{block}<3->{\centering $k = \text{KeyGen}(MK, S)$}
+            \centering
+            Issues a decryption key under a given access policy.
+            % \begin{itemize}
+            %     \item Input: Master Key $MK$, Access Policy $S$
+            %     \item Ouptut: Decryption key $k$
+            % \end{itemize}
+        \end{block}
+    \end{minipage}
+    \begin{minipage}[t]{0.49\textwidth}
+        \begin{center}
+            \begin{tikzpicture}[baseline=(current bounding box.north)]
+                \node[draw, font=\LARGE] at (-1.25,0) (a) {Alice};
+                \node[draw, font=\LARGE] at (1.25,0) (b) {Bob};
+                \path (a) -- (b) node[pos=0.5, font=\LARGE] {\&};
+            \end{tikzpicture}
+        \end{center}
+        \vspace{0.5cm}
+        \begin{block}<4->{\centering $c = \text{Encrypt}(PK, m, \omega)$}
+            \centering
+            Encrypts plaintext under given list of attributes.
+            % \begin{itemize}
+            %     \item Input: Attribute Universe $U$
+            %     \item Output: Public Key $PK$, Master Key $MK$
+            % \end{itemize}
+        \end{block}
+        \vspace{0.5cm}
+        \begin{block}<5->{\centering $m = \text{Decrypt}(k, c)$}
+            \centering
+            Decrypts ABE ciphertext.
+            % \begin{itemize}
+            %     \item Input: Master Key $MK$, Access Policy $S$
+            %     \item Ouptut: Decryption key $k$
+            % \end{itemize}
+        \end{block}
+    \end{minipage}
+\end{frame}
+
+\subsection{Secret Sharing}
+\begin{frame}<10>[c]
     \frametitle{Shamir's Threshold Secret Sharing}
     \begin{minipage}{.5\textwidth}
         \begin{itemize}
@@ -492,6 +483,11 @@
     \end{center}
 \end{frame}
 
+\begin{frame}
+    \frametitle{Results: Flash use}
+    \centering
+    \input{figures/diagram_flash.tex}
+\end{frame}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \end{document} % !!! NICHT ENTFERNEN !!!
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

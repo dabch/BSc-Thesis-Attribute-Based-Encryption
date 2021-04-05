@@ -10,11 +10,11 @@
 
         % \onslide<1->{
             \draw[->] (soc) -- (gateway) node [pos=0.5, align=center] {Bluetooth\\Low Energy};
-            \draw[<->] (gateway) -- (cloud) node [pos=0.5, align=center] {Internet\\(TCP/IP)};
+            \draw[<->] (gateway) -- (cloud) node [pos=0.5, align=center] {Internet};
         % }
 
             
-        \onslide<3->{
+        \onslide<2->{
             \node[fullnode] (user1) [below=1.5cm of kgc] {User 1\\(e.g. Patient)};
             \node[fullnode] (user2) [below=1.5cm of cloud] {User 2\\(e.g. Doctor)};
         
