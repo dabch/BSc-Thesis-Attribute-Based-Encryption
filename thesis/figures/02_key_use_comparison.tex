@@ -6,7 +6,7 @@
             \path (encrypt.north) -- +(0, 0.3) pic [anchor=west, scale=0.1, red, fill=red] {key};
             \draw[->] (encrypt.east) -- ++(2, 0) node [anchor=south] {c} -- ++(2,0) node (decrypt) [anchor=west, draw] {Decrypt};
             \path (decrypt.north) -- +(0, 0.3) pic [anchor=west, scale=0.1, red, fill=red] {key};
-            \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m'};
+            \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m};
         \end{tikzpicture}
         \caption{Symmetric Encryption: The same key is used for encryption and decryption. This key needs to be kept secret.} \label{fig:keys-symmetric}
     \end{subfigure}
@@ -18,7 +18,7 @@
             \path (encrypt.north) -- +(0, 0.3) pic [anchor=west, scale=0.1, olive, fill=olive] {key};
             \draw[->] (encrypt.east) -- ++(2, 0) node [anchor=south] {c} -- ++(2,0) node (decrypt) [anchor=west, draw] {Decrypt};
             \path (decrypt.north) -- +(0, 0.3) pic [anchor=west, scale=0.1, red, fill=red] {key};
-            \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m'};
+            \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m};
         \end{tikzpicture}
         \caption{Asymmetric Encryption: Different keys for encryption and decryption. Decryption succeeds if and only if the decryption key is exactly the counterpart to the encryption key.} \label{fig:keys-asymmetric}
     \end{subfigure}
@@ -35,7 +35,7 @@
             };
             \draw[->] (encrypt.east) -- ++(2, 0) node [anchor=south] {c} -- ++(2,0) node (decrypt) [anchor=west, draw] {Decrypt};
             \path (encrypt.north) -- +(0, 0.3) node [olive] {$\{A, B, C\}$};
-            \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m'};
+            \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m};
         \end{tikzpicture}
         \caption{\glslink{gls-kp-abe}{Key-Policy Attribute-Based Encryption}: Attributes for encryption, access structure for decryption. Decryption succeeds if and only if the attributes of the ciphertext satisfy the policy embedded in the key.} \label{fig:keys-abe}
     \end{subfigure}
@@ -52,7 +52,7 @@
             };
             \draw[->] (encrypt.east) -- ++(2, 0) node [anchor=south] {c} -- ++(2,0) node (decrypt) [anchor=west, draw] {Decrypt};
             \path (decrypt.north) -- +(0, 0.3) node [red] {$\{A, B, C\}$};
-            \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m'};
+            \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m};
         \end{tikzpicture}
         \caption{\glslink{gls-cp-abe}{Ciphertex-Policy Attribute-Based Encryption}: \Gls{access-policy} for encryption, attributes for decryption. Decryption succeeds if and only if the attributes of the key match the policy embedded in the ciphertext.} \label{fig:keys-abe}
     \end{subfigure}
