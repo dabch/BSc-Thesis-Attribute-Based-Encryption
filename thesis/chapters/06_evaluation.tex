@@ -122,14 +122,13 @@ The runtime of Setup and Encrypt with GPSW is about 3.5\,s longer than with YCT,
 % On the SoC, setup and encryption with a single attribute take about 4 seconds with GPSW and only about 0.4 seconds with YCT.
 % With 30 attributes, GPSW requires about 8.5 seconds and YCT about 5 seconds.
 The runtimes increase linearly in both, with each additional attribute adding about 150\,ms.
+% For the KeyGen algorithm, difference is even larger:
+% The runtime of GPSW increases considerably with larger policies.
+% With a single-attribute policy, KeyGen takes about 650\,ms. With 25 attributes, it already takes more than 16 seconds.
+% The runtime of YCT only increases slightly from 35\,ms for one attribute to 210\,ms for 25 attributes.
 
-For the KeyGen algorithm, difference is even larger:
-The runtime of GPSW increases considerably with larger policies.
-With a single-attribute policy, KeyGen takes about 650\,ms. With 25 attributes, it already takes more than 16 seconds.
-The runtime of YCT only increases slightly from 35\,ms for one attribute to 210\,ms for 25 attributes.
-
-Decryption time is also linear with both schemes.
-Again, YCT is much faster at 12\,s for the largest policy with 30\,attributes. GPSW requires 80\,s for the largest policy.
+Decryption time is also linear with both schemes, but increases much more quickly with GPSW than with YCT.
+GPSW needs 80\,s for the largest policy with 30\,attributes, for which YCT requires under 12\,s. % for the largest policy.
 
 The RAM usage also shows a large advantage for YCT:
 With GPSW, a single-level policy already uses up more than three times more RAM than YCT; this difference only increases with more policy levels.
@@ -171,21 +170,21 @@ If decryption on the SoC is necessary, the YCT scheme is to be preferred:
 With GPSW, decryption takes considerably more time and uses a large amount of RAM.
 This results in the mentioned hard limit on the policy depth, which is not present with YCT.
 
-However, as the security of pairing-free \acrshort{abes} is questioned (see \cite{herranz_attacking_2020}), a pairing-based scheme might be preferable.
-Therefore, in applications where only encryption is necessary on the SoC, the GPSW scheme might be preferred over YCT.
+However, as the security of pairing-free \acrshort{abes} is questioned (see \cite{herranz_attacking_2020}) the GPSW scheme might be preferred over YCT in applications where only encryption is necessary on the SoC. % a pairing-based scheme might be preferable.
+% Therefore, in applications where only encryption is necessary on the SoC, the GPSW scheme might be preferred over YCT.
 
 The other two algorithms, Setup and KeyGen, are run only by the \acrshort{kgc}.
 Therefore, it is reasonable to assume that these don't need to be run on a constrained node in real-world scenarios.
 The \acrshort{kgc} would probably be a specially protected PC or at least a more powerful \acrshort{iot} node (e.g. Raspberry Pi).
 
-\section{Further Improvements / Future Work}
+\section{Further Improvements}
 
-The implementations evaluated in this thesis offer room for improvement.
+The implementations for this thesis offer room for improvement.
 For example if only encryption is needed on the SoC, the library could be split into two:
 A limited, bare-metal library that implements only encryption and runs on the SoC, and a full library that runs on the \acrshort{kgc} and other devices.
 This would enable \acrshort{abe} encryption on the sensor while allowing the full library to rely on a fully-fledged operating system.
 
-Regarding the results on the SoC, improvements could be made by improving the underlying pairing and elliptic curve implementation of the \texttt{rabe-bn} library.
+Regarding the results on the SoC, improvements could be made by enhancing the underlying pairing and elliptic curve implementation of the \texttt{rabe-bn} library.
 Even though the operations remain computationally expensive, other implementations do better:
 In \cite{scott_deployment_2020}, the \emph{MIRACL Core} library was tested on the same SoC as ours using the same type of curve (256-bit BN curve).
 This library evaluates a pairing in about 600\,ms; our library takes 1600\,ms. 
@@ -200,7 +199,7 @@ By saving both the symmetric key and its \acrshort{abe}-encrypted version, more 
 A single \acrshort{abe} encryption operation can then be used for many messages.
 The encyptor may periodically generate and encrypt a new symmetric key (e.g. once per day).
 If the messages should be decryptable on their own, the \acrshort{abe}-encrypted symmetric key can be copied into each encrypted message.
-The downside is that all messages encrypted with the same symmetric key naturally have the same attributes or access policy attached (i.e. reduced granularity).
+The downside is that all messages encrypted with the same symmetric key naturally have the same attributes or access policy attached, which reduces the flexiblity advantage of \acrshort{abe}.
 Also, if the symmetric key is compromised (possibly while it is stored to encrypt the next message), all messages encrypted with that key will be compromised.
 
 This approach does not reduce the ciphertext size if the \acrshort{abe}-encrypted key is copied into each ciphertext.
@@ -212,6 +211,6 @@ However, it was not evaluated for this thesis, because it doesn't allow the same
 ~\\
 
 The two schemes implemented in the library are \acrshort{kp-abe} schemes, currently no \acrshort{cp-abe} schemes are implemented.
-\acrshort{cp-abe} on constrained devices is covered in~\cite{borgh_attribute-based_2016}, but further evaluation is left as future work.
+\acrshort{cp-abe} on constrained devices is examined in~\cite{borgh_attribute-based_2016}, but further evaluation is left as future work.
 The implemented schemes also don't support key revocation or a \gls{large-universe} of attributes. 
 Implementation and evaluation of those is also left for future projects.

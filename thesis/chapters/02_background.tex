@@ -131,7 +131,7 @@ Explicitly specifying a \glspl{access-structure} is not feasible as their size m
 Therefore, we will use the construction of \emph{access trees} defined by Goyal~et~al.~\cite{goyal_attribute-based_2006}.
 \Glspl{access-tree} are similar to the tree representation of boolean formulas, but slightly more powerful:
 Each leaf of this tree is labelled with an attribute.
-Each inner node is labelled with an integer and has two or more children.% and is labelled with an integer. 
+Each inner node is labelled with an integer and has two or more children. % and is labelled with an integer. 
 This integer represents the number of children that need to be satisfied in order to satisfy the inner node~\cite{goyal_attribute-based_2006}.
 
 Figure~\ref{fig:sample-access-tree} illustrates an example for an \gls{access-tree}. It is satisfied by any set of attributes that contains two of $A, B$ and either $C$ or $D$.
@@ -185,7 +185,7 @@ With indirect revocation, the encryptor does not need to do anything except usin
 The advantage of direct revocation, however, is that it works instantly: As soon as an encryptor knows about the revocation of a user, they will include them on their revocation list for future encryptions.
 With indirect revocation, a revoked user can decrypt all ciphertexts created until the next key update is distributed by the \acrshort{kgc}~\cite{attrapadung_attribute-based_2009}.
 
-In either case, ciphertexts encrypted before a user's revocation becomes effective, remains readable using the revoked key.
+In either case, ciphertexts encrypted before a user's revocation becomes effective remain readable using the revoked key.
 Some schemes include a proxy-reencryption mechanism that allows an untrusted third party to update ciphertexts such that they cannot be decrypted by revoked users~\cite{manna_sea-brew_2021}.
 
 
@@ -257,7 +257,7 @@ To interpolate a polynomial of degree $d$ from $d+1$ given points $(x_1, y_1), \
 
 This polynomial has degree $d$. If the points $(x_i, y_i)$ lie on a $d$-degree polynomial, then the lagrange interpolation $L(x)$ is \emph{exactly} that polynomial.
 
-On the other hand, if there are less than $d+1$ points of a $d$-degree polynomial known, there are infinitely many $d$-degree polynomials that pass through all given points.~\cite{shamir_how_1979}
+On the other hand, if there are less than $d+1$ points of a $d$-degree polynomial known, there are infinitely many $d$-degree polynomials that pass through all given points~\cite{shamir_how_1979}.
 
 % The polynomial can be interpolated unambiguously if at least $k$ points are known, because it has degree $k-1$.
 % If only $k-1$ points (or less) are known, there are infinitely many ways to construct a polynomial that passed through all $k-1$ points.
@@ -276,11 +276,11 @@ Using the lagrange basis polynomials, we can then reconstruct $p(x)$ and thus th
         \item Pick coefficients $a_1, ..., a_{k-1}$ at random 
         \item Set $a_0 = s$. This results in the polynomial $p(x) = a_0 + a_1x + \cdots + a_{k-1}x^{k-1}$. Note that $p(0) = s$.
         \item The secret shares are $(1, p(1)), (2, p(2)), \dots, (n, p(n))$. Give one to each participant.
+        \item To reconstruct the secret from any subset of $k$ shares, interpolate the polynomial $p(x)$ and evaluate $p(0) = s$. 
     \end{enumerate}
-    To reconstruct the secret from any subset of $k$ shares, interpolate the polynomial $p(x)$ and evaluate $p(0) = s$. 
 \end{definition}
 
-See also Figure~\ref{fig:sss} for illustration.
+Figure~\ref{fig:sss} shows an example $(4,5)$-threshold scheme.
 In practice, the numbers would be far bigger and calculations would not be performed over the real numbers, but rather a finite field modulo a prime~\cite{shamir_how_1979}.
 
 \subsection{Secret Sharing in Attribute Based Encryption}\label{sec:lss-in-access-trees}
@@ -302,7 +302,7 @@ That means, a leaf node's secret share can be used if and only if the set of att
 For the internal nodes $x$, the use of a $(d_x, \text{num}_x)$-threshold scheme ensures that the secret embedded in $x$ can be reconstructed if and only if the secret shares of at least $d_x$ child nodes can be used, i.e. at least $d_x$ child nodes are satisfied.
 Following this recursive definition up to the root, we can see that our secret $s$ embedded in the root can be reconstructed if and only if $\omega$ satisfies the acess tree.
 
-See Figure~\ref{fig:sample-access-tree-shamir} for an illustration with the tree from Figure~\ref{fig:sample-access-tree}:
+Figure~\ref{fig:sample-access-tree-shamir} illustrates this with the tree from Figure~\ref{fig:sample-access-tree}:
 Two $(k,n)$-threshold schemes are employed, one for each internal node of the \gls{access-tree}.
 $p_1(x)$ is the polynomial of the root's $(2,3)$-threshold scheme, sharing $s$, the secret to be embedded in the tree (i.e. $p_1(0) = s$).
 $p_2(x)$ is the polynomial for the $(1,2)$-threshold scheme belonging to the node labelled ``1'' and shares the value $p_1(3)$ that it received from the $(2,3)$-threshold scheme of the layer above (i.e. $p_2(0) = p_1(3)$).
@@ -311,11 +311,11 @@ $p_2(x)$ is the polynomial for the $(1,2)$-threshold scheme belonging to the nod
 \label{sec:ec}
 
 The mathematics of modern cryptosystems (including, but not limited to ABE) work on any group that satisfies the axioms (see below), and \glspl{ec} are just one of them.
-Because \Glspl{ec} allow for shorter key lengths than, e.g. groups modulo a prime, they have become very popular in cryptography.
+Because \glspl{ec} allow for shorter key lengths than e.g. groups modulo a prime, they have become very popular in cryptography.
 Exact definitions and notations differ, these are taken from the textbook \emph{Introduction to Modern Cryptography} by Katz and Lindell~\cite{katz_introduction_2015}.
 
 \subsection{Group Axioms}\label{sec:group}
-\begin{definition}~\cite{katz_introduction_2015}. A \emph{Group} $\langle \mathbb{G}, +, 0 \rangle$ consists of a set $\mathbb{G}$ together with a binary operation $+$ and an element $0 \in \mathbb{G}$ for which these four conditions hold:
+\begin{definition} A \emph{Group} $\langle \mathbb{G}, +, 0 \rangle$ consists of a set $\mathbb{G}$ together with a binary operation $+$ and an element $0 \in \mathbb{G}$ for which these four conditions hold~\cite{katz_introduction_2015}:
     \begin{itemize}
         \item Closure: For all $g, h \in \mathbb{G}$, $g + h \in \mathbb{G}$.
         \item Existence of identity: There is an element $0 \in \mathbb{G}$, called the \emph{identity}, such that for all $g \in \mathbb{G}$, $g + 0 = g = 0 + g$.
@@ -328,7 +328,6 @@ Exact definitions and notations differ, these are taken from the textbook \emph{
     \begin{itemize}
         \item Commutativity: For all $g, h \in \mathbb{G}, g + h = h + g$.
     \end{itemize}
-
     When the binary operation is clear from context, we simply use $\mathbb{G}$ to denote the group.
 
     We also define \emph{Group Exponentiation}: $g \in \mathbb{G}, m \in \mathbb{N}^+$, then $mg = \underbrace{g + \cdots + g}_{m \text{ times}}$.
@@ -374,9 +373,7 @@ Figure~\ref{fig:ecc-point-addition} shows the four different cases.
 Using this intersecting line, we can define an operation on curve points:
 \begin{definition}
     \label{def:point-add}
-    Given an \gls{ec} $E(\mathbb{Z}_p)$, we define a binary operation called \emph{(point) addition} and denoted by $+$~\cite{katz_introduction_2015}:\\
-    Let $P_1, P_2 \in E(\mathbb{Z}_p)$.
-
+    Given an \gls{ec} $E(\mathbb{Z}_p)$, we define a binary operation called \emph{(point) addition} and denoted by $+$~\cite{katz_introduction_2015}. Let $P_1, P_2 \in E(\mathbb{Z}_p)$.
     \begin{itemize}
         \item For two points $P_1, P_2 \neq \mathcal{O}$ and $P_1 \neq P_2$, their sum $P_1 + P_2$ is evaluated by drawing the line through $P_1$ and $P_2$. 
             This line will intersect the curve in a third point, $P_3 = (x_3, y_3)$.
@@ -407,8 +404,6 @@ Using this intersecting line, we can define an operation on curve points:
     \end{itemize}
 \end{proof}
 
-
-We will be adding points to themselves a lot. Therefore, we define for ease of notation:
 \begin{definition}
     Point-Scalar multiplication: Given a point $P \in E(\mathbb{Z}_p)$ and a scalar $d \in \mathbb{N}$: 
     \begin{equation}
@@ -419,8 +414,8 @@ We will be adding points to themselves a lot. Therefore, we define for ease of n
 That is exactly the definition of group exponentiation, applied to our additive \gls{ec} group.
 Note that the product of a scalar with a point is again a point on our curve.
 
-Of particular interest to cryptography are cyclic groups on \glspl{ec}.
-Translated to our \glspl{ec}, this means that there is a generator point $P \in E(\mathbb{Z}_p)$, such that every point $Q \in E(\mathbb{Z}_p)$ can be obtained by repeatedly adding $P$ to itself using the point addition from Definition~\ref{def:point-add}.
+Of particular interest to cryptography are cyclic groups of \gls{ec} points.
+This means that there is a generator point $P \in E(\mathbb{Z}_p)$, such that every point $Q \in E(\mathbb{Z}_p)$ can be obtained by repeatedly adding $P$ to itself using the point addition from Definition~\ref{def:point-add}.
 
 \begin{theorem}\cite{katz_introduction_2015}
     Let $\mathbb{G}$ be a finite group of order $n$, i.e. $|\mathbb{G}| = n$.
@@ -438,7 +433,7 @@ This stems from the fact that a prime number has exactly two divisors: One (the 
 Again, translated to \glspl{ec} this means that if the number of points $|E(\mathbb{Z}_p)|$ on a curve is prime, all points except $\mathcal{O}$ are generators.
 These cyclic \gls{ec} groups are exactly the groups we are interested in for doing actual cryptography.
 The ease of finding generators is one reason, but not the only one. 
-For a detailed explanation, see \cite[p.~321]{katz_introduction_2015}.
+For a detailed explanation, refer to~\cite[p.~321]{katz_introduction_2015}.
 
 % \subsection{Hardness Assumptions}
 
@@ -464,10 +459,11 @@ For a detailed explanation, see \cite[p.~321]{katz_introduction_2015}.
 
 \subsection{Bilinear Pairings}\label{sec:bilinear-pairings}
 
-\begin{definition}Bilinear pairing~\cite{kiraz_still_2016}.\\
+\begin{definition}Bilinear pairing~\cite{kiraz_still_2016}.
+
     Let $\mathbb{G}_1$, $\mathbb{G}_2$ and $\mathbb{G}_T$ denote cyclic groups with prime order $n$.
-$\mathbb{G}_1$ and $\mathbb{G}_2$ are written additively, $\mathbb{G}_T$ is written using multiplicative notation.\\
-    A \emph{bilinear pairing} then is a function $e: \mathbb{G}_1 \times \mathbb{G}_2 \rightarrow \mathbb{G}_T$ with the following properties:
+$\mathbb{G}_1$ and $\mathbb{G}_2$ are written additively, $\mathbb{G}_T$ is written using multiplicative notation.
+    A \emph{bilinear pairing} is a function $e: \mathbb{G}_1 \times \mathbb{G}_2 \rightarrow \mathbb{G}_T$ with the following properties:
     \begin{itemize}
         \item \emph{Bilinearity.} For all $P_1, P_2 \in \mathbb{G}_1, Q_1, Q_2 \in \mathbb{G}_2$
         \begin{itemize}
@@ -490,7 +486,7 @@ Usually the source groups $\mathbb{G}_1$ and $\mathbb{G}_2$ are subgroups of cer
 \subsection{Use of elliptic curves and pairings in ABE}
 Elliptic curves are already widely used in \glslink{pkes}{asymmetric cryptography}.
 Bilinear pairings, on the other hand, are relatively new and have given rise to a whole new class of cryptographic algorithms, the so-called \emph{pairing-based cryptography}.
-For example, pairings are used to construct \gls{ibe}, a three-party \gls{dh}~\cite{joux_one_2000} or short \glspl{dss}~\cite{boneh_short_2001}.
+For example, pairings are used to construct \gls{ibe}~\cite{boneh_identity-based_2001}, a three-party \gls{dh}~\cite{joux_one_2000} or short \glspl{dss}~\cite{boneh_short_2001}.
 
 Most \acrshortpl{abes} make use of bilinear pairings, and even pairing-free schemes (see next section) need an implementation of the \gls{ec} operations.
 These operations are the building blocks of the \acrshortpl{abes} presented in chapter~\ref{chapter:constructions} and by far the most expensive operations performed by the schemes.

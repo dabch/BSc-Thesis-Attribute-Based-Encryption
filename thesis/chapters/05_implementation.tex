@@ -62,7 +62,7 @@ I rewrote the \texttt{rabe-bn} library to introduce a cargo-feature \texttt{std}
 If this feature is disabled, the \texttt{core} library and stack-allocated collections of fixed size from the \texttt{heapless} crate are used instead.
 
 Some further modifications were necessary to implement the \texttt{core::fmt::Display} trait for the \texttt{Gt} struct in a bare-metal compatible manner.
-The implementation of this trait is used to derive an AES key from curve points, see section~\ref{sec:kdf}.
+The implementation of this trait is used to derive an AES key from curve points, described in section~\ref{sec:kdf}.
 The behavior of the \texttt{core::fmt::Display} implementation stayed exactly the same to ensure interoperability with the original \texttt{rabe-bn} library.
 
 With these modifications, the \texttt{rabe-bn} library runs on the SoC.
@@ -75,7 +75,7 @@ Regular Rust programs use the \texttt{rand} \gls{crate}'s \verb+ThreadRng+ struc
 Therefore, this generator is unavailable on the SoC.
 Instead we use the hardware \acrshort{rng}.
 The \texttt{nrf52840-hal} \gls{crate} directly implements the trait \texttt{rand::RngCore} for the hardware \acrshort{rng}, which makes it relatively easy to use.
-This generator, however, is quite slow and speed can differ greatly: With bias correction enabled (required for uniform distribution of the generated data), typically around 120$\mu$s per byte~\cite{nordic_semiconductor_nrf52840_nodate}.
+This generator, however, is quite slow and speed can differ greatly. With bias correction enabled (for uniform distribution of the generated bits), it typically requires around 120\,$\mu s$ per byte~\cite{nordic_semiconductor_nrf52840_nodate}.
 
 To alleviate this, the hardware \acrshort{rng} is only used to seed a ChaCha20 pseudorandom number generator (\gls{crate} \texttt{rand\_chacha}~\cite{noauthor_rand_chacha_nodate}).
 This is essentially the same construction as the current implementation of \texttt{ThreadRng}~\cite{noauthor_rust_nodate}.
@@ -162,7 +162,6 @@ enum AccessNode<'a> {
     Leaf(&'a str),
 }
 \end{lstlisting}
-
 \begin{lstlisting}[float=h,caption={\Gls{access-tree} from Figure~\ref{fig:sample-access-tree} in the heapless Rust representation},label={lst:access-tree-example}]
 let access_tree: AccessTree = &[
     AccessNode::Node(2, Vec::from_slice(&[1, 2, 3]).unwrap()),
@@ -192,7 +191,7 @@ With both schemes, the symmetric keys are initally encoded as a curve points.
 The binary representation of these is much longer than the 256-bit key AES expects.
 Therefore, they are run through a \gls{kdf}, which is shown in Listing~\ref{lst:kdf}.
 
-\begin{lstlisting}[float=h,caption={Hash-based key derivation Function for curve points},label={lst:kdf}]
+\begin{lstlisting}[float=h,caption={Hash-based key derivation function for curve points},label={lst:kdf}]
 struct Wrapper<W: sha3::Digest>(pub W); // newtype for sha3::Digest
 impl<W: sha3::Digest> core::fmt::Write for Wrapper<W> {
     fn write_str(&mut self, arg: &str) -> fmt::Result {
@@ -309,7 +308,7 @@ See Listing~\ref{lst:struct-cipher} for the GSPW version of the \acrshort{abe} c
 \begin{lstlisting}[float=h,caption={ABE ciphertext structure for GPSW},label={lst:struct-cipher}, breaklines=true]
 struct GpswAbeGroupCiphertext<'attr> {
     e: Gt, 
-    e_i: FnvIndexMap<&'attr str, G2, S>,
+    e_i: FnvIndexMap<&'attr str, G1, S>,
 }
 pub struct GpswAbeCiphertext<'attr, 'data>(GpswAbeGroupCiphertext<'attr>, kem::Ciphertext<'data>);
 \end{lstlisting}
@@ -349,9 +348,9 @@ The argument \verb+parent_poly+ is the parent node's secret sharing polynomial a
 The function returns a list of secret shares created by the current node and its children. 
 These secret shares consist of an element of \texttt{G1} (the curve element) and a \texttt{u8}, which is the index of the leaf node that generated the secret share.
 
-The public-facing \verb+keygen()+ function calls \verb+keygen_node()+ on the root and combines the result with a reference to the \gls{access-tree} to form the actual decryption key.
+The public \verb+keygen()+ function calls \verb+keygen_node()+ on the root and combines the result with a reference to the \gls{access-tree} to form the actual decryption key.
 See Listing~\ref{lst:struct-key} for the structure representing a decryption key in GPSW.
-The decryption key for YCT only differs in the type of secret shares contained in the \texttt{FnvIndexMap} (\texttt{F} instead of \texttt{G2}).
+The decryption key for YCT only differs in the type of secret shares contained in the \texttt{FnvIndexMap} (\texttt{Fr} instead of \texttt{G2}).
 
 \begin{lstlisting}[float=h,caption={Decryption key struct},label={lst:struct-key}, breaklines=true]
 pub struct PrivateKey<'attr, 'own>(AccessStructure<'attr, 'own>, FnvIndexMap<u8, G2, consts::U32>);
@@ -366,8 +365,8 @@ See Listing~\ref{lst:decrypt-node} for its signature with the GPSW scheme.
 fn decrypt_node(
     tree_arr: AccessStructure<'attr, 'key>,
     tree_ptr: u8,
-    secret_shares: &FnvIndexMap<u8, G1, S>,
-    att_es: &FnvIndexMap<& 'attr str, G2, S>
+    secret_shares: &FnvIndexMap<u8, G2, S>,
+    att_es: &FnvIndexMap<& 'attr str, G1, S>
 ) -> Option<Gt>;
 \end{lstlisting}
 

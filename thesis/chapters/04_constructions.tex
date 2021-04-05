@@ -1,6 +1,6 @@
 \chapter{Evaluated ABE schemes}\label{chapter:constructions} 
 
-This chapter will describe the two \acrlong{abe} schemes that were implemented for this thesis in detail.
+This chapter will describe the two \acrlong{abe} schemes that were implemented for this thesis.
 In addition, any modifications from the original definitions are illustrated.
 
 Both implemented schemes are \acrshort{kp-abe}.
@@ -47,6 +47,7 @@ This corresponds to the interface of the bilinear pairing library used in this t
 
 \noindent \emph{Setup}~\cite{goyal_attribute-based_2006}.
 The attribute universe is defined as $\text{U} = \{1, 2, \dots, n\}$ and is fixed.
+
 For every attribute $i \in U$, choose a secret number $t_i \in \mathbb{Z}_q$ uniformly at random.
 Then the public key of attribute $i$ is $T_i = t_1 \cdot P$.
 Also, choose a random private $y \in \mathbb{Z}_p$, from which the public $Y = e(P, Q)^y$ is derived.
@@ -82,17 +83,17 @@ First, define a recursive procedure $\text{DecryptNode}(E, D, u)$ which takes as
 It outputs either en element of $\mathbb{G}_T$ or $\perp$.
 
 If $u$ is a leaf node, then $i = \text{att}(x)$ and 
-\begin{equation}
+\begin{equation*}
     \text{DecryptNode}(E, D, u) = \begin{cases}
         e(E_i, D_u) = e(s \cdot t_i \cdot P, q_u(0) \cdot t_i^{-1} \cdot Q) = e(P, Q)^{s\cdot q_u(0)} & i \in \omega\\
         \perp & i \notin \omega
     \end{cases}\\
-\end{equation}
+\end{equation*}
 
 If $u$ is not a leaf node, instead call $\text{DecryptNode}(E, D, v)$ for all child nodes $v$ of $u$ and store the result in $F_v$.
 Let $S_u$ be an arbitrary $d_u$-sized subset of child nodes $v$ with $F_v \neq \perp$. If no such set exists, the node was not satisfied. In this case return $\perp$.
 Then compute with $i = \text{index}(z)$ and $S'_u = \{\text{index}(z) | z \in S_u\}$.
-\begin{equation}
+\begin{equation*}
     \begin{split}
         \text{DecryptNode}(E, D, v) &= \prod_{z \in S_u} F_z^{\Delta_{i,S'_u}(0)}\\
         &= \prod_{z \in S_u} (e(P,Q)^{s\cdot q_z(0)})^{\Delta_{i,S'_u}(0)}\\
@@ -100,7 +101,7 @@ Then compute with $i = \text{index}(z)$ and $S'_u = \{\text{index}(z) | z \in S_
         &= \prod_{z \in S_u} e(P,Q)^{s\cdot q_u(i) \cdot \Delta_{i,S'_u}(0)}\\
         &\stackrel{(*)}{=} e(P,Q)^{s \cdot q_u(0)}
     \end{split}
-\end{equation}
+\end{equation*}
 
 The equality $(*)$ holds because in the exponent, the product becomes a sum: $\sum_{i\in S'_u} s \cdot q_u(i) \cdot \Delta_{i,S'_u}(0)$ is exactly the lagrange interpolation of $s \cdot q_u(0)$.
 
@@ -195,13 +196,13 @@ Where the equality $(*)$ holds because $s_i$ and $s_i^{-1}$ cancel out:
     D_u \cdot C_i = q_u(0) \cdot s_i^{-1} \cdot k \cdot P_i = q_u(0) \cdot s_i^{-1} \cdot k \cdot s_i \cdot G = q_u(0) \cdot k \cdot G
 \end{equation*}
 
-For an internal node $u$ on layer $l$, call $\text{DecryptNode}(CM, D, v)$ for each of its childen $v$. If for less than $d_u$ of the child nodes $\text{DecryptNode}(CM, D, v) \neq \perp$, return $\text{DecryptNode}(CM, D, )=\perp$.
+For an internal node $u$ on layer $l$, call $\text{DecryptNode}(CM, D, v)$ for each of its childen $v$.
+If for less than $d_u$ of the child nodes $\text{DecryptNode}(CM, D, v) \neq \perp$, return $\text{DecryptNode}(CM, D, u)=\perp$.
 Then, let $\omega_u$ be an arbitrary subset of $d_u$ child nodes of $u$, where for all $v \in \omega_u$, $\text{DecryptNode}(CM, D, v) \neq \perp$.
 Then $\text{DecryptNode}(CM, D, u)$ is defined as follows, where $i = \text{index}(v)$, $\omega'_u = \{\text{index}(v) | v \in \omega_u\}$.
 \begin{equation*}
     \begin{split}
-        &~\text{DecryptNode}(CM, D, u)\\
-        =& \sum_{v \in \omega_u} \Delta_{\omega'_u, i}(0) \cdot \text{DecryptNode}(CM, D, v)\\
+        \text{DecryptNode}(CM, D, u) =& \sum_{v \in \omega_u} \Delta_{\omega'_u, i}(0) \cdot \text{DecryptNode}(CM, D, v)\\
         =& \sum_{v \in \omega_u} \Delta_{\omega'_u, i}(0) \cdot q_v(0) \cdot k \cdot G\\
         =& \sum_{v \in \omega_u} \Delta_{\omega'_u, i}(0) \cdot q_{\text{parent}(v)}(\text{index}(v)) \cdot k \cdot G\\
         =& \sum_{v \in \omega_u} \Delta_{\omega'_u, i}(0) \cdot q_u(i) \cdot k \cdot G\\

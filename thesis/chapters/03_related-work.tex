@@ -39,11 +39,10 @@ The first expressive \acrlong{cp-abe} scheme was proposed by Bethencourt, Sahai 
 Waters \cite{waters_ciphertext-policy_2011} later also introduces the first \acrshort{cp-abe} schemes with a security proof in the \gls{standard-model}, not only in the \gls{ggm}.
 
 Both the schemes in~\cite{goyal_attribute-based_2006} and in~\cite{bethencourt_ciphertext-policy_2007} only support monotone \glspl{access-structure}.
-
 In \cite{goyal_attribute-based_2006}, an inefficient realization of general (non-monotone) \glspl{access-structure} is proposed, which is to simply represent the absence of an attribute as a separate attribute.
 This is inefficient because it doubles the total number of attributes in the system~\cite{goyal_attribute-based_2006}. 
 Non-monotone access structures over a universe of $n$ attributes are represented by monotone access structures over a universe of $2n$ attributes.
-It also requires every ciphertext to be associated with $n$ attributes (i.e. either with their positive or negated of a corresponding attribute).
+It also requires every ciphertext to be associated with exactly $n$ attributes (i.e. either with their positive or negated of a corresponding attribute).
 Note that the size of ciphertexts and keys usually grows linearly with the number of attributes.
 
 The first efficient construction for non-monotone \glspl{access-structure} was given in~\cite{ostrovsky_attribute-based_2007}. 
@@ -54,7 +53,7 @@ In \cite{lewko_revocation_2008}, direct revocation is related to the realization
 The authors also present an efficient construction for non-monotone access structures with keys of size $\mathcal{O}(t)$, where $t$ is again the number of leaf nodes in the key's \gls{access-tree}~\cite{lewko_revocation_2008}.
 
 The difference between direct and indirect revocation is introduced in \cite{attrapadung_attribute-based_2009}, and a \emph{Hybrid Revocable} \acrshort{abes} is given.
-It allows the encryptor to choose the revocation mode separately for every message~\cite{attrapadung_attribute-based_2009}.
+It allows the encryptor to choose the revocation mode separately for every message.
 
 All of these schemes are built using a bilinear pairing as introduced in section~\ref{sec:bilinear-pairings}.
 A pairing-free \acrshort{kp-abe} scheme was proposed by Yao, Chen and Tian \cite{yao_lightweight_2015} in 2015.
@@ -76,8 +75,6 @@ For this reason, the security of pairing-free schemes like \cite{yao_lightweight
 One of the first notable pairing implementations was the \emph{Pairing-Based Cryptography Library (PBC)}~\cite{lynn_pairing-based_nodate, lynn_implementation_2007}.
 The efficiency improvements implemented by the PBC library were first described by its author, Ben Lynn, in~\cite{lynn_implementation_2007}.
 This implementation runs sufficiently fast on standard PC hardware, e.g. it takes 20.5ms to compute a pairing on a 224-bit MNT curve on a 2.4\,GHz Intel Core i5 processor~\cite{akinyele_self-protecting_2010}.
-
-~
 
 Implementations of \acrshort{abe} on standard PC hardware are well-studied \cite{akinyele_charm_2013,bethencourt_ciphertext-policy_2007,green_functional_nodate}; for an overview see~\cite{zickau_applied_2016}.
 

@@ -33,18 +33,19 @@ The sensor then uses this key to encrypt the data, which only the cloud server c
 When a user wants to access some data, they request it at the cloud server.
 If the cloud server grants their request, the server re-encrypts the data with the respective user's key and transmits it to them.
 This approach requires only \glslink{privkes}{symmetric encryption}, which is much faster than \acrshort{abe}.
-The disadvantage is that the cloud server knows all data in plain text. It thus needs to be trusted and represents a single point of failure.
+The disadvantage is that the cloud server knows all data in plaintext. It thus needs to be trusted and represents a single point of failure.
 
 To remove trust in the cloud server without performing \acrshort{abe} on the sensor, we could outsource the \acrshort*{abe} operations to the gateway.
 The latter is assumed to be much more powerful than the sensor.
 Communication over \acrshort{ble} is secured by \glslink{privkes}{symmetric encryption}.
 The gateway decrypts the data and re-encrypts it using \acrshort{abe} before uploading it to the cloud.
-However, this approach requires the gateway to be trustworthy.
+Access control is no longer enforced by an authorized party (e.g. the cloud server in the last paragraph), but by the encryption scheme itself.
+The gateway still needs to be trusted in this scenario because it can access the data in plaintext.
 
-Unfortunately, trusting either the gateway or the cloud provider is an unreasonable assumption in many scenarios.
+Trusting either the gateway or the cloud provider is an unreasonable assumption in many scenarios.
 Therefore, we'd like to employ end-to-end \acrlong{abe}:
-Measurements are encrypted with \acrshort{abe} on the sensor before they are transmitted over \acrshort{ble} and only decrypted when read by an authorized client (e.g. the attending doctor).
-Neither the gateway nor the cloud server need to be trusted in this scenario.
+Measurements should be encrypted with \acrshort{abe} on the sensor before they are transmitted over \acrshort{ble} and should only decrypted when read by an authorized client (e.g. the attending doctor).
+Performing \acrshort{abe} on the sensor removes the requirement of trust in the gateway and the cloud server.
 
 \Acrshort{abe} does not entirely remove the single point of failure, though:
 A malicious \acrfull{kgc} could issue keys that allow decryption of arbitrary data (see section~\ref{sec:kgc}).
