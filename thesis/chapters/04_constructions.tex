@@ -103,7 +103,7 @@ Then compute with $i = \text{index}(z)$ and $S'_u = \{\text{index}(z) | z \in S_
     \end{split}
 \end{equation*}
 
-The equality $(*)$ holds because in the exponent, the product becomes a sum: $\sum_{i\in S'_u} s \cdot q_u(i) \cdot \Delta_{i,S'_u}(0)$ is exactly the lagrange interpolation of $s \cdot q_u(0)$.
+The equality $(*)$ holds because in the exponent, the product becomes a sum: $\sum_{i\in S'_u} s \cdot q_u(i) \cdot \Delta_{i,S'_u}(0)$ is exactly the Lagrange interpolation of $s \cdot q_u(0)$.
 
 Let the root of the \gls{access-tree} be $r$, then the decryption algorithm simply calls $\text{DecryptNode}(E, D, r) = e(P,Q)^{s \cdot y} = Y^s$, if the ciphertexts's attributes satisfy the \gls{access-tree}.
 If they don't, then $\text{DecryptNode}(E, D, r) = \perp$.
@@ -118,7 +118,7 @@ To retrieve the message from $E' = M \cdot Y^s$, simply calculate and return $M'
 \section{Yao, Chen and Tian 2015}\label{sec:yct}
 
 The following scheme was described by Yao, Chen and Tian \cite{yao_lightweight_2015} in 2015.
-In 2019, Tan, Yeow and Hwang \cite{tan_enhancement_2019} proposed an enhancement, fixing a flaw in the scheme and extending it to be a hierarchical KP-ABE scheme.
+In 2019, Tan, Yeow and Hwang \cite{tan_enhancement_2019} found and fixed a flaw in the scheme.
 
 Yao, Chen and Tian's ABE scheme (hereafter written just YCT) is a KP-ABE scheme that does not use any bilinear pairing operations.
 Instead, the only operations performed on \glspl{ec} are point-scalar multiplication~\cite{yao_lightweight_2015}.
@@ -171,7 +171,7 @@ For each layer $l = 0, 1, \dots$ of the \gls{access-tree}, generate a random see
 For each node $u$ in the \gls{access-tree} $\mathcal{T}$, recursively define polynomials $q_u(x)$ with degree $(d_u - 1)$, starting from the root.
 
 For the root $r$, set $q_r(0) = s$ and randomly choose $(d_r - 1)$ other points to determine the polynomial $q_r(x)$.
-Then, for any other node $u$ (including leafs), set $q_u(0) = q_{\text{parent}(u)}(\text{index}'(u))$ and choose $(d_u -1)$ other points for $q_u$, similar to above.
+Then, for any other node $u$ (including leaves), set $q_u(0) = q_{\text{parent}(u)}(\text{index}'(u))$ and choose $(d_u -1)$ other points for $q_u$, similar to above.
 
 Whenever $u$ is a leaf node, use $q_u(x)$ to define a secret share $D_u = q_u(0) \cdot s_i^{-1}$; where $i = \text{attr}(u)$, $s_i$ the randomly chosen secret number from \emph{Setup} and $s_i^{-1}$ the inverse of $s_i$ in $\mathbb{Z}_q^*$.
 
@@ -204,13 +204,13 @@ Then $\text{DecryptNode}(CM, D, u)$ is defined as follows, where $i = \text{inde
     \begin{split}
         \text{DecryptNode}(CM, D, u) =& \sum_{v \in \omega_u} \Delta_{\omega'_u, i}(0) \cdot \text{DecryptNode}(CM, D, v)\\
         =& \sum_{v \in \omega_u} \Delta_{\omega'_u, i}(0) \cdot q_v(0) \cdot k \cdot G\\
-        =& \sum_{v \in \omega_u} \Delta_{\omega'_u, i}(0) \cdot q_{\text{parent}(v)}(\text{index}(v)) \cdot k \cdot G\\
+        =& \sum_{v \in \omega_u} \Delta_{\omega'_u, i}(0) \cdot q_{\text{parent}(v)}(\text{index}'(v)) \cdot k \cdot G\\
         =& \sum_{v \in \omega_u} \Delta_{\omega'_u, i}(0) \cdot q_u(i) \cdot k \cdot G\\
         \stackrel{(*)}{=}&~q_u(0) \cdot k \cdot G
     \end{split}
 \end{equation*}
 
-The equality $(*)$ holds because $\sum_{v \in \omega'_u} \Delta_{\omega'_u, i}(0) \cdot q_u(i) = q_u(0)$ is exactly the lagrange interpolation polynomial $q_u(x)$ at $x = 0$ with respect to the points $\{(index(v), q_v(0)) | v \in \omega_u\}$. 
+The equality $(*)$ holds because $\sum_{v \in \omega'_u} \Delta_{\omega'_u, i}(0) \cdot q_u(i) = q_u(0)$ is exactly the Lagrange interpolation polynomial $q_u(x)$ at $x = 0$ with respect to the points $\{(index(v), q_v(0)) | v \in \omega_u\}$. 
 
 This means for the root $r$ of the \gls{access-tree} $\mathcal{T}$, we have
 \begin{equation*}

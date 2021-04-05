@@ -90,7 +90,7 @@ Note that the NEON instruction set is not available on our SoC.
 
 In \cite{wang_performance_2014}, \glslink{gls-cp-abe}{CP-} and \acrshort{kp-abe} are evaluated for different \glspl{security-level} on an Intel Atom-based smartphone using a Java implementation.
 They conclude that \acrshort{abe} on smartphones is not fast enough to be practical.
-This is subsequently challenged in \cite{ambrosin_feasibility_2015}, where a C implementation also using the PBC library from~\cite{lynn_implementation_2007} is evaluated on a smartphone with a 1.2GHz ARM Cortex A9 CPU.
+This is subsequently challenged in \cite{ambrosin_feasibility_2015}, where a C implementation using the PBC library from~\cite{lynn_implementation_2007} is evaluated on a smartphone with a 1.2GHz ARM Cortex A9 CPU.
 This implementation is significantly faster than the one in \cite{wang_performance_2014} at comparable \glspl{security-level}.
 As such, the authors conclude that \acrshort{abe} is indeed feasible on smartphones.
 
@@ -103,13 +103,13 @@ Their choice of elliptic curves, however, only provides a security level of 80 b
 This is significantly lower than the security level of the 224-bit MNT curve from the PBC library (around 128 bits)~\cite{akinyele_self-protecting_2010} and the curves used in this thesis (around 100 bits).
 
 Scott~\cite{scott_deployment_2020} provides a fast implementation of a 254-bit BN curve (the same as used in this thesis) in the \emph{MIRACL Core Cryptographic Library}~\cite{scott_miracl_nodate}.
-They also evaluate their library on the same SoC as used in this thesis (nRF52840, 64\,MHz ARM Cortex-M4 CPU) and compute a pairing of the 254-bit BN curve in 635\,ms \cite[Table~4]{scott_deployment_2020}.
+They also evaluate their library on the same SoC as used in this thesis (nRF52840, 64\,MHz ARM Cortex-M4 CPU) and compute a pairing in 635\,ms \cite[Table~4]{scott_deployment_2020}.
 Only the pairing implementation is tested and evaluated, the authors do not implement an \acrshort{abes}.
 
 ~
 
 The authors of \cite{ambrosin_feasibility_2015} test their \acrshort{abe} implementation on \gls{iot} devices in \cite{ambrosin_feasibility_2016}.
-They evaluate the performance of the same library on full-fledged \acrshort{iot} devices (among others, on a Raspberry Pi Zero with 1\,GHz ARM11 CPU) and conclude that \acrshort{abe} is feasible on these devices, too.
+They evaluate the performance of the same library on fully-fledged \acrshort{iot} devices (among others, on a Raspberry Pi Zero with 1\,GHz ARM11 CPU) and conclude that \acrshort{abe} is feasible on these devices, too.
 However, they note that especially lower security levels are suitable and that the penalty for increasing the security level is very high (e.g. increasing the security level from 80 to 128 bits without increasing the encryption time requires reduction of the number of attributes by a factor of 10)~\cite{ambrosin_feasibility_2016}.
 In contrast to the SoC used in this thesis, their devices are significantly more powerful and run full operating systems.
 

@@ -20,8 +20,9 @@ In addition, this thesis aims to give an easy-to-understand explanation of \acrs
 
 \input{figures/01_system_architecture}
 
-For a real-world use case of such an \acrshort{abe} library in the medical field, see Figure~\ref{fig:system-architecture}. % TODO? describe the figure in words as well?
-It is assumed that the sensor (e.g. an ECG or blood glucose sensor) is unable to communicate with the internet directly.
+Figure~\ref{fig:system-architecture} shows a real-world use case of such an \acrshort{abe} library in the medical field:
+Remote monitoring of a patient by a connected, wearable sensor (e.g. for ECG or blood glucose).
+It is assumed that the sensor is unable to communicate with the internet directly.
 Therefore, the data is sent to a gateway via \acrfull{ble} and then uploaded to the cloud.
 
 Note that in this use case, the sensor exclusively needs to encrypt data.
@@ -42,9 +43,9 @@ The gateway decrypts the data and re-encrypts it using \acrshort{abe} before upl
 Access control is no longer enforced by an authorized party (e.g. the cloud server in the last paragraph), but by the encryption scheme itself.
 The gateway still needs to be trusted in this scenario because it can access the data in plaintext.
 
-Trusting either the gateway or the cloud provider is an unreasonable assumption in many scenarios.
+Trusting either the gateway or the cloud provider is an unreasonable assumption in many use cases.
 Therefore, we'd like to employ end-to-end \acrlong{abe}:
-Measurements should be encrypted with \acrshort{abe} on the sensor before they are transmitted over \acrshort{ble} and should only decrypted when read by an authorized client (e.g. the attending doctor).
+Measurements should be encrypted with \acrshort{abe} on the sensor before they are transmitted over \acrshort{ble} and should only be decrypted when read by an authorized client (e.g. the attending doctor).
 Performing \acrshort{abe} on the sensor removes the requirement of trust in the gateway and the cloud server.
 
 \Acrshort{abe} does not entirely remove the single point of failure, though:

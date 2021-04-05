@@ -20,7 +20,7 @@
             \path (decrypt.north) -- +(0, 0.3) pic [anchor=west, scale=0.1, red, fill=red] {key};
             \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m};
         \end{tikzpicture}
-        \caption{Asymmetric Encryption: Different keys for encryption and decryption. Decryption succeeds if and only if the decryption key is exactly the counterpart to the encryption key.} \label{fig:keys-asymmetric}
+        \caption{Asymmetric Encryption: Different keys for encryption and decryption. Decryption succeeds if and only if the decryption key is exactly the counterpart to the encryption key. Only the decryption key needs to be kept secret.} \label{fig:keys-asymmetric}
     \end{subfigure}
     \\ 
     \vspace{0.5cm}
@@ -54,8 +54,8 @@
             \path (decrypt.north) -- +(0, 0.3) node [red] {$\{A, B, C\}$};
             \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m};
         \end{tikzpicture}
-        \caption{\glslink{gls-cp-abe}{Ciphertex-Policy Attribute-Based Encryption}: \Gls{access-policy} for encryption, attributes for decryption. Decryption succeeds if and only if the attributes of the key match the policy embedded in the ciphertext.} \label{fig:keys-abe}
+        \caption{\glslink{gls-cp-abe}{Ciphertext-Policy Attribute-Based Encryption}: \Gls{access-policy} for encryption, attributes for decryption. Decryption succeeds if and only if the attributes of the key match the policy embedded in the ciphertext.} \label{fig:keys-abe}
     \end{subfigure}
-    \caption[Keys in different classes of encryption schemes]{Keys used for encryption and decryption in different classes of encryption schemes. Red information has to be kept secret, green information may be made publicly available. For the differences between the two types of \acrshort{abe}, see Section~\ref{sec:cp-vs-kp}.}
+    \caption[Keys in different classes of encryption schemes]{Keys used for encryption and decryption in different classes of encryption schemes. Red information has to be kept secret, green information may be made publicly available. For the differences between the two types of \acrshort{abe}, see section~\ref{sec:cp-vs-kp}.}
     \label{fig:key-use}
 \end{figure}

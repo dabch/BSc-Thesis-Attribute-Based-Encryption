@@ -8,8 +8,8 @@ For the evaluation of the library, all four \acrshort{abe} algorithms (Encrypt, 
 Runtimes, RAM use and binary sizes were recorded.
 
 Computing the bilinear pairings underlying most \acrshortpl{abes} on the SoC is feasible, but comes at a rather high cost.
-Comparison with other pairing implementations shows that there is some room for improvement here, but the the operations remain expensive.
-In addition to computation time, memory size is a major bottleneck for pairing-based implementations.
+Comparison with other pairing implementations shows that there is some room for improvement, but the the operations remain expensive.
+In addition to computation time, memory size is a major bottleneck.
 % The GPSW scheme is limited to small and medium policies for key generation and decryption. 
 % With less memory, even computation of a single pairing fails because of insufficient RAM.
 
@@ -30,4 +30,4 @@ Further research in this area is needed.\\
 
 In short, \acrlong{abe} is feasible on the considered hardware, especially if only encryption is needed and the number of attributes is not too large.
 Still, it comes at a high cost in runtimes and memory consumption.
-Especially decryption with the pairing-based scheme is not feasible because runtimes are very long and only \glspl{access-tree} with few levels can be used.
+Especially decryption with the pairing-based scheme is not practical because runtimes are very long and the complexity of feasible \glspl{access-tree} is limited.

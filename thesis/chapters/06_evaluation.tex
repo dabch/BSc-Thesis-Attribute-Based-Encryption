@@ -7,7 +7,7 @@ Therefore, the performance of the ported \texttt{rabe-bn} library will be evalua
 \section{Performance of \texttt{rabe\_bn}}\label{sec:rabebn-evaluation}
 
 Table~\ref{tbl:rabebn-performance} displays performance measurements of random element sampling, group-scalar exponentiation and the pairing operation with the \verb+rabe_bn+ library.
-The times have been measured using randomly sampled elements and averaged over 100 calls of each operation.
+The times were measured using randomly sampled elements and averaged over 100 calls of each operation.
 
 \begin{center}
     \begin{tabular}{|c|r|r|}\hline%
@@ -66,7 +66,7 @@ This section describes how the presented result were obtained.
 
 All time measurements were performed using a hardware timer on the nRF52840 SoC.
 
-The runtime of \acrshort{abe} operations is not constant, but depends on the number of attributes and / or the complexity of the used policy.
+The runtime of \acrshort{abe} operations is not constant, but depends on the number of attributes and / or the complexity of the policy.
 
 For Setup, the number of attributes refers to the total number of attributes in the system.
 For Encrypt, it refers to the number of attributes under which the ciphertext is encrypted.
@@ -142,7 +142,7 @@ The difference in flash size is not as big, but the GPSW scheme still requires a
 \section{Discussion}
 The timings of Setup and Encrypt are in line with the time-consuming operations performed by the algorithms: 
 In both schemes, each additional attribute results in one additional exponentiation in $\mathbb{G}_1$.
-This takes about 150\,ms as per Table~\ref{tbl:rabebn-performance}, which is exactly the additional time per attribute.
+This takes about 150\,ms as per Table~\ref{tbl:rabebn-performance}, which is exactly the measured additional time per attribute.
 The constant overhead of about 3.5\,s with GPSW is a result of the pairing computation and exponentiation in $\mathbb{G}_T$ (for Setup) and the sampling and exponentiation in $\mathbb{G}_T$ (for Encrypt).
 
 This contradicts the result from \cite{girgenti_feasibility_2019}, where the encryption performance of GPSW and YCT are explicitly noted to be equivalent.
@@ -207,10 +207,11 @@ If this is an issue (e.g. due to low-power wireless transmission), the \acrshort
 Then both the symmetric ciphertext and the respective \acrshort{abe}-encrypted key must be present to decrypt a message.
 
 This symmetric key-caching approach was implemented for use in a system similar to that presented in Figure~\ref{fig:system-architecture}.
-However, it was not evaluated for this thesis, because it doesn't allow the same flexibility as \acrlong{abe}.
+However, it was not evaluated for this thesis because it doesn't allow the same flexibility as \acrlong{abe}.
 ~\\
 
 The two schemes implemented in the library are \acrshort{kp-abe} schemes, currently no \acrshort{cp-abe} schemes are implemented.
-\acrshort{cp-abe} on constrained devices is examined in~\cite{borgh_attribute-based_2016}, but further evaluation is left as future work.
+\acrshort{cp-abe} on constrained devices is examined in~\cite{borgh_attribute-based_2016}, but only for encryption.
+Further evaluation of \acrshort{cp-abe} decryption is left as future work.
 The implemented schemes also don't support key revocation or a \gls{large-universe} of attributes. 
 Implementation and evaluation of those is also left for future projects.

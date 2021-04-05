@@ -96,8 +96,8 @@ With both, the underlying AES library might return an error, which is passed on 
 \begin{lstlisting}[float=h!,caption={Exported function signatures of the GPSW scheme},label={lst:abe-signatures}]
 pub fn setup<'attr, 'es>(
     att_names: &[&'attr str], 
-    public_map: &'es mut FnvIndexMap<&'attr str, G2, S>, 
-    private_map: &'es mut FnvIndexMap<&'attr str, F, S>, 
+    public_map: &'es mut FnvIndexMap<&'attr str, G1, S>, 
+    private_map: &'es mut FnvIndexMap<&'attr str, Fr, S>, 
     rng: &mut dyn RngCore
 ) -> (GpswAbePrivate<'attr, 'es>, GpswAbePublic<'attr, 'es>) 
 
@@ -251,21 +251,21 @@ For reasons of simplicity, the latter is only implemented for $x=0$, i.e. the in
 Evaluation at any other value is not needed for the \acrshort{abe} implementation.
 
 \begin{lstlisting}[float=h,caption={Implementation of polynomials over $\mathbb{F}_r$},label={lst:polynomials}]
-struct Polynomial(Vec<F, cons>);
+struct Polynomial(Vec<Fr, cons>);
 impl Polynomial {
     /// Evaluates the polynomial p(x) at a given x
-    fn eval(&self, x: F) -> F {
-        self.0.iter().rev().fold(F::zero(), |acc, c| *c + (x * acc))
+    fn eval(&self, x: Fr) -> Fr {
+        self.0.iter().rev().fold(Fr::zero(), |acc, c| *c + (x * acc))
     }
     /// Generates a random polynomial p(x) of degree `coeffs`,
     /// where p(0) = `a0`
-    fn randgen(a0: F, coeffs: u64, rng: &mut dyn RngCore) -> Polynomial {
+    fn randgen(a0: Fr, coeffs: u64, rng: &mut dyn RngCore) -> Polynomial {
         // [...]
     }
     /// Calculates the langrage base polynomials l_i(x) for given set of
     /// indices omega and the index i. As we only ever need to
     /// interpolate p(0), x=0 is hard-coded.
-    fn lagrange_of_zero(i: &F, omega: &Vec<F, S>) -> F {
+    fn lagrange_of_zero(i: &Fr, omega: &Vec<Fr, S>) -> Fr {
         // [...]
     }
 }
@@ -286,8 +286,8 @@ The setup algorithm is implemented almost exactly as described in chapter~\ref{c
 \begin{lstlisting}[float=h,caption={Private and public system parameters structs for GPSW},label={lst:struct-pubkey}]
 /// Private parameters, known only to KGC
 pub struct GpswAbePrivate<'attr, 'own> {
-    atts: &'own FnvIndexMap<&'attr str, F, S>, // attribute private keys
-    master_secret: F,
+    atts: &'own FnvIndexMap<&'attr str, Fr, S>, // attribute private keys
+    master_secret: Fr,
 }
 /// Public parameters, known to all participants
 pub struct GpswAbePublic<'attr, 'own> {
@@ -338,9 +338,9 @@ fn keygen_node<'attr, 'key>(
     tree_arr: AccessStructure<'attr, 'key>,
     tree_ptr: u8,
     parent_poly: &Polynomial,
-    index: F,
+    index: Fr,
     rng: &mut dyn RngCore,
-) -> Vec<(u8, G1), consts::U30> 
+) -> Vec<(u8, G2), consts::U30> 
 \end{lstlisting}
 
 \verb+tree_ptr+ is the position of the currently visited \gls{access-tree} node within \verb+tree_arr+.
@@ -371,7 +371,7 @@ fn decrypt_node(
 \end{lstlisting}
 
 The arguments \verb+tree_arr+ and \verb+tree_ptr+ are equivalent to those in Listing~\ref{lst:keygen-node}.
-In \verb+secret_shares+, the secret shares corresponding to the leafs of the \gls{access-tree} are passed.
+In \verb+secret_shares+, the secret shares corresponding to the leaves of the \gls{access-tree} are passed.
 \verb+att_es+ contains the curve elements corresponding to the attributes associated with the ciphertext.
 
 \verb+decrypt_node()+ returns an \verb+Option<Gt>+.
