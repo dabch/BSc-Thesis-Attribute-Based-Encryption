@@ -8,7 +8,7 @@
             \scoped[sibling distance=20, level distance=12, inner sep=2]{
                 \tikzstyle{every node}=[fill, circle, draw];
                 \tikzstyle{level 2}=[sibling distance=6];
-                \fill[olive] (ciphertext.north) -- ++(0, 3) node (root) [anchor=south] {} child {node (b) {} child {node {}} child {node {}} child {node {}}} child { node {} child {node {}}};
+                \fill[olive] (ciphertext.north) ++(0, 3) node (root) [anchor=south] {} child {node (b) {} child {node {}} child {node {}} child {node {}}} child { node {} child {node {}}};
             };  
             \path (ciphertext.north) ++(0, 0.5) pic [fill=olive, scale = 0.2] {lock};
             
@@ -27,7 +27,7 @@
             \scoped[sibling distance=20, level distance=12, inner sep=2]{
                 \tikzstyle{every node}=[fill, circle, draw];
                 \tikzstyle{level 2}=[sibling distance=6];
-                \fill (key.north) -- ++(0, 3) node (root) [anchor=south] {} child {node (b) {} child {node {}} child {node {}} child {node {}}} child { node {} child {node {}}};
+                \fill (key.north) ++(0, 3) node (root) [anchor=south] {} child {node (b) {} child {node {}} child {node {}} child {node {}}} child { node {} child {node {}}};
             };  
             \path (key.north) -- ++(0,1) pic [scale=0.15] {key};
             

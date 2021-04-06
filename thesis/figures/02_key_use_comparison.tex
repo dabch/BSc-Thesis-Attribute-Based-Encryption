@@ -31,7 +31,7 @@
             \scoped{
                 \tikzstyle{every node}=[fill, circle, draw, inner sep=0.5mm];
                 \tikzstyle{level 2}=[sibling distance=1.5mm];
-                \fill[red] (decrypt.north) -- ++(0, 0.7) node [anchor=south] {} child {node {} child {node {}} child {node {}} child {node {}}} child { node {} child {node {}}};
+                \fill[red] (decrypt.north) ++(0, 0.7) node [anchor=south] {} child {node {} child {node {}} child {node {}} child {node {}}} child { node {} child {node {}}};
             };
             \draw[->] (encrypt.east) -- ++(2, 0) node [anchor=south] {c} -- ++(2,0) node (decrypt) [anchor=west, draw] {Decrypt};
             \path (encrypt.north) -- +(0, 0.3) node [olive] {$\{A, B, C\}$};
@@ -48,7 +48,7 @@
             \scoped{
                 \tikzstyle{every node}=[fill, circle, draw, inner sep=0.5mm];
                 \tikzstyle{level 2}=[sibling distance=1.5mm];
-                \fill[olive] (encrypt.north) -- ++(0, 0.7) node [anchor=south] {} child {node {} child {node {}} child {node {}} child {node {}}} child { node {} child {node {}}};
+                \fill[olive] (encrypt.north) ++(0, 0.7) node [anchor=south] {} child {node {} child {node {}} child {node {}} child {node {}}} child { node {} child {node {}}};
             };
             \draw[->] (encrypt.east) -- ++(2, 0) node [anchor=south] {c} -- ++(2,0) node (decrypt) [anchor=west, draw] {Decrypt};
             \path (decrypt.north) -- +(0, 0.3) node [red] {$\{A, B, C\}$};
