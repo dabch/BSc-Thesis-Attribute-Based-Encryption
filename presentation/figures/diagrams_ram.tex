@@ -4,7 +4,7 @@
             title={Memory use on the laptop},
             height=.7\textheight,
             xlabel={depth of the \gls{access-tree}},
-            ylabel={kilobytes},
+            ylabel={KB},
             xmin=0.75, xmax=4.25,
             ymin=0, ymax=360000,
             xtick=data,
@@ -24,7 +24,7 @@
         \addplot [color=blue, mark=none] {83560};
         \addlegendentry{YCT Enc};
         \addplot [color=orange, mark=none] {22616};
-        \addplot [color=black, dashed, mark=none] {256000};
+        \addplot [color=red, thick, dashed, mark=none] {256000} node [below,pos=.925, anchor=north east, font=\small] {SoC RAM size};
     \end{axis}
     \end{tikzpicture}
 \end{minipage}
