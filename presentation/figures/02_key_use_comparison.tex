@@ -7,7 +7,7 @@
             \path (encrypt.north) -- +(0, 0.3) pic [anchor=west, scale=0.1, red, fill=red] {key};
             \draw[->] (encrypt.east) -- ++(2, 0) node [anchor=south] {c} -- ++(2,0) node (decrypt) [anchor=west, draw] {Decrypt};
             \path (decrypt.north) -- +(0, 0.3) pic [anchor=west, scale=0.1, red, fill=red] {key};
-            \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m'};
+            \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m};
         \end{tikzpicture}
         ~\vspace{0.25cm}
         \caption{Symmetric Encryption (e.g. AES)} \label{fig:keys-symmetric}
@@ -22,7 +22,7 @@
             \path (encrypt.north) -- +(0, 0.3) pic [anchor=west, scale=0.1, olive, fill=olive] {key};
             \draw[->] (encrypt.east) -- ++(2, 0) node [anchor=south] {c} -- ++(2,0) node (decrypt) [anchor=west, draw] {Decrypt};
             \path (decrypt.north) -- +(0, 0.3) pic [anchor=west, scale=0.1, red, fill=red] {key};
-            \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m'};
+            \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m};
         \end{tikzpicture}
         ~\vspace{0.25cm}
         \caption{Asymmetric Encryption (e.g. RSA)} \label{fig:keys-asymmetric}
@@ -42,7 +42,7 @@
             };
             \draw[->] (encrypt.east) -- ++(2, 0) node [anchor=south] {c} -- ++(2,0) node (decrypt) [anchor=west, draw] {Decrypt};
             \path (encrypt.north) -- +(0, 0.3) node [olive] {$\{A, B, C\}$};
-            \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m'};
+            \draw[->] (decrypt.east) -- ++(1,0) node [anchor=west] {m};
         \end{tikzpicture}
         ~\vspace{0.25cm}
         \caption{Attribute-Based Encryption} \label{fig:keys-abe}
